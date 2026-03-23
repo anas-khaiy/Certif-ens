@@ -1,0 +1,152 @@
+services:
+  # Base de données PostgreSQL partagée par les 3 backends Spring Boot
+  postgres:
+    image: postgres:15-alpine
+    container_name: certiflow-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: certif_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend Administrateur
+  backend-admin:
+    build: 
+      context: ./Backend-Admin
+    container_name: certiflow-backend-admin
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Backend Formateur
+  backend-formateur:
+    build: 
+      context: ./Backend-Formateur
+    container_name: certiflow-backend-formateur
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=mistral
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+
+  # Backend Apprenant
+  # ... (backend-apprenant config) ...
+  backend-apprenant:
+    build: 
+      context: ./Backend-Apprenant
+    container_name: certiflow-backend-apprenant
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Microservice IA (Python)
+  ai-detection-service:
+    build: 
+      context: ./AI-Detection-Service
+    container_name: certiflow-ai-service
+    ports:
+      - "8000:8000"
+
+  # Ollama LLM (Mistral 7B)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: certiflow-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_NUM_CTX=2048        # Reduce context window to save RAM
+      - OLLAMA_MAX_LOADED_MODELS=1 # Only keep 1 model loaded at a time
+    deploy:
+      resources:
+        limits:
+          memory: 6G               # Mistral 7B needs ~4-5GB RAM
+        reservations:
+          memory: 4G
+
+  # SERVICE D'INSTALLATION AUTOMATIQUE DU MODÈLE
+  # Ce service s'exécute, vérifie que Ollama est là, tire le modèle, puis s'arrête.
+  ollama-model-installer:
+    image: alpine:latest
+    container_name: certiflow-ollama-installer
+    depends_on:
+      - ollama
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: |
+      "apk add --no-cache curl && \
+      echo 'Attente du démarrage d Ollama...' && \
+      sleep 10 && \
+      curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"mistral\"}' && \
+      echo 'Modèle Mistral installé !';"
+
+  # Frontend Administrateur
+  service-admin:
+    build: 
+      context: ./Service Admin
+    container_name: certiflow-frontend-admin
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Utile sous Windows
+    volumes:
+      - ./Service Admin:/app
+      - /app/node_modules
+
+  # Frontend Formateur
+  service-formateur:
+    build: 
+      context: ./Service Formateur
+    container_name: certiflow-frontend-formateur
+    ports:
+      - "5174:5174"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./Service Formateur:/app
+      - /app/node_modules
+
+  # Frontend Apprenant
+  service-apprenant:
+    build: 
+      context: ./Service Apprenant
+    container_name: certiflow-frontend-apprenant
+    ports:
+      - "5175:5175"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./Service Apprenant:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  ollama_data:

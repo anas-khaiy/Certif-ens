@@ -1,0 +1,219 @@
+/* =========================================
+   LOGIN PAGE SPECIFIC STYLES
+   ========================================= */
+
+/* --- Background Animation --- */
+@keyframes gradient-bg {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.bg-animated {
+    background: linear-gradient(-45deg, var(--gradient-1), var(--gradient-2), var(--gradient-3), var(--gradient-4));
+    background-size: 400% 400%;
+    animation: gradient-bg 15s ease infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- Glassmorphism Card --- */
+.glass-morphism {
+    background: var(--glass);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.4),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    border-radius: 40px;
+    /* Specific to login card */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] .glass-morphism {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+/* --- Typography & Text Effects --- */
+.gradient-text {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+.tracking-tight {
+    letter-spacing: -0.025em;
+}
+
+.tracking-\[0\.2em\] {
+    letter-spacing: 0.2em;
+}
+
+/* --- Responsive Logo --- */
+.logo-responsive {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    transition: width 0.3s ease;
+}
+
+@media (min-width: 640px) {
+    .logo-responsive {
+        max-width: 369px;
+    }
+}
+
+/* --- Form & Input Styles --- */
+.input-focus-effect {
+    position: relative;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.input-focus-effect:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+    /* Primary color with opacity */
+}
+
+/* Custom form input with backdrop blur */
+input.form-input {
+    background-color: rgba(3, 7, 18, 0.3);
+    /* bg-background/30 */
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    padding-left: 3.5rem;
+    /* Space for icon */
+    padding-right: 1.5rem;
+}
+
+input.form-input:focus {
+    background-color: rgba(3, 7, 18, 0.5);
+}
+
+[data-theme="light"] input.form-input {
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* --- Utility Polyfills (For missing Tailwind classes) --- */
+/* These classes handle the decorative blobs and specific positioning */
+.bg-primary\/20 {
+    background-color: rgba(99, 102, 241, 0.2);
+}
+
+.bg-secondary\/20 {
+    background-color: rgba(236, 72, 153, 0.2);
+}
+
+.bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.bg-white\/20 {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.border-white\/10 {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.border-white\/30 {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Decorative Blob Sizes */
+.w-\[500px\] {
+    width: 500px;
+}
+
+.h-\[500px\] {
+    height: 500px;
+}
+
+.w-\[600px\] {
+    width: 600px;
+}
+
+.h-\[600px\] {
+    height: 600px;
+}
+
+/* Positioning & Layout */
+.top-\[-10\%\] {
+    top: -10%;
+}
+
+.left-\[-10\%\] {
+    left: -10%;
+}
+
+.bottom-\[-10\%\] {
+    bottom: -10%;
+}
+
+.right-\[-10\%\] {
+    right: -10%;
+}
+
+.blur-\[120px\] {
+    filter: blur(120px);
+}
+
+.blur-\[150px\] {
+    filter: blur(150px);
+}
+
+/* Loading Spinner */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+.border-3 {
+    border-width: 3px;
+}
+
+.border-t-white {
+    border-top-color: #ffffff;
+}
+
+/* Spacing Utilities */
+.space-y-6>:not([hidden])~:not([hidden]) {
+    margin-top: 1.5rem;
+}
+
+.space-y-8>:not([hidden])~:not([hidden]) {
+    margin-top: 2rem;
+}
+
+/* Theme Toggle Button Specifics */
+.bg-\[\#0f172a\] {
+    background-color: #0f172a;
+}
+
+.hover\:bg-\[\#1e293b\]:hover {
+    background-color: #1e293b;
+}
+
+.shadow-2xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.shadow-soft {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}

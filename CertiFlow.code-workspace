@@ -1,0 +1,28 @@
+{
+    "folders": [
+        {
+            "name": "Backend-Admin",
+            "path": "Backend-Admin"
+        },
+        {
+            "name": "Backend-Formateur",
+            "path": "Backend-Formateur"
+        },
+        {
+            "name": "Service Admin",
+            "path": "Service Admin"
+        },
+        {
+            "name": "Service Formateur",
+            "path": "Service Formateur"
+        },
+        {
+            "name": "Service Apprenant",
+            "path": "Service Apprenant"
+        }
+    ],
+    "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.compile.nullAnalysis.mode": "disabled"
+    }
+}

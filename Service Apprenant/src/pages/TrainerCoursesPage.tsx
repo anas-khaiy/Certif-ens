@@ -1,0 +1,420 @@
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+    Search,
+    BookOpen,
+    Clock,
+    ChevronLeft,
+    ChevronRight,
+    Plus,
+    CheckCircle,
+    AlertCircle,
+    Layers
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCourses } from '../hooks/useCourses';
+import type { Course } from '../types';
+
+const TrainerCoursesPage: React.FC = () => {
+    const { name } = useParams<{ name: string }>();
+    const navigate = useNavigate();
+    const { courses } = useCourses();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+    const [enrolledRequests, setEnrolledRequests] = useState<string[]>([]);
+    const [acceptedRequests, setAcceptedRequests] = useState<string[]>([]);
+    const [showToast, setShowToast] = useState(false);
+    const itemsPerPage = 6;
+
+    React.useEffect(() => {
+        const savedAccepted = localStorage.getItem('accepted_enrollments');
+        if (savedAccepted) {
+            setAcceptedRequests(JSON.parse(savedAccepted));
+        } else {
+            localStorage.setItem('accepted_enrollments', JSON.stringify(['1']));
+            setAcceptedRequests(['1']);
+        }
+    }, []);
+
+    const handleEnroll = (courseId: string) => {
+        if (!enrolledRequests.includes(courseId)) {
+            setEnrolledRequests(prev => [...prev, courseId]);
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 3000);
+        }
+    };
+
+    // Filter courses by this trainer
+    const trainerCourses = courses.filter(course => course.trainerName === name);
+    const trainerInfo = trainerCourses.length > 0 ? {
+        name: trainerCourses[0].trainerName,
+        image: trainerCourses[0].trainerImage
+    } : {
+        name: name,
+        image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop&q=60'
+    };
+
+    const filteredCourses = trainerCourses.filter(course =>
+        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+    const displayedCourses = filteredCourses.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const getPages = () => {
+        const pages: (number | string)[] = [];
+        const showMax = 5;
+        if (totalPages <= showMax) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (currentPage > 3) pages.push('...');
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+                if (!pages.includes(i)) pages.push(i);
+            }
+            if (currentPage < totalPages - 2) pages.push('...');
+            pages.push(totalPages);
+        }
+        return pages;
+    };
+
+    return (
+        <div className="min-h-screen p-4 md:p-8 animate-fade-in">
+            {/* Header Section */}
+            <div className="max-w-7xl mx-auto mb-12">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-surface p-8 rounded-3xl border border-glass-border shadow-xl">
+                    <div className="flex items-center gap-6">
+                        <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-4 border-primary/20 shadow-2xl flex-shrink-0">
+                            <img
+                                src={trainerInfo.image}
+                                className="w-full h-full object-cover"
+                                alt={trainerInfo.name}
+                            />
+                        </div>
+                        <div>
+                            <div className="text-primary font-black uppercase tracking-widest text-[10px] mb-1">Profil Formateur</div>
+                            <h1 className="text-3xl md:text-4xl font-black text-text">{trainerInfo.name}</h1>
+                            <p className="text-text-muted font-bold text-sm mt-1">
+                                {trainerCourses.length} {trainerCourses.length > 1 ? 'cours publiés' : 'cours publié'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="relative w-full md:w-80">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Rechercher un cours..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{ backgroundColor: 'var(--surface)', color: 'var(--text)' }}
+                            className="w-full pl-11 pr-4 py-3.5 bg-surface border border-glass-border rounded-2xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none font-bold text-sm"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Courses Grid */}
+            <div className="max-w-7xl mx-auto">
+                {displayedCourses.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {displayedCourses.map((course) => (
+                            <motion.div
+                                key={course.id}
+                                layout
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                onClick={() => setSelectedCourse(course)}
+                                className="group bg-surface border border-glass-border rounded-3xl overflow-hidden hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer flex flex-col h-full"
+                            >
+                                <div className="h-48 relative overflow-hidden">
+                                    <img
+                                        src={course.coverImage || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60'}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                        alt={course.title}
+                                    />
+                                    <div className="absolute top-4 right-4 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/30 z-10">
+                                        {course.level}
+                                    </div>
+                                </div>
+                                <div className="p-6 flex flex-col flex-1">
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-primary mb-2 uppercase tracking-wider">{course.category}</div>
+                                        <h3 className="text-xl font-bold mb-4 line-clamp-2 group-hover:text-primary transition-colors">{course.title}</h3>
+
+                                        <div className="flex items-center justify-between py-4 border-t border-glass-border">
+                                            <div className="flex items-center gap-2 text-sm text-text-muted font-bold">
+                                                <BookOpen size={16} />
+                                                {course.sections.length} Chapitres
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-text-muted font-bold">
+                                                <Clock size={16} />
+                                                {course.sections.length * 2}h
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {acceptedRequests.includes(course.id) ? (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(`/courses/${course.id}/preview`);
+                                            }}
+                                            className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-success text-white shadow-lg shadow-success/25 hover:bg-success/90"
+                                        >
+                                            <BookOpen size={18} />
+                                            Commencer
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEnroll(course.id);
+                                            }}
+                                            disabled={enrolledRequests.includes(course.id)}
+                                            className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${enrolledRequests.includes(course.id)
+                                                ? 'bg-success/10 text-success cursor-default'
+                                                : 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary-hover'
+                                                }`}
+                                        >
+                                            {enrolledRequests.includes(course.id) ? (
+                                                <>
+                                                    <CheckCircle size={18} />
+                                                    Envoyée
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Plus size={18} />
+                                                    Inscrire
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-20 bg-surface rounded-3xl border border-glass-border">
+                        <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Search size={40} />
+                        </div>
+                        <h2 className="text-2xl font-bold mb-2">Aucun cours trouvé</h2>
+                        <p className="text-text-muted">Essayez d'ajuster votre recherche pour trouver un cours spécifique.</p>
+                    </div>
+                )}
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 mt-12 border-t border-glass-border">
+                        <div className="text-sm text-text-muted font-bold">
+                            Affichage <span className="text-text">{(currentPage - 1) * itemsPerPage + 1}</span> à <span className="text-text">{Math.min(currentPage * itemsPerPage, filteredCourses.length)}</span> sur <span className="text-text">{filteredCourses.length}</span> cours
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface border border-glass-border text-text-muted hover:text-primary disabled:opacity-20 transition-all font-bold"
+                            >
+                                <ChevronLeft size={20} strokeWidth={2.5} style={{ display: 'block', minWidth: '20px' }} />
+                            </button>
+                            <div className="flex gap-1">
+                                {getPages().map((page, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => page !== '...' && setCurrentPage(Number(page))}
+                                        className={`w-10 h-10 rounded-xl font-bold transition-all text-sm border ${currentPage === page ? 'bg-primary text-white border-primary shadow-lg' : 'bg-surface border-glass-border text-text-muted hover:border-primary hover:text-primary'}`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface border border-glass-border text-text-muted hover:text-primary disabled:opacity-20 transition-all font-bold"
+                            >
+                                <ChevronRight size={20} strokeWidth={2.5} style={{ display: 'block', minWidth: '20px' }} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Overlays */}
+            <AnimatePresence>
+                {showToast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, x: '-50%' }}
+                        animate={{ opacity: 1, y: 20, x: '-50%' }}
+                        exit={{ opacity: 0, y: -20, x: '-50%' }}
+                        className="fixed top-0 left-1/2 z-[200] px-6 py-4 bg-surface border border-primary/30 rounded-2xl shadow-2xl shadow-primary/20 flex items-center gap-4 min-w-[320px] backdrop-blur-xl"
+                    >
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <CheckCircle size={24} />
+                        </div>
+                        <div>
+                            <div className="font-bold text-text">Demande envoyée !</div>
+                            <div className="text-sm text-text-muted">Votre demande d'inscription est en cours.</div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {selectedCourse && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedCourse(null)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-2xl bg-surface border border-glass-border rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        >
+                            <div className="h-48 w-full relative h-48 flex-shrink-0">
+                                <img
+                                    src={selectedCourse.coverImage || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60'}
+                                    className="w-full h-full object-cover"
+                                    alt={selectedCourse.title}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
+                                <button
+                                    onClick={() => setSelectedCourse(null)}
+                                    className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-md transition-all"
+                                >
+                                    <ChevronRight className="rotate-90" />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 p-8 space-y-8 overflow-y-auto custom-scrollbar">
+                                <div>
+                                    <div className="text-xs font-bold text-primary mb-2 uppercase tracking-wider">{selectedCourse.category}</div>
+                                    <h2 className="text-3xl font-bold mb-4">{selectedCourse.title}</h2>
+
+                                    {/* Info Row */}
+                                    <div className="flex flex-row items-center justify-between p-5 bg-gradient-to-r from-primary/5 via-surface-hover/40 to-accent/5 rounded-2xl border border-glass-border gap-2 backdrop-blur-sm shadow-inner">
+                                        <div
+                                            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity group/trainer"
+                                            onClick={() => {
+                                                if (selectedCourse.trainerName !== name) {
+                                                    navigate(`/trainer/${selectedCourse.trainerName || 'Équipe Académique'}`);
+                                                    setSelectedCourse(null);
+                                                }
+                                            }}
+                                        >
+                                            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 shadow-md flex-shrink-0">
+                                                <img
+                                                    src={selectedCourse.trainerImage || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=60'}
+                                                    className="w-full h-full object-cover"
+                                                    alt={selectedCourse.trainerName}
+                                                />
+                                            </div>
+                                            <div>
+                                                <div className="text-[9px] font-black uppercase tracking-widest text-primary mb-0.5">Formateur</div>
+                                                <div className="text-sm font-bold text-text truncate max-w-[100px] sm:max-w-[150px]">{selectedCourse.trainerName || 'Équipe Académique'}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 px-4 border-x border-glass-border/30">
+                                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                                                <Layers size={16} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] text-text-muted font-bold uppercase tracking-wider">Niveau</span>
+                                                <span className="text-xs font-bold">{selectedCourse.level}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent flex-shrink-0">
+                                                <Clock size={16} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] text-text-muted font-bold uppercase tracking-wider">Durée</span>
+                                                <span className="text-xs font-bold">{selectedCourse.sections.length * 2}h</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-lg font-bold flex items-center gap-2">
+                                        <BookOpen className="text-primary" size={20} />
+                                        Description du cours
+                                    </h4>
+                                    <div
+                                        className="text-text-muted leading-relaxed html-content"
+                                        dangerouslySetInnerHTML={{ __html: selectedCourse.description || "Aucune description disponible." }}
+                                    />
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-lg font-bold flex items-center gap-2">
+                                        <AlertCircle className="text-warning" size={20} />
+                                        Prérequis
+                                    </h4>
+                                    <div
+                                        className="text-text-muted leading-relaxed html-content"
+                                        dangerouslySetInnerHTML={{ __html: selectedCourse.prerequisites || "Aucun prérequis spécifié." }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="p-8 bg-surface-hover/50 border-t border-glass-border flex gap-4">
+                                <button
+                                    onClick={() => setSelectedCourse(null)}
+                                    className="flex-1 px-6 py-3 rounded-xl bg-surface border border-glass-border font-bold hover:bg-surface-hover transition-all"
+                                >
+                                    Fermer
+                                </button>
+                                {acceptedRequests.includes(selectedCourse.id) ? (
+                                    <button
+                                        onClick={() => navigate(`/courses/${selectedCourse.id}/preview`)}
+                                        className="flex-[2] px-6 py-3 rounded-xl bg-success text-white font-bold shadow-lg shadow-success/25 hover:bg-success/90 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <BookOpen size={20} />
+                                        Commencer le cours
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            handleEnroll(selectedCourse.id);
+                                            setSelectedCourse(null);
+                                        }}
+                                        disabled={enrolledRequests.includes(selectedCourse.id)}
+                                        className={`flex-[2] px-6 py-3 rounded-xl font-bold transition-all ${enrolledRequests.includes(selectedCourse.id)
+                                            ? 'bg-success/10 text-success cursor-default'
+                                            : 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary-hover'
+                                            }`}
+                                    >
+                                        {enrolledRequests.includes(selectedCourse.id) ? 'Demande envoyée' : 'S\'inscrire au cours'}
+                                    </button>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
+export default TrainerCoursesPage;

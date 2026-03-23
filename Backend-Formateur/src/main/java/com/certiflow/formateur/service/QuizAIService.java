@@ -1,0 +1,100 @@
+package com.certiflow.formateur.service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.*;
+
+@Service
+public class QuizAIService {
+
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public String generateQuestions(String topic, int count) {
+        String ollamaBase = System.getenv("OLLAMA_URL") != null
+                ? System.getenv("OLLAMA_URL")
+                : "http://localhost:11434";
+        String url = ollamaBase + "/api/generate";
+
+        String prompt = String.format(
+                "Tu es un expert pédagogique. Génère un quiz de %d questions techniques basé UNIQUEMENT sur ce contenu : '%s'.\n"
+                        + "FORMAT DE RÉPONSE OBLIGATOIRE (JSON pur, sans texte avant ni après) :\n"
+                        + "{\n"
+                        + "  \"questions\": [\n"
+                        + "    {\n"
+                        + "      \"type\": \"QCU\" ou \"QCM\",\n"
+                        + "      \"text\": \"énoncé de la question\",\n"
+                        + "      \"options\": [\"Choix 1\", \"Choix 2\", \"Choix 3\", \"Choix 4\"],\n"
+                        + "      \"correctAnswers\": [0]\n"
+                        + "    }\n"
+                        + "  ]\n"
+                        + "}\n"
+                        + "RÈGLES :\n"
+                        + "- correctAnswers doit contenir UNIQUEMENT des entiers (indices commençant par 0).\n"
+                        + "- Si plusieurs réponses sont correctes, type = \"QCM\". Sinon, type = \"QCU\".\n"
+                        + "- NE DONNE RIEN d'autre que l'objet JSON.",
+                count, topic);
+
+        Map<String, Object> body = new HashMap<>();
+        String model = System.getenv("OLLAMA_MODEL") != null
+                ? System.getenv("OLLAMA_MODEL")
+                : "mistral-nemo";
+        body.put("model", model);
+        body.put("prompt", prompt);
+        body.put("stream", false);
+        body.put("format", "json");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode root = objectMapper.readTree(response.getBody());
+                JsonNode responseNode = root.get("response");
+
+                String jsonContent;
+                if (responseNode.isTextual()) {
+                    jsonContent = responseNode.asText();
+                } else {
+                    jsonContent = objectMapper.writeValueAsString(responseNode);
+                }
+
+                jsonContent = extractJsonBlock(jsonContent);
+                objectMapper.readTree(jsonContent);
+                return jsonContent;
+            } else {
+                Map<String, String> errorMap = new HashMap<>();
+                errorMap.put("error", "Ollama status: " + response.getStatusCode());
+                return objectMapper.writeValueAsString(errorMap);
+            }
+        } catch (Exception e) {
+            try {
+                Map<String, String> errorMap = new HashMap<>();
+                errorMap.put("error", "Ollama error: " + e.getMessage());
+                return objectMapper.writeValueAsString(errorMap);
+            } catch (Exception ex) {
+                return "{\"error\": \"Critical AI communication failure\"}";
+            }
+        }
+    }
+
+    /**
+     * Extracts the first valid JSON object block from a string that may contain extra surrounding text.
+     */
+    private String extractJsonBlock(String text) {
+        if (text == null || text.isBlank()) return "{}";
+        int start = text.indexOf('{');
+        int end = text.lastIndexOf('}');
+        if (start != -1 && end != -1 && end > start) {
+            return text.substring(start, end + 1);
+        }
+        return text;
+    }
+}
