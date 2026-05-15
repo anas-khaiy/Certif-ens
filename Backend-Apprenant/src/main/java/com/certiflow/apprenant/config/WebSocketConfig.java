@@ -40,8 +40,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOrigins(
                     "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
                     "http://127.0.0.1:5173", "http://127.0.0.1:5174", "http://127.0.0.1:5175",
-                    "http://192.168.100.16", "http://192.168.100.16:5173", "http://192.168.100.16:5174", "http://192.168.100.16:5175",
-                    "https://192.168.100.16", "https://192.168.100.16:5443", "https://192.168.100.16:5444", "https://192.168.100.16:5445"
+                    "http://217.65.145.127", "http://217.65.145.127:5173", "http://217.65.145.127:5174", "http://217.65.145.127:5175",
+                    "https://217.65.145.127", "https://217.65.145.127:5443", "https://217.65.145.127:5444", "https://217.65.145.127:5445"
                 )
                 .setAllowedOriginPatterns("*");
         
@@ -50,8 +50,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOrigins(
                     "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
                     "http://127.0.0.1:5173", "http://127.0.0.1:5174", "http://127.0.0.1:5175",
-                    "http://192.168.100.16", "http://192.168.100.16:5173", "http://192.168.100.16:5174", "http://192.168.100.16:5175",
-                    "https://192.168.100.16", "https://192.168.100.16:5443", "https://192.168.100.16:5444", "https://192.168.100.16:5445"
+                    "http://217.65.145.127", "http://217.65.145.127:5173", "http://217.65.145.127:5174", "http://217.65.145.127:5175",
+                    "https://217.65.145.127", "https://217.65.145.127:5443", "https://217.65.145.127:5444", "https://217.65.145.127:5445"
                 )
                 .setAllowedOriginPatterns("*")
                 .withSockJS();

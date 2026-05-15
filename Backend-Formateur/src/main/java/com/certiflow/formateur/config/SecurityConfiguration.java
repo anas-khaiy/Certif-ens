@@ -89,8 +89,9 @@ public class SecurityConfiguration {
                                 "http://192.168.100.16:*",
                                 "https://192.168.100.16:*",
                                 "http://10.10.10.*:*",
-                                "http://10.10.10.2",
-                                "http://10.10.10.2:*"));
+                                "http://10.10.10.2:*",
+                                "http://217.65.145.127:*",
+                                "https://217.65.145.127:*"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));
