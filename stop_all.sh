@@ -20,6 +20,15 @@ pkill -f "main.py"
 
 # 3. Stop Nginx
 echo "  - Stopping Nginx (Proxy)..."
-/opt/homebrew/bin/nginx -s stop 2>/dev/null
+NGINX_BIN=$(which nginx)
+if [ -z "$NGINX_BIN" ]; then
+    if [ -f "/opt/homebrew/bin/nginx" ]; then NGINX_BIN="/opt/homebrew/bin/nginx";
+    elif [ -f "/usr/local/bin/nginx" ]; then NGINX_BIN="/usr/local/bin/nginx";
+    elif [ -f "/usr/sbin/nginx" ]; then NGINX_BIN="/usr/sbin/nginx";
+    fi
+fi
+if [ -n "$NGINX_BIN" ]; then
+    $NGINX_BIN -s stop 2>/dev/null
+fi
 
 echo "✅ All services stopped."

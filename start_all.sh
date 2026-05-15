@@ -9,11 +9,20 @@ echo "🚀 Starting CertiFlow Full Stack..."
 
 # 1. Start Nginx
 echo "  [1/5] Reloading Nginx..."
-/opt/homebrew/bin/nginx -s reload 2>/dev/null || /opt/homebrew/bin/nginx
-if [ $? -eq 0 ]; then
-    echo "    ✅ Nginx is running (Ports 5173-5176)"
+NGINX_BIN=$(which nginx)
+if [ -z "$NGINX_BIN" ]; then
+    # Fallback for common paths
+    if [ -f "/opt/homebrew/bin/nginx" ]; then NGINX_BIN="/opt/homebrew/bin/nginx";
+    elif [ -f "/usr/local/bin/nginx" ]; then NGINX_BIN="/usr/local/bin/nginx";
+    elif [ -f "/usr/sbin/nginx" ]; then NGINX_BIN="/usr/sbin/nginx";
+    fi
+fi
+
+if [ -n "$NGINX_BIN" ]; then
+    $NGINX_BIN -s reload 2>/dev/null || $NGINX_BIN
+    echo "    ✅ Nginx started/reloaded using $NGINX_BIN"
 else
-    echo "    ❌ Failed to start Nginx. Please check your config."
+    echo "    ❌ Nginx not found. Please install it or check your PATH."
 fi
 
 # 2. Start AI Detection Service
