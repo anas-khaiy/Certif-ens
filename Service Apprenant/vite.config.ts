@@ -7,5 +7,6 @@ export default defineConfig({
   server: {
     port: 5175,
     host: true,
+    allowedHosts: ['srv1674744.hstgr.cloud'],
   },
 })
