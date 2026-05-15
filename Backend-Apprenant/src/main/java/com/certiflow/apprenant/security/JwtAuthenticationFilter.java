@@ -40,6 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         String uri = request.getRequestURI();
 
+        // Skip JWT check for WebSocket endpoints correctly
+        if (uri.startsWith("/ws")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         System.out.println("[JWT Filter] Request: " + request.getMethod() + " " + uri);
         if (authHeader != null) {
             System.out.println("[JWT Filter] Authorization header: "

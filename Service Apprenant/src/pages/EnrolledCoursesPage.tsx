@@ -12,6 +12,7 @@ import {
 import api from '../api/api-client';
 import { motion } from 'framer-motion';
 import type { Course } from '../types';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 const EnrolledCoursesPage = () => {
     const navigate = useNavigate();
@@ -39,11 +40,11 @@ const EnrolledCoursesPage = () => {
                             id: c.id.toString(),
                             category: c.category || 'Cours',
                             trainerName: c.enseignant ? `${c.enseignant.prenom} ${c.enseignant.nom}` : 'Formateur Inconnu',
-                            trainerImage: c.enseignant?.photoProfile ? `http://localhost:8081/api/v1/files/profiles/${c.enseignant.photoProfile}` : undefined,
+                            trainerImage: c.enseignant?.photoProfile ? `${API_FORMATEUR}/files/profiles/${c.enseignant.photoProfile}` : undefined,
                             coverImage: c.coverImage ? (
                                 c.coverImage.startsWith('http') || c.coverImage.startsWith('data:')
                                     ? c.coverImage
-                                    : `http://localhost:8081/api/v1/files/content-images/${c.coverImage}`
+                                    : `${API_FORMATEUR}/files/content-images/${c.coverImage}`
                             ) : undefined,
                         };
                     });
@@ -131,7 +132,7 @@ const EnrolledCoursesPage = () => {
                             if (course.finalExam && (course as any).examEnabled !== false) {
                                 totalItems += 1;
                                 const examPassed = quizResults.some(r =>
-                                    String(r.quizId) === String(course.finalExam?.id) && r.passed
+                                    (String(r.quizId) === String(course.finalExam?.id) || String(r.quizId) === 'final_exam') && r.passed
                                 );
                                 if (examPassed) completedItems += 1;
                             }

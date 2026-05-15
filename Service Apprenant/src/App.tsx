@@ -18,6 +18,9 @@ import CompletedCoursesPage from './pages/CompletedCoursesPage';
 import EnrolledCoursesPage from './pages/EnrolledCoursesPage';
 import VerifyCertificatePage from './pages/VerifyCertificatePage';
 import NotificationsPage from './pages/NotificationsPage';
+import CodeEditorPage from './pages/CodeEditorPage';
+import LiveClassPage from './pages/LiveClassPage';
+import EncadrementApprenantPage from './pages/EncadrementApprenantPage';
 
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -207,9 +210,40 @@ function App() {
           }
         />
 
+        <Route
+          path="/code-editor"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <CodeEditorPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/live-class"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <LiveClassPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
         <Route path="/verify/:enrollmentId" element={<VerifyCertificatePage />} />
 
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route
+          path="/encadrement"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <EncadrementApprenantPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </Router>
   );

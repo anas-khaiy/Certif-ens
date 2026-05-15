@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, PenTool, Award, QrCode, Image as ImageIcon, Printer, Save, Loader2 } from 'lucide-react';
 import api from '../api/api-client';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 
 const CertificatePage = () => {
@@ -57,7 +58,7 @@ const CertificatePage = () => {
         fetchPrototype();
     }, []);
 
-    const API_BASE_URL = 'http://localhost:8080/api/v1';
+    const API_BASE_URL = API_ADMIN;
 
     // Helper to get full image URL
     const getImageUrl = (filename: string) => {

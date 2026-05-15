@@ -3,8 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { XCircle, Award, User, BookOpen, Calendar, Star, ShieldCheck, Loader2, Sun, Moon } from 'lucide-react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import logoDark from '../assets/logoDark.png';
-import logoLite from '../assets/logoLite.png';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 interface VerificationData {
     learnerName: string;
@@ -13,6 +12,7 @@ interface VerificationData {
     score: number;
     completionDate: string;
     valid: boolean;
+    type?: string;
     errorMessage?: string;
 }
 
@@ -37,7 +37,12 @@ const VerifyCertificatePage = () => {
     useEffect(() => {
         const verify = async () => {
             try {
-                const response = await axios.get(`http://localhost:8082/api/v1/verify/${enrollmentId}`);
+                // Logic: If starts with BND-, call Trainer Backend (8081). Otherwise Apprenant Backend (8082).
+                const backendUrl = enrollmentId?.startsWith('BND-') 
+                    ? `${API_FORMATEUR}/verify/${enrollmentId}`
+                    : `${API_APPRENANT}/verify/${enrollmentId}`;
+                    
+                const response = await axios.get(backendUrl);
                 setData(response.data);
             } catch (err) {
                 setError("Impossible de vérifier ce certificat.");
@@ -87,8 +92,8 @@ const VerifyCertificatePage = () => {
                 >
                     <Link to="/" className="transform hover:scale-105 transition-transform duration-300 block">
                         <img
-                            src={theme === 'dark' ? logoDark : logoLite}
-                            alt="CertiFlow Logo"
+                            src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                            alt="CertifEns Logo"
                             className="h-24 md:h-40 w-auto object-contain"
                         />
                     </Link>
@@ -117,6 +122,8 @@ const VerifyCertificatePage = () => {
         year: 'numeric'
     });
 
+    const isBundle = data.type === 'BUNDLE' || enrollmentId?.startsWith('BND-');
+
     return (
         <div className="min-h-screen bg-background text-text flex flex-col items-center pt-8 md:pt-16 pb-20 px-6 relative overflow-x-hidden transition-colors duration-300">
             {/* Background Decorations */}
@@ -143,8 +150,8 @@ const VerifyCertificatePage = () => {
             >
                 <Link to="/" className="transform hover:scale-105 transition-transform duration-300 block">
                     <img
-                        src={theme === 'dark' ? logoDark : logoLite}
-                        alt="CertiFlow Logo"
+                        src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                        alt="CertifEns Logo"
                         className="h-24 md:h-40 w-auto object-contain"
                     />
                 </Link>
@@ -193,7 +200,7 @@ const VerifyCertificatePage = () => {
                                     <BookOpen size={20} className="text-primary" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-0.5">Nom du Module</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-0.5">{isBundle ? 'Nom du Parcours' : 'Nom du Module'}</p>
                                     <h3 className="text-text font-bold text-lg">{data.courseName}</h3>
                                 </div>
                             </div>
@@ -219,7 +226,7 @@ const VerifyCertificatePage = () => {
                                     <ShieldCheck size={20} className="text-purple-400" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-0.5">Formateur</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-0.5">Délivré par</p>
                                     <h3 className="text-text font-bold">{data.trainerName}</h3>
                                 </div>
                             </div>
@@ -245,7 +252,7 @@ const VerifyCertificatePage = () => {
                                     <Star size={20} className="text-yellow-400" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-0.5">Moyenne du Module</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-0.5">{isBundle ? 'Moyenne du Parcours' : 'Moyenne du Module'}</p>
                                     <h3 className="text-text font-bold">{data.score}%</h3>
                                 </div>
                             </div>
@@ -261,7 +268,7 @@ const VerifyCertificatePage = () => {
                 </div>
 
                 <div className="mt-8 text-center text-text-muted text-sm">
-                    <p>© 2026 CertiFlow. Tous droits réservés.</p>
+                    <p>© 2026 CertifEns. Tous droits réservés.</p>
                 </div>
             </motion.div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -16,6 +16,7 @@ if (Q) {
 import { useCourses } from '../hooks/useCourses';
 import type { BackendSpecialite, Course, Formation, Question, Quiz, QuizSettings, Section, SubSection } from '../types';
 import api from '../api/api-client';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 import {
     BookOpen,
     ArrowLeft,
@@ -58,7 +59,8 @@ import {
     Github,
     Link as LinkIcon,
     ArrowUpRight,
-    Timer
+    Timer,
+    Briefcase
 } from 'lucide-react';
 
 // --- STYLES INJECTÉS ---
@@ -2089,8 +2091,13 @@ const CourseEditorPage: React.FC = () => {
     const [selectedSubSectionId, setSelectedSubSectionId] = useState<string | null>(null);
     const [showQuizEditor, setShowQuizEditor] = useState(false);
     const [showFinalExamEditor, setShowFinalExamEditor] = useState(false);
+    const [showAiContentModal, setShowAiContentModal] = useState(false);
+    const [aiContentPrompt, setAiContentPrompt] = useState('');
+    const [aiContentLoading, setAiContentLoading] = useState(false);
+    const [aiContentError, setAiContentError] = useState('');
     const [selectedLearnerForCorrection, setSelectedLearnerForCorrection] = useState<EnrolledLearner | null>(null);
     const [detailedLearnerId, setDetailedLearnerId] = useState<string | null>(null);
+    const [enseignantEmails, setEnseignantEmails] = useState<Set<string>>(new Set());
     const [showQuizListInDetails, setShowQuizListInDetails] = useState(false);
     const [selectedSubmissionIndex, setSelectedSubmissionIndex] = useState<number | null>(0);
     const [detailedTab, setDetailedTab] = useState<'quizzes' | 'tps'>('quizzes');
@@ -2199,6 +2206,17 @@ const CourseEditorPage: React.FC = () => {
         api.get<Formation[]>('/formations')
             .then(res => setAvailableFormations(res.data))
             .catch(() => { });
+
+        // Identifie les formateurs parmi les apprenants
+        api.get('/enseignants')
+            .then(res => {
+                const emails = new Set<string>();
+                res.data.forEach((e: any) => {
+                    if (e.email) emails.add(e.email.toLowerCase());
+                });
+                setEnseignantEmails(emails);
+            })
+            .catch(err => console.error('Error fetching enseignants:', err));
     }, []);
 
     // Fetch pending enrollments for this course
@@ -2517,7 +2535,7 @@ const CourseEditorPage: React.FC = () => {
                     const formData = new FormData();
                     formData.append('file', file);
                     const token = localStorage.getItem('token');
-                    const res = await fetch('http://localhost:8081/api/v1/files/content-images/upload', {
+                    const res = await fetch(`${API_FORMATEUR}/files/content-images/upload`, {
                         method: 'POST',
                         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
                         body: formData,
@@ -2922,12 +2940,12 @@ const CourseEditorPage: React.FC = () => {
                                                         try {
                                                             const token = localStorage.getItem('token');
                                                             // Use progress reset endpoint which is better for this
-                                                            await fetch(`http://localhost:8082/api/v1/progress/${id}/quiz/final_exam`, {
+                                                            await fetch(`${API_APPRENANT}/progress/${id}/quiz/final_exam`, {
                                                                 method: 'DELETE',
                                                                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                                                             });
                                                             // Also keep the backup endpoint call just in case
-                                                            await fetch(`http://localhost:8082/api/v1/courses/${id}/exam-results/final_exam`, {
+                                                            await fetch(`${API_APPRENANT}/courses/${id}/exam-results/final_exam`, {
                                                                 method: 'DELETE',
                                                                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                                                             });
@@ -3054,7 +3072,21 @@ const CourseEditorPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="card !rounded-2xl overflow-hidden border border-glass-border">
-                                    <div className="p-4 border-b border-glass-border bg-surface/50 flex items-center gap-2 text-base font-bold text-text"><div className="p-2 bg-primary/10 text-primary rounded-lg"><FileText size={20} /></div>Contenu de la leçon</div>
+                                    <div className="p-4 border-b border-glass-border bg-surface/50 flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2 text-base font-bold text-text">
+                                            <div className="p-2 bg-primary/10 text-primary rounded-lg"><FileText size={20} /></div>
+                                            Contenu de la leçon
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAiContentModal(true)}
+                                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-primary text-white rounded-xl text-xs font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                            title="Générer le contenu avec l'IA"
+                                        >
+                                            <Sparkles size={15} strokeWidth={2.5} />
+                                            Générer avec l'IA
+                                        </button>
+                                    </div>
                                     <div className="p-6 min-h-[400px]">
                                         <MockQuill
                                             key={selectedData.subSection.id}
@@ -3064,8 +3096,130 @@ const CourseEditorPage: React.FC = () => {
                                             placeholder="Rédigez le contenu détaillé de votre leçon..."
                                         />
                                     </div>
+                                    </div>
                                 </div>
-                            </div>
+
+                                {/* AI Content Generation Modal — rendered via portal to cover full viewport */}
+                                {showAiContentModal && createPortal(
+                                    <div
+                                        className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in"
+                                        onClick={() => { if (!aiContentLoading) { setShowAiContentModal(false); setAiContentPrompt(''); setAiContentError(''); } }}
+                                    >
+                                        <div
+                                            className="relative w-full max-w-lg bg-surface border border-glass-border rounded-3xl shadow-2xl overflow-hidden animate-fade-in"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {/* Decorative glow blobs */}
+                                            <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full pointer-events-none opacity-50" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)' }} />
+                                            <div className="absolute -bottom-12 -left-12 w-40 h-40 rounded-full pointer-events-none opacity-50" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)' }} />
+
+                                            <div className="relative p-8 space-y-5">
+                                                {/* Header */}
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="p-3 rounded-2xl text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)', boxShadow: '0 8px 20px rgba(99,102,241,0.35)' }}>
+                                                            <Sparkles size={22} strokeWidth={2} />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-xl font-black text-text tracking-tight">Mistral-Nemo AI</h3>
+                                                            <p className="text-xs font-bold text-primary uppercase tracking-widest mt-0.5">Génération de contenu</p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => { if (!aiContentLoading) { setShowAiContentModal(false); setAiContentPrompt(''); setAiContentError(''); } }}
+                                                        className="p-2 rounded-xl text-text-muted hover:bg-surface-hover hover:text-text transition-all border border-glass-border shadow-sm"
+                                                    >
+                                                        <X size={16} strokeWidth={2.5} />
+                                                    </button>
+                                                </div>
+
+                                                {/* Textarea */}
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block px-1">
+                                                        Décrivez votre leçon
+                                                    </label>
+                                                    <textarea
+                                                        autoFocus
+                                                        value={aiContentPrompt}
+                                                        onChange={(e) => setAiContentPrompt(e.target.value)}
+                                                        className="w-full bg-background border border-glass-border focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-2xl p-4 text-sm font-medium text-text placeholder-text-muted/40 focus:outline-none transition-all resize-none min-h-[140px] cursor-text"
+                                                        placeholder="Ex: Introduction aux concepts fondamentaux de Java avec des exemples pratiques..."
+                                                        disabled={aiContentLoading}
+                                                    />
+                                                    <div className="flex justify-between items-center px-1">
+                                                        <p className="text-[10px] text-text-muted font-bold opacity-60">Ctrl + Entrée pour générer</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Error State */}
+                                                {aiContentError && (
+                                                    <div className="flex items-center gap-3 px-4 py-3 bg-error/10 border border-error/20 rounded-xl animate-shake">
+                                                        <div className="text-error"><AlertCircle size={14} /></div>
+                                                        <span className="text-xs font-bold text-error leading-tight">{aiContentError}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Loading bar */}
+                                                {aiContentLoading && (
+                                                    <div className="flex items-center gap-3 px-4 py-3 bg-primary/5 border border-primary/10 rounded-xl">
+                                                        <div className="w-4 h-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin flex-shrink-0" />
+                                                        <span className="text-xs font-bold text-primary animate-pulse">Mistral-Nemo analyse votre demande...</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Actions */}
+                                                <div className="flex gap-3 pt-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setShowAiContentModal(false); setAiContentPrompt(''); setAiContentError(''); }}
+                                                        disabled={aiContentLoading}
+                                                        className="flex-1 py-3.5 rounded-2xl border border-glass-border text-text-muted font-bold text-sm hover:bg-surface-hover hover:text-text transition-all disabled:opacity-40"
+                                                    >
+                                                        Annuler
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={aiContentLoading || !aiContentPrompt.trim()}
+                                                        onClick={async () => {
+                                                            if (!aiContentPrompt.trim()) return;
+                                                            setAiContentLoading(true);
+                                                            setAiContentError('');
+                                                            try {
+                                                                const res = await fetch(`${API_FORMATEUR}/ai/generate-content`, {
+                                                                    method: 'POST',
+                                                                    headers: {
+                                                                        'Content-Type': 'application/json',
+                                                                        ...(localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {})
+                                                                    },
+                                                                    body: JSON.stringify({ prompt: aiContentPrompt })
+                                                                });
+                                                                if (!res.ok) throw new Error(`Erreur ${res.status}`);
+                                                                const html = await res.text();
+                                                                const currentContent = selectedData?.subSection?.content || '';
+                                                                updateSubSection(selectedData!.section!.id, selectedData!.subSection!.id, { content: currentContent ? currentContent + html : html });
+                                                                setShowAiContentModal(false);
+                                                                setAiContentPrompt('');
+                                                            } catch (err: any) {
+                                                                setAiContentError("Impossible de contacter l'IA : " + (err.message || "Erreur inconnue"));
+                                                            } finally {
+                                                                setAiContentLoading(false);
+                                                            }
+                                                        }}
+                                                        className="flex-[2] py-3.5 rounded-2xl text-white font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                                        style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 60%, #818cf8 100%)', boxShadow: aiContentLoading || !aiContentPrompt.trim() ? 'none' : '0 12px 24px rgba(99,102,241,0.3)' }}
+                                                    >
+                                                        {aiContentLoading
+                                                            ? <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Génération...</>
+                                                            : <><Sparkles size={16} strokeWidth={2.5} /> Générer le contenu</>
+                                                        }
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>,
+                                    document.body
+                                )}
+
                             <div className="p-6 md:p-8 border-t border-glass-border bg-surface/90 backdrop-blur-xl flex flex-col gap-6 shadow-2xl rounded-b-3xl">
                                 <div className="flex flex-wrap items-center justify-between gap-4">
                                     <div className="flex items-center gap-4">
@@ -3580,7 +3734,17 @@ const CourseEditorPage: React.FC = () => {
                                                     {learner.nom[0]}{learner.prenom[0]}
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-text leading-tight">{learner.prenom} {learner.nom}</div>
+                                                    <div className="font-bold text-text leading-tight flex items-center gap-2">
+                                                        {learner.prenom} {learner.nom}
+                                                        {enseignantEmails.has((learner.email || '').toLowerCase()) && (
+                                                            <div className="group relative flex items-center justify-center bg-primary/10 w-5 h-5 rounded-md cursor-help">
+                                                                <Briefcase size={12} className="text-primary" />
+                                                                <span className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-surface border border-glass-border px-2 py-1 rounded-lg text-[10px] text-text-muted opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
+                                                                    Formateur
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                     <div className="flex flex-col">
                                                         <div className="text-[10px] text-text-muted font-medium">{learner.email}</div>
                                                         <div className="text-[10px] text-primary font-black uppercase tracking-wider">{learner.specialite}</div>
@@ -4047,7 +4211,7 @@ const CourseEditorPage: React.FC = () => {
                         // Automatic reset of results when a new exam is generated/saved
                         if (course.finalExam && id && id !== 'new') {
                              const token = localStorage.getItem('token');
-                             fetch(`http://localhost:8082/api/v1/progress/${id}/quiz/final_exam`, {
+                             fetch(`${API_APPRENANT}/progress/${id}/quiz/final_exam`, {
                                  method: 'DELETE',
                                  headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                              }).catch(() => {});

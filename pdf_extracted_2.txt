@@ -1,0 +1,315 @@
+Introduction Générale
+Avec l’évolution rapide de l’intelligence artificielle, le secteur de l’éducation vit aujourd’hui une
+transformation sans précédent. Parmi les innovations marquantes, les agents conversationnels, ou
+chatbots, se démarquent par leur capacité à simuler des échanges humains et à fournir des réponses
+rapides et précises aux questions . Ces systèmes, longtemps perçus comme de simples assistants
+techniques, mais maintenant ils jouent un rôle plus profond dans l’accompagnement pédagogique,
+notamment sur les plateformes d’apprentissage en ligne.
+Le projet que je présente s’inscrit dans cette dynamique d’innovation pédagogique. Il vise à conce-
+voir un chatbot intelligent qui ne se contente pas de répondre aux questions des étudiants, mais qui
+tente de comprendre leurs émotions, leurs besoins spécifiques et leurs difficultés académiques. À tra-
+vers une combinaison entre l’analyse des sentiments et la personnalisation des ressources proposées.
+La problématique à laquelle je souhaite apporter une réponse est simple mais essentielle : com-
+ment offrir aux étudiants un soutien pédagogique personnalisé, à la fois émotionnel et académique?
+Ce manque de suivi individualisé peut conduire à une démotivation, un isolement, voire à l’abandon.
+C’est dans cette optique que notre chatbot a été pensé, comme un assistant bienveillant , capable
+de détecter l’état d’esprit de l’apprenant pour mieux l’orienter.
+L’objectif principal de ce travail est donc double : d’une part, développer un système pour analyser
+les messages des etudiants afin d’identifier leurs émotions; d’autre part, exploiter ces informations
+pour leur suggérer des contenus pédagogiques ciblés. Ce projet vise également à faciliter l’accès à
+l’information, à encourager les étudiants et à améliorer leur expérience globale d’apprentissage.
+Pour atteindre ces buts, une méthodologie en plusieurs étapes a été adoptée. Elle débute par
+une exploration des travaux existants autour des chatbots éducatifs et de l’analyse des sentiments.
+Ensuite, une phase de modélisation a permis de structurer le système à l’aide des diagrammes UML.
+Enfin, le développement s’est appuyé sur le framework Flask pour la partie serveur (backend) en
+Python, et sur des langages classiques du web (HTML, CSS, JavaScript) pour l’interface utilisateur.
+En termes de résultats attendus, j’espére démontrer que ce type d’outil peut réellement améliorer
+la relation entre l’apprenant et la plateforme éducative, en apportant un soutien émotionnel et
+pédagogique pertinent. L’objectif est de poser les bases d’un système évolutif, qui pourrait à terme
+s’intégrer à des environnements d’apprentissage à grande échelle.
+1
+Chapitre 1
+Contexte général du projet
+1.1 Introduction
+Ce premier chapitre décrit le contexte général du projet, en élaborant une étude approfondie
+des applications qui existent en précisant l’accent sur leurs insuffisances, afin de mettre en clair les
+principaux besoins et objectifs à atteindre ainsi que la méthodologie à suivre avec un détail sur la
+répartition des tâches à respecter pour un travail à organisation optimale.
+1.2 Présentation du projet
+1.2.1 Sujet du projet
+Développement d’une plateforme web intelligente intégrant un chatbot conversationnel pour
+l’assistance des étudiants sur les plateformes d’apprentissage en ligne. Ce système innovant combine
+plusieurs techniques avancées, notamment l’analyse exploratoire des données, le web scraping pour
+la collecte d’informations pédagogiques, des modèles de classification pour catégoriser les besoins
+des étudiants, et des algorithmes de NLP (Traitement du Langage Naturel) pour comprendre et
+interpréter les requêtes et états émotionnels.
+Le chatbot utilise également des méthodes de régression pour prédire et adapter ses recom-
+mandations en fonction de la progression académique des étudiants. En analysant en temps réel les
+interactions et les états émotionnels, il propose des ressources pédagogiques ciblées, des méthodes
+d’apprentissage personnalisées, et des parcours adaptatifs. La plateforme, sécurisée et intégrée aux
+environnements d’apprentissage existants, vise à optimiser l’expérience éducative en ligne et à réduire
+le décrochage académique grâce à une assistance intelligente et proactive.
+Ce projet vise à transformer l’expérience éducative en ligne en fournissant un support adaptatif
+et humainement conscient, tout en contribuant à la réduction du décrochage académique grâce à
+une approche technologique centrée sur les besoins réels des apprenants.
+1.2.2 Intérêt du projet
+Ce projet présente plusieursavantages significatifs :
+• Optimisation de l’apprentissage :En proposant des réponses instantanées, des explications
+claires et en prenant en compte les émotions des étudiants, le chatbot favorise une expérience
+d’apprentissage plus fluide, personnalisée et interactive. Il s’adapte aux besoins de chacun et
+aide les apprenants à surmonter leurs blocages, qu’ils soient conceptuels ou émotionnels.
+2
+CHAPITRE 1. CONTEXTE GÉNÉRAL DU PROJET 3
+• Suivi personnalisé :Grâce à l’intégration de techniques d’analyse des sentiments, le système
+est capable d’identifier les difficultés émotionnelles ou académiques rencontrées par l’étudiant.
+Cette capacité permet une assistance ciblée, une orientation vers les ressources les plus adap-
+tées, et un accompagnement pédagogique plus pertinent et humain.
+• Simplicité d’utilisation :L’interface conviviale et intuitive du chatbot permet une prise en
+main rapide, aussi bien pour les étudiants que pour les enseignants. Accessible sur plusieurs
+supports (ordinateur, tablette, smartphone), elle facilite l’accès à l’information et l’interaction
+aveclesystèmeàtoutmoment.L’intégrationdefonctionnalitéspratiquestellesqu’uncalendrier
+de tâches et une todolist personnalisée renforce l’organisation et l’autonomie des utilisateurs.
+• Gain de temps et d’efficacité :En automatisant les réponses aux questions fréquentes
+et en orientant les étudiants vers des contenus pédagogiques adaptés, le chatbot libère du
+temps pour les enseignants, qui peuvent ainsi se consacrer davantage à l’encadrement, au suivi
+individualisé et à l’amélioration de leurs méthodes d’enseignement.
+• Amélioration continue : Les données collectées par le système, qu’il s’agisse des émotions
+détectées, des questions posées ou des besoins exprimés, permettent d’identifier les thématiques
+récurrentes, les lacunes pédagogiques et les pistes d’amélioration. Ces informations constituent
+une base précieuse pour l’adaptation des contenus d’apprentissage et l’évolution du système.
+• Confidentialité et sécurité des données :Le projet accorde une importance capitale à la
+protection des données personnelles. Les échanges entre les étudiants et le chatbot sont sécu-
+risés et traités avec la plus stricte confidentialité. Cela garantit un environnement de confiance
+et respecte les normes de sécurité.
+En réunissant ces avantages, le projet contribue à enrichir les dispositifs d’apprentissage en ligne
+par une solution innovante, centrée sur les besoins des étudiants, qui renforce leur autonomie, leur
+motivation et leur bien-être tout au long de leur parcours académique.
+1.3 Problématique et état de l’existant
+À partir des problèmes ci-dessus, j’ai pu donner au projet les objectifs suivants :
+Objectifs structurants
+Fonctionnels :
+• Assistance instantanée via chatbot intelligent (questions académiques et détection des
+besoins émotionnels)
+• Recommandations de ressources pédagogiques basées sur l’analyse NLP
+• Gestion des utilisateurs (étudiants/administrateurs) avec contrôle d’accès
+Techniques :
+• Stack technologique : Flask (backend), HTML/CSS/JS (frontend)
+• Architecture modulaire
+• Sécurité des données
+• Optimisation des performances (temps de réponse <1s)
+1.4 Objectifs du projet
+Les objectifs offrent un cadre structurant pour l’ensemble du travail. Ils peuvent être
+CHAPITRE 1. CONTEXTE GÉNÉRAL DU PROJET 4
+1.4.1 Objectifs Fonctionnels
+• Assistance académique en temps réel:
+– Répondre automatiquement aux questions sur cours et exercices
+– Guider le parcours d’apprentissage de manière personnalisée
+• Analyse des sentiments:
+– Détection du stress, frustration ou manque de motivation via NLP
+– Adaptation des réponses selon l’état émotionnel
+• Recommandations pédagogiques:
+– Proposition de ressources adaptées (cours ciblés)
+– Orientation vers des activités complémentaires
+1.4.2 Objectifs Techniques
+• Technologies IA:
+– Modèles NLP + analyse sentiment
+– Architecture Python + JavaScript
+• Performance :
+– Temps de réponse inférieur à 1 seconde
+– Base de données
+1.4.3 Objectifs Pédagogiques
+• Réduire le décrochage académique
+• Améliorer l’engagement et l’autonomie des étudiants
+• Permettre un apprentissage adaptatif et personnalisé
+1.5 Démarche de gestion de projet
+1.5.1 Choix de la méthode de gestion du projet
+Afin de bien cerner les tâches à accomplir, nous avons adopté la méthode Scrum, une approche
+collaborative reconnue pour sa gestion efficace des projets informatiques. Basée sur des échanges
+constructifs entre toutes les parties prenantes lors de réunions régulières, cette méthode favorise une
+communication transparente et une adaptation continue auxbesoins du client.
+La méthode Scrum (1) est un cadre de gestion de projet qui entre dans la catégorie des méthodes
+agiles. Les méthodes agiles privilégient la flexibilité dans le processus de développement, l’implication
+du client et la prise en compte de ses retours tout au long du projet.
+Contrairement aux méthodes classiques de gestion de projet, Scrum définit trois rôles principaux :
+• Le Scrum Mastera pour rôle :
+– De vérifier l’application des principes Scrum
+– D’assurer une communication fluide au sein de l’équipe
+– D’identifier des pistes d’amélioration pour la productivité
+• L’équipe Scrumest composée :
+– D’une dizaine de personnes (variable selon la taille du projet)
+– De membres auto-organisés sans hiérarchie
+CHAPITRE 1. CONTEXTE GÉNÉRAL DU PROJET 5
+– De profils complémentaires travaillant en collaboration
+• Le Product Ownera pour missions :
+– D’être l’expert métier du client
+– De définir les spécifications fonctionnelles
+– D’arbitrer les priorités de réalisation
+La figure 1.1 présente le schéma du cycle Scrum et de ses principales étapes.
+Figure 1.1 : Schéma du cycle Scrum et de ses principales étapes .
+1.5.2 Planification du projet
+Équipe SCRUM
+Une équipe Scrum est une équipe interfonctionnelle, productive et auto-organisée qui vise à
+fournir des produits de haute qualité. Elle se compose d’un Scrum Master, d’un Product Owner et
+d’une équipe de développement.
+L’équipe Scrum de ce projet est présentée dans le tableau 1.1.
+Table 1.1 : Équipe Scrum du projet.
+Rôle Personne en charge
+Scrum Product Owner Mme. Oumaima Stitini
+Scrum Master Agourram Fatima Ezzahra
+Scrum Development Team Agourram Fatima Ezzahra
+Sprints
+Après le choix de l’équipe scrum et la répartition des rôles, il est maintenant le temps de préparer
+les sprints et de définir leurs objectifs (Increment), et c’est exactement le travail effectué que vous
+pouvez voir sur le tableau 1.2.
+CHAPITRE 1. CONTEXTE GÉNÉRAL DU PROJET 6
+Table 1.2 : Les sprints du projet .
+Sprint Objectifs et tâches
+Sprint 1 Étude préalable et analyse :
+• Analyse des besoins et spécifications fonctionnelles.
+• Étude des technologies à utiliser.
+Sprint 2 Conception (UML et maquettes) :
+• Création des diagrammes UML (cas d’utilisation, classes, séquence).
+• Conception des maquettes d’interface utilisateur.
+• Architecture technique du système.
+Sprint 3 Développement frontend :
+• Implémentation des interfaces étudiant .
+• Développement des interfaces administrateur.
+• Intégration des maquettes en HTML/CSS/JS.
+Sprint 4 Développement backend :
+• Mise en place de l’architecture serveur et connexion à la base de données.
+• Développement de :
+- Connexion/authentification des utilisateurs
+- Formulaire d’inscription
+- Formulaire de contact
+• Intégration avec le tableau de bord admin pour :
+- Visualisation des statistiques utilisateurs
+Sprint 5 Connexion BD/API/Auth :
+• Intégration de la base de données.
+• Sécurisation des API.
+• Mise en place du système d’authentification.
+Sprint 6 Fonctionnalités du chatbot :
+• Intégration du module de chatbot éducatif.
+• Analyse des sentiments des messages.
+• Adaptation des réponses selon l’émotion détectée.
+Sprint 7 Fonctionnalités avancées :
+• Recommandation de ressources pédagogiques.
+• Visualisation des progrès des étudiants.
+• Tableau de bord d’analyse pour administrateurs.
+Sprint 8 Tests et optimisation :
+• Tests fonctionnels et UX complètes.
+• Correction des bugs et optimisation des performances.
+• Préparation des rapports de test.
+Sprint 9 Rédaction du rapport :
+• Documentation technique détaillée.
+• Manuel utilisateur.
+• Préparation des supports de soutenance.
+Sprint 10 Validation finale :
+• Revue complète du projet.
+• Corrections finales.
+• Validation et déploiement.
+Diagramme de GANTT
+La phase de planification est essentielle dans l’élaboration d’un projet. Elle implique la définition
+et l’organisation minutieuse des diverses tâches constituant le projet, en évaluant le temps et les
+ressources requis pour leur accomplissement.
+CHAPITRE 1. CONTEXTE GÉNÉRAL DU PROJET 7
+J’ai employé Gantt, l’un des outils de planification de projet à ma disposition. Ce modèle est fré-
+quemment utilisé dans la gestion de projet et est parmi les outils les plus performants pour illustrer
+visuellement la progression des diverses tâches qui forment un projet.
+La colonne de gauche du graphique détaille toutes les tâches à réaliser, tandis que la ligne su-
+périeure indique les unités de temps les plus appropriées pour le projet (jours, semaines, mois, etc.).
+Chaque tâche est représentée par une barre horizontale, dont la position et la longueur représentent
+la date de début, la durée et la date de fin .
+La figure 1.2 représente le planning du projet depuis l’étude d’existence jusqu’au dernier sprint
+en utilisant Gantt.
+Figure 1.2 : Diagramme de Gantt pour ZAHRACHAT .
+1.6 Conclusion
+Ce chapitre établit les fondements du projet en présentant son contexte général. Il débute par
+une description claire de la problématique à résoudre et des objectifs visés. Par la suite, il expli-
+cite l’approche méthodologique adoptée pour réaliser ces objectifs, tout en mettant l’accent sur la
+méthodologie de développement choisie . Le chapitre suivant se concentrera sur l’analyse initiale et
+fonctionnelle du projet.
+Chapitre 2
+État de l’art
+2.1 Introduction
+Ce chapitre expose les notions essentielles et les technologies principales mises en œuvre dans
+le développement d’un chatbot intelligent pour l’assistance aux étudiants sur les plateformes d’ap-
+prentissage en ligne. Il expose les concepts de l’intelligence artificielle (IA), de l’apprentissage auto-
+matique, du traitement du langage naturel (NLP), de l’analyse des sentiments et des systèmes de
+recommandation. Par la suite, une analyse des études et des solutions existantes dans le secteur de
+l’IA éducative est réalisée, ce qui permet de positionner notre projet par rapport au paysage actuel
+de la recherche.
+2.2 Concepts fondamentaux
+2.2.1 Intelligence artificielle (IA)
+L’intelligence artificielle regroupe un ensemble de techniques qui permettent aux machines de
+simuler des processus cognitifs humains tels que le raisonnement, la prise de décision ou la com-
+préhension du langage. Dans l’éducation, l’IA permet de personnaliser l’expérience d’apprentissage,
+d’adapter les ressources pédagogiques aux besoins de chaque étudiant et de rendre les interactions
+avec les plateformes plus intelligentes et dynamiques.
+2.2.2 Apprentissage automatique (Machine Learning)
+L’apprentissage automatique (ML), ou machine learning : est une branche essentielle de l’in-
+telligence artificielle (IA) qui permet aux systèmes de s’améliorer de manière autonome à partir de
+données, sans nécessiter de programmation explicite. Cette technologie joue un rôle central dans le
+développement de chatbots intelligents, notamment en leur permettant d’apprendre à comprendre
+les besoins des étudiants, à s’adapter à leurs interactions et à leur fournir des réponses pertinentes
+et personnalisées.
+Comme l’a défini Arthur Samuel (2), « L’apprentissage automatique, c’est la capacité d’un
+ordinateur à apprendre sans avoir été explicitement programmé. ». En s’appuyant sur cette capacité,
+les systèmes peuvent détecter des motifs dans les données, apprendre à partir de ces derniers et
+effectuer des prédictions ou prendre des décisions en conséquence.
+Dans le contexte des plateformes d’apprentissage en ligne, le ML permet, par exemple, à un
+chatbot de reconnaître des requêtes fréquentes, de s’ajuster aux niveaux de compréhension des
+étudiants ou encore d’analyser leurs comportements pour anticiper leurs difficultés. Grâce à l’analyse
+de grandes quantités de données issues des interactions des utilisateurs, l’apprentissage automatique
+rend le chatbot plus intelligent, réactif et capable d’offrir un accompagnement éducatif plus efficace.
+8
+CHAPITRE 2. ÉTAT DE L’ART 9
+Figure 2.1 : Machine Learning .
+Il existe trois grands types d’apprentissage :
+• Apprentissage supervisé : Le modèle apprend à partir de données étiquetées et est utilisé
+pour prédire une sortie ou classer de nouvelles données (par exemple, la classification des
+sentiments).
+• Apprentissage non supervisé: Le modèle identifie des structures cachées dans des données
+non étiquetées, comme le clustering d’étudiants ayant des comportements similaires.
+• Apprentissage par renforcement: Le modèle apprend en interagissant avec son environne-
+ment et en maximisant une récompense.
+Ces différents modèles de l’apprentissage automatique offrent une variété d’outils et de techniques
+pour résoudre des problèmes complexes en exploitant efficacement les données disponibles.
+Figure 2.2 : Algorithmes mis en œuvre par le Machine Learning.
+CHAPITRE 2. ÉTAT DE L’ART 10
+2.2.3 Traitement du langage naturel (NLP)
+Le traitement du langage naturel (NLP) est une branche de l’IA qui permet aux machines de
+comprendre et d’interagir avec le langage humain. Dans le cadre d’un chatbot éducatif, le NLP
+permet d’analyser les questions des étudiants, d’extraire des informations pertinentes et de répondre
+de manière appropriée. Les principales techniques utilisées sont la tokenisation, la lemmatisation,
+l’analyse syntaxique et sémantique, et la vectorisation de texte.
+2.2.4 Analyse des sentiments
+L’analyse des sentiments est utilisée pour détecter les émotions exprimées dans un texte. Dans un
+chatbot éducatif, cela permet de détecter l’état émotionnel de l’étudiant (positif, négatif, neutre) et
+d’adapter la réponse du chatbot en conséquence. Les modèles d’analyse des sentiments sont souvent
+entraînés avec des algorithmes d’apprentissage supervisé, tels que Naïve Bayes, SVM, ou des réseaux
+neuronaux profonds.
+2.2.5 Systèmes de recommandation
+Les systèmes de recommandation utilisent des algorithmes pour proposer des ressources perti-
+nentes aux étudiants en fonction de leur profil ou de leurs activités précédentes. Ces systèmes peuvent
+être :
+• Algorithme Basé sur le contenu: recommandation de ressources similaires à celles déjà
+consultées par l’étudiant.
+• Algorithme collaboratif: recommandation basée sur les comportements d’autres utilisateurs
+similaires.
+• Algorithme Hybride: combinaison des deux approches pour maximiser la pertinence des sug-
+gestions.
+2.2.6 Travaux connexes et solutions existantes
+Chatbots éducatifs intelligents
+L’emploi de chatbots dans le secteur éducatif a fait l’objet de nombreuses recherches ces dernières
+années. Des initiatives telles queJill Watson(3) ont prouvé l’utilité des assistants conversationnels
+dans la gestion des forums d’apprentissage, fournissant des réponses aux questions des étudiants en
+direct, ce qui diminue par conséquent la charge de travail des professeurs. D’après une recherche
+menée par Winkler et Söllner (2018) (4), les chatbots sont en mesure d’augmenter l’implication
+des étudiants, de leur proposer des réponses instantanées et d’assurer un accompagnement éducatif
+ininterrompu 24h/24.
+Analyse des sentiments dans l’éducation
+Plusieurs recherches ont examiné l’analyse des sentiments afin de comprendre la réaction des
+apprenants à leur cadre d’apprentissage. Par exemple, Altrabshehet al (2015) (5) ont exploré
+l’emploi de l’analyse des sentiments pour identifier les émotions des élèves et ajuster l’assistance
+pédagogique en temps réel. La recherche a prouvé que l’examen des émotions pouvait servir d’outil
+efficace pour augmenter la motivation et la satisfaction des étudiants.

@@ -9,6 +9,8 @@ import {
 import { motion } from 'framer-motion';
 import defaultProfile from '../assets/profile.png';
 import api from '../api/api-client';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
+
 
 const SettingsPage = () => {
     // State for profile
@@ -28,6 +30,8 @@ const SettingsPage = () => {
 
     const [message, setMessage] = useState({ type: '', text: '' });
 
+
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -36,7 +40,7 @@ const SettingsPage = () => {
                 const formatAvatarUrl = (fileName: string) => {
                     if (!fileName) return '';
                     if (fileName.startsWith('http')) return fileName;
-                    return `http://localhost:8082/api/v1/files/profiles/${fileName}`;
+                    return `${API_APPRENANT}/files/profiles/${fileName}`;
                 };
 
                 setProfile({
@@ -60,6 +64,8 @@ const SettingsPage = () => {
         fetchProfile();
     }, []);
 
+
+
     // Handle avatar change
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -79,7 +85,7 @@ const SettingsPage = () => {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 const fileName = response.data;
-                const newAvatarUrl = `http://localhost:8082/api/v1/files/profiles/${fileName}`;
+                const newAvatarUrl = `${API_APPRENANT}/files/profiles/${fileName}`;
 
                 // Update local profile with the actual URL
                 setProfile((prev: any) => ({ ...prev, avatar: newAvatarUrl }));
@@ -234,50 +240,53 @@ const SettingsPage = () => {
                         </div>
                         <div className="pt-1">
                             <h3 className="text-xl font-black text-text leading-none mb-2">Sécurité</h3>
-                            <p className="text-sm text-text-muted font-bold uppercase tracking-widest">Changer votre mot de passe</p>
+                            <p className="text-sm text-text-muted font-bold uppercase tracking-widest">Gérer votre mot de passe</p>
                         </div>
                     </div>
 
-                    <form onSubmit={handlePasswordSubmit} className="space-y-8">
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-text-muted uppercase tracking-widest ml-1">Mot de passe actuel</label>
-                            <div className="relative group/input">
-                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-text-muted group-hover/input:text-primary transition-colors" size={20} />
-                                <input
-                                    type="password"
-                                    className="w-full h-14 bg-background border border-glass-border rounded-2xl pl-16 pr-6 text-text font-bold placeholder:text-text-muted/50 focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                                    placeholder="••••••••"
-                                    value={passwords.current}
-                                    onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <form onSubmit={handlePasswordSubmit} className="space-y-8 mb-12">
+                        <div className="space-y-4">
+                            <h4 className="text-lg font-bold text-text">Changer le mot de passe</h4>
                             <div className="space-y-2">
-                                <label className="text-xs font-black text-text-muted uppercase tracking-widest ml-1">Nouveau mot de passe</label>
+                                <label className="text-xs font-black text-text-muted uppercase tracking-widest ml-1">Mot de passe actuel</label>
                                 <div className="relative group/input">
                                     <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-text-muted group-hover/input:text-primary transition-colors" size={20} />
                                     <input
                                         type="password"
                                         className="w-full h-14 bg-background border border-glass-border rounded-2xl pl-16 pr-6 text-text font-bold placeholder:text-text-muted/50 focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                                         placeholder="••••••••"
-                                        value={passwords.new}
-                                        onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                                        value={passwords.current}
+                                        onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-black text-text-muted uppercase tracking-widest ml-1">Confirmation</label>
-                                <div className="relative group/input">
-                                    <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-text-muted group-hover/input:text-primary transition-colors" size={20} />
-                                    <input
-                                        type="password"
-                                        className="w-full h-14 bg-background border border-glass-border rounded-2xl pl-16 pr-6 text-text font-bold placeholder:text-text-muted/50 focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                                        placeholder="••••••••"
-                                        value={passwords.confirm}
-                                        onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                                    />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-text-muted uppercase tracking-widest ml-1">Nouveau mot de passe</label>
+                                    <div className="relative group/input">
+                                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-text-muted group-hover/input:text-primary transition-colors" size={20} />
+                                        <input
+                                            type="password"
+                                            className="w-full h-14 bg-background border border-glass-border rounded-2xl pl-16 pr-6 text-text font-bold placeholder:text-text-muted/50 focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                            placeholder="••••••••"
+                                            value={passwords.new}
+                                            onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-text-muted uppercase tracking-widest ml-1">Confirmation</label>
+                                    <div className="relative group/input">
+                                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-text-muted group-hover/input:text-primary transition-colors" size={20} />
+                                        <input
+                                            type="password"
+                                            className="w-full h-14 bg-background border border-glass-border rounded-2xl pl-16 pr-6 text-text font-bold placeholder:text-text-muted/50 focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                            placeholder="••••••••"
+                                            value={passwords.confirm}
+                                            onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -285,10 +294,12 @@ const SettingsPage = () => {
                         <div className="flex justify-end pt-4">
                             <button type="submit" className="flex items-center gap-3 px-10 h-14 bg-primary text-white text-sm font-black uppercase tracking-widest rounded-2xl hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 active:scale-95">
                                 <Save size={18} />
-                                Modifier
+                                Mettre à jour le mot de passe
                             </button>
                         </div>
                     </form>
+
+
                 </div>
             </div>
         </div>

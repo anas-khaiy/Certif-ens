@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router';
 import Layout from './components/Layout/Layout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -13,7 +13,18 @@ import CourseStatisticsPage from './pages/CourseStatisticsPage';
 import LearnerStatisticsPage from './pages/LearnerStatisticsPage';
 import QuizStatisticsPage from './pages/QuizStatisticsPage';
 import EnrollmentRequestsPage from './pages/EnrollmentRequestsPage';
-
+import CourseCatalogPage from './pages/CourseCatalogPage';
+import LiveCodeTrackerPage from './pages/LiveCodeTrackerPage';
+import LiveClassroomPage from './pages/LiveClassroomPage';
+import EnrolledCoursesPage from './pages/EnrolledCoursesPage';
+import CompletedCoursesPage from './pages/CompletedCoursesPage';
+import VerifyCertificatePage from './pages/VerifyCertificatePage';
+import CourseBundleCatalogPage from './pages/CourseBundleCatalogPage';
+import BundleCoursesPage from './pages/BundleCoursesPage';
+import MyEnrolledBundlesPage from './pages/MyEnrolledBundlesPage';
+import NotificationsPage from './pages/NotificationsPage';
+import EncadrementPage from './pages/EncadrementPage';
+import EncadrementStatisticsPage from './pages/EncadrementStatisticsPage';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
@@ -76,6 +87,50 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <CoursesPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/catalog"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <CourseCatalogPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/bundle-catalog"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <CourseBundleCatalogPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/enrolled-bundles"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <MyEnrolledBundlesPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/bundle/:id"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <BundleCoursesPage />
               </Layout>
             </PrivateRoute>
           }
@@ -146,6 +201,17 @@ function App() {
           }
         />
 
+        <Route
+          path="/live-code"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <LiveCodeTrackerPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
 
         <Route
           path="/enrollments"
@@ -153,6 +219,77 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <EnrollmentRequestsPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/enrolled-courses"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <EnrolledCoursesPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/completed-courses"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <CompletedCoursesPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/verify/:enrollmentId"
+          element={<VerifyCertificatePage />}
+        />
+
+        <Route
+          path="/live-class"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <LiveClassroomPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/notifications"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <NotificationsPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/encadrement"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <EncadrementPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/encadrement-statistics"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <EncadrementStatisticsPage />
               </Layout>
             </PrivateRoute>
           }

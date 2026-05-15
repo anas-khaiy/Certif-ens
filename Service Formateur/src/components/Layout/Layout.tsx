@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router';
 import {
     LayoutDashboard,
     Settings,
@@ -10,11 +10,15 @@ import {
     Sun,
     Moon,
     BookOpen,
-    Users
+    Users,
+    Code,
+    Video,
+    Layers,
+    Award,
+    ClipboardList
 } from 'lucide-react';
-import logoDark from '../../assets/logoDark.png';
-import logoLite from '../../assets/logoLite.png';
-
+import { useReminders } from '../../hooks/useReminders';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../../config';
 interface SidebarItemProps {
     to: string;
     icon: React.ReactNode;
@@ -39,6 +43,9 @@ const SidebarItem = ({ to, icon, label, onClick }: SidebarItemProps & { onClick?
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { reminders } = useReminders();
+    const isFullscreenPage = location.pathname === '/live-class';
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 1024);
     const [theme, setTheme] = useState<'dark' | 'light'>(() => {
         return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
@@ -112,8 +119,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     {!isSidebarCollapsed ? (
                         <div className="flex items-center gap-3 animate-fade-in whitespace-nowrap overflow-hidden">
                             <img
-                                src={theme === 'dark' ? logoDark : logoLite}
-                                alt="CertiFlow Logo"
+                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                                alt="CertifEns Logo"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain"
                             />
@@ -121,7 +128,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     ) : (
                         <div className="flex justify-center w-full">
                             <img
-                                src={theme === 'dark' ? logoDark : logoLite}
+                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
                                 alt="Logo"
                                 style={{ height: '40px', width: '40px' }}
                                 className="object-contain"
@@ -143,7 +150,24 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Tableau de bord" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/courses" icon={<BookOpen size={20} />} label="Mes Cours" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/enrollments" icon={<Users size={20} />} label="Inscriptions" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/live-code" icon={<Code size={20} />} label="Code Tracker" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/live-class" icon={<Video size={20} />} label="Classe Virtuelle" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/encadrement" icon={<ClipboardList size={20} />} label="Encadrement" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/settings" icon={<Settings size={20} />} label="Paramètres" onClick={closeSidebarOnMobile} />
+
+                    {/* Section Apprenant */}
+                    {!isSidebarCollapsed && (
+                        <div className="px-4 py-3 mt-4 mb-1 text-[11px] font-black uppercase tracking-widest text-text-muted/50 flex items-center gap-2">
+                            <span className="whitespace-nowrap">Apprenant</span>
+                            <div className="h-[1px] bg-glass-border flex-1"></div>
+                        </div>
+                    )}
+                    
+                    <SidebarItem to="/enrolled-courses" icon={<Layers size={20} />} label="Mes Cours Inscrits" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/enrolled-bundles" icon={<Layers size={20} className="text-secondary" />} label="Mes Parcours" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/completed-courses" icon={<Award size={20} />} label="Mes Certifications" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/catalog" icon={<Layers size={20} />} label="Catalogue des Cours" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/bundle-catalog" icon={<Layers size={20} />} label="Catalogue de parcours" onClick={closeSidebarOnMobile} />
 
                     {/* Spacer to push logout to bottom if space permits */}
                     <div className="flex-1" />
@@ -175,13 +199,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         )}
                         {isSidebarCollapsed && (
                             <img
-                                src={theme === 'dark' ? logoDark : logoLite}
-                                alt="CertiFlow"
+                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                                alt="CertifEns"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain sm:hidden"
                             />
                         )}
-                        <h2 className="font-bold text-lg hidden lg:block text-text/80 tracking-tight">CertiFlow Formateur</h2>
+                        <h2 className="font-bold text-lg hidden lg:block text-text/80 tracking-tight">CertifEns Formateur</h2>
                     </div>
 
                     <div className="flex items-center gap-[10px]">
@@ -195,9 +219,17 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         </button>
 
                         {/* Notifications */}
-                        <button className="relative w-10 h-10 rounded-xl bg-background border border-glass-border flex items-center justify-center text-text-muted hover:text-primary transition-all icon-container">
+                        <button 
+                            onClick={() => navigate('/notifications')}
+                            className="relative w-10 h-10 rounded-xl bg-background border border-glass-border flex items-center justify-center text-text-muted hover:text-primary transition-all icon-container"
+                            title="Centre de Notifications"
+                        >
                             <Bell size={20} strokeWidth={2.5} />
-                            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-secondary rounded-full border-2 border-surface"></span>
+                            {reminders.length > 0 && (
+                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-secondary text-white text-[10px] font-black rounded-full border-2 border-surface flex items-center justify-center animate-bounce shadow-lg shadow-secondary/20">
+                                    {reminders.length}
+                                </span>
+                            )}
                         </button>
 
                         {/* User Profile */}
@@ -208,7 +240,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                             </div>
                             {user.photoProfile && user.photoProfile !== 'default.png' ? (
                                 <img
-                                    src={user.photoProfile.startsWith('http') ? user.photoProfile : `http://localhost:8081/api/v1/files/profiles/${user.photoProfile}`}
+                                    src={user.photoProfile.startsWith('http') ? user.photoProfile : `${API_FORMATEUR}/files/profiles/${user.photoProfile}`}
                                     alt="Profile"
                                     className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-primary/20"
                                 />
@@ -221,7 +253,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-32 bg-background">
+                <div className={`flex-1 ${isFullscreenPage ? 'overflow-hidden p-0' : 'overflow-y-auto p-4 md:p-6 lg:p-8 pb-32'} bg-background`}>
                     {children}
                 </div>
             </main>

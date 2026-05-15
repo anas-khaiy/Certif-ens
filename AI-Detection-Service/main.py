@@ -6,9 +6,14 @@ import numpy as np
 import io
 from PIL import Image
 import mediapipe as mp
-
-# Initialize MediaPipe Face Mesh for head pose estimation
-mp_face_mesh = mp.solutions.face_mesh
+try:
+    from mediapipe.python.solutions import face_mesh as mp_face_mesh
+    from mediapipe.python.solutions import drawing_utils as mp_drawing
+    from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
+except ImportError:
+    import mediapipe.solutions.face_mesh as mp_face_mesh
+    import mediapipe.solutions.drawing_utils as mp_drawing
+    import mediapipe.solutions.drawing_styles as mp_drawing_styles
 face_mesh = mp_face_mesh.FaceMesh(
     max_num_faces=1,
     refine_landmarks=True,
@@ -156,5 +161,5 @@ async def detect_objects(file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
-    # Correct string format for uvicorn with reload=True
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    # Production mode: no hot-reload, 2 workers for concurrent requests
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False, workers=2)

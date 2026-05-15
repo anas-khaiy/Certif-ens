@@ -1,5 +1,5 @@
 {
-  "name": "service-admin",
+  "name": "service-apprenant",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,11 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@livekit/components-react": "^2.9.20",
+    "@livekit/components-styles": "^1.2.0",
+    "@monaco-editor/react": "^4.7.0",
+    "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tensorflow-models/coco-ssd": "^2.2.3",
     "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.13.6",
     "framer-motion": "^12.33.0",
+    "livekit-client": "^2.18.0",
     "lucide-react": "^0.563.0",
     "onnxruntime-web": "^1.24.3",
     "qrcode.react": "^4.2.0",

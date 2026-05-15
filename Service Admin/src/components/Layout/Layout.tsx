@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../api/api-client';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../../config';
 import {
     LayoutDashboard,
     Users,
@@ -16,12 +17,10 @@ import {
     RefreshCw,
     Award,
     TrendingUp,
-    BookOpen
+    BookOpen,
+    PackageCheck,
+    Briefcase
 } from 'lucide-react';
-
-
-import logoDark from '../../assets/logoDark.png';
-import logoLite from '../../assets/logoLite.png';
 
 interface SidebarItemProps {
     to: string;
@@ -110,7 +109,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         return () => window.removeEventListener('profileUpdate', handleProfileUpdate);
     }, [fetchUserInfo]);
 
-    const API_BASE_URL = 'http://localhost:8080/api/v1';
+    const API_BASE_URL = API_ADMIN;
     const avatarUrl = `${API_BASE_URL}/files/profiles/${userInfo.photoProfile || 'default.png'}`;
 
     return (
@@ -129,8 +128,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     {!isSidebarCollapsed ? (
                         <div className="flex items-center gap-3 animate-fade-in whitespace-nowrap overflow-hidden">
                             <img
-                                src={theme === 'dark' ? logoDark : logoLite}
-                                alt="CertiFlow Logo"
+                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                                alt="CertifEns Logo"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain"
                             />
@@ -138,7 +137,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     ) : (
                         <div className="flex justify-center w-full">
                             <img
-                                src={theme === 'dark' ? logoDark : logoLite}
+                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
                                 alt="Logo"
                                 style={{ height: '40px', width: '40px' }}
                                 className="object-contain"
@@ -165,11 +164,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <SidebarItem to="/formations" icon={<BookOpen size={20} />} label="Formations" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/specialities" icon={<Layers size={20} />} label="Spécialités" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/certificates" icon={<Award size={20} />} label="Certificats" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
+                    <SidebarItem to="/admin-bundles" icon={<Briefcase size={20} className="text-secondary" />} label="Gestion des Parcours" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
+                    <SidebarItem to="/bundle-enrollments" icon={<PackageCheck size={20} />} label="Inscriptions Parcours" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
 
                     <div className="mt-6 mb-2 px-3 text-xs font-bold text-text-muted uppercase tracking-widest">Analyses</div>
                     <SidebarItem to="/trainers-stats" icon={<Users size={20} />} label="Stats Formateurs" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/learners-stats" icon={<GraduationCap size={20} />} label="Stats Apprenants" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/certifications-stats" icon={<Award size={20} />} label="Stats Certifs" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
+                    <SidebarItem to="/bundles-stats" icon={<TrendingUp size={20} className="text-secondary" />} label="Stats Parcours" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/analytics" icon={<TrendingUp size={20} />} label="Analytics" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
 
                     <SidebarItem to="/settings" icon={<Settings size={20} />} label="Paramètres" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
@@ -203,12 +205,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         </button>
                         <div className="flex items-center gap-3">
                             <img
-                                src={theme === 'dark' ? logoDark : logoLite}
-                                alt="CertiFlow"
+                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                                alt="CertifEns"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain lg:hidden"
                             />
-                            <h2 className="font-bold text-lg hidden sm:block">CertiFlow Admin</h2>
+                            <h2 className="font-bold text-lg hidden sm:block">CertifEns Admin</h2>
                         </div>
                     </div>
 

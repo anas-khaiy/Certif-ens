@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCourses } from '../hooks/useCourses';
+import api from '../api/api-client';
 import type { Course } from '../types';
 
 const TrainerCoursesPage: React.FC = () => {
@@ -24,24 +25,49 @@ const TrainerCoursesPage: React.FC = () => {
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [enrolledRequests, setEnrolledRequests] = useState<string[]>([]);
     const [acceptedRequests, setAcceptedRequests] = useState<string[]>([]);
+    const [rejectedRequests, setRejectedRequests] = useState<string[]>([]);
     const [showToast, setShowToast] = useState(false);
     const itemsPerPage = 6;
 
-    React.useEffect(() => {
-        const savedAccepted = localStorage.getItem('accepted_enrollments');
-        if (savedAccepted) {
-            setAcceptedRequests(JSON.parse(savedAccepted));
-        } else {
-            localStorage.setItem('accepted_enrollments', JSON.stringify(['1']));
-            setAcceptedRequests(['1']);
+    const fetchEnrollments = async () => {
+        try {
+            const response = await api.get('/enrollments/my');
+            const data = response.data;
+            if (Array.isArray(data)) {
+                setEnrolledRequests(data.filter((e: any) => e.status === 'PENDING').map((e: any) => e.course?.id?.toString() || ""));
+                setAcceptedRequests(data.filter((e: any) => e.status === 'ACCEPTED').map((e: any) => e.course?.id?.toString() || ""));
+                setRejectedRequests(data.filter((e: any) => e.status === 'REJECTED').map((e: any) => e.course?.id?.toString() || ""));
+            }
+        } catch (err) {
+            console.error("Failed to fetch enrollments", err);
         }
+    };
+
+    React.useEffect(() => {
+        fetchEnrollments();
     }, []);
 
-    const handleEnroll = (courseId: string) => {
-        if (!enrolledRequests.includes(courseId)) {
-            setEnrolledRequests(prev => [...prev, courseId]);
+    const handleEnroll = async (courseId: string) => {
+        try {
+            await api.post(`/enrollments/${courseId}/request`);
+            await fetchEnrollments();
             setShowToast(true);
             setTimeout(() => setShowToast(false), 3000);
+        } catch (err: any) {
+            console.error("Enrollment failed", err);
+            alert(err.response?.data?.message || "Une erreur est survenue lors de l'inscription.");
+        }
+    };
+
+    const handleReEnroll = async (courseId: string) => {
+        try {
+            await api.post(`/enrollments/${courseId}/re-request`);
+            await fetchEnrollments();
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 3000);
+        } catch (err: any) {
+            console.error("Re-enrollment failed", err);
+            alert(err.response?.data?.message || "Une erreur est survenue lors de la re-inscription.");
         }
     };
 
@@ -172,29 +198,36 @@ const TrainerCoursesPage: React.FC = () => {
                                             <BookOpen size={18} />
                                             Commencer
                                         </button>
+                                    ) : enrolledRequests.includes(course.id) ? (
+                                        <button
+                                            disabled
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-primary/10 text-primary cursor-default"
+                                        >
+                                            <Clock size={18} />
+                                            Demande envoyée
+                                        </button>
+                                    ) : rejectedRequests.includes(course.id) ? (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleReEnroll(course.id);
+                                            }}
+                                            className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary-hover hover:scale-[1.02]"
+                                        >
+                                            <Plus size={18} />
+                                            Inscrire
+                                        </button>
                                     ) : (
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleEnroll(course.id);
                                             }}
-                                            disabled={enrolledRequests.includes(course.id)}
-                                            className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${enrolledRequests.includes(course.id)
-                                                ? 'bg-success/10 text-success cursor-default'
-                                                : 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary-hover'
-                                                }`}
+                                            className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary-hover hover:scale-[1.02]"
                                         >
-                                            {enrolledRequests.includes(course.id) ? (
-                                                <>
-                                                    <CheckCircle size={18} />
-                                                    Envoyée
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Plus size={18} />
-                                                    Inscrire
-                                                </>
-                                            )}
+                                            <Plus size={18} />
+                                            Inscrire
                                         </button>
                                     )}
                                 </div>
@@ -393,19 +426,32 @@ const TrainerCoursesPage: React.FC = () => {
                                         <BookOpen size={20} />
                                         Commencer le cours
                                     </button>
+                                ) : enrolledRequests.includes(selectedCourse.id) ? (
+                                    <button
+                                        disabled
+                                        className="flex-[2] px-6 py-3 rounded-xl font-bold bg-primary/10 text-primary cursor-default"
+                                    >
+                                        Demande envoyée
+                                    </button>
+                                ) : rejectedRequests.includes(selectedCourse.id) ? (
+                                    <button
+                                        onClick={() => {
+                                            handleReEnroll(selectedCourse.id);
+                                            setSelectedCourse(null);
+                                        }}
+                                        className="flex-[2] px-6 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary-hover transition-all"
+                                    >
+                                        S'inscrire au cours
+                                    </button>
                                 ) : (
                                     <button
                                         onClick={() => {
                                             handleEnroll(selectedCourse.id);
                                             setSelectedCourse(null);
                                         }}
-                                        disabled={enrolledRequests.includes(selectedCourse.id)}
-                                        className={`flex-[2] px-6 py-3 rounded-xl font-bold transition-all ${enrolledRequests.includes(selectedCourse.id)
-                                            ? 'bg-success/10 text-success cursor-default'
-                                            : 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary-hover'
-                                            }`}
+                                        className="flex-[2] px-6 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary-hover transition-all"
                                     >
-                                        {enrolledRequests.includes(selectedCourse.id) ? 'Demande envoyée' : 'S\'inscrire au cours'}
+                                        S'inscrire au cours
                                     </button>
                                 )}
                             </div>

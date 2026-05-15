@@ -9,12 +9,14 @@ import {
     ChevronLeft,
     Sun,
     Moon,
-    BookOpen
+    BookOpen,
+    Code,
+    Video,
+    ClipboardList
 } from 'lucide-react';
-import logoDark from '../../assets/logoDark.png';
-import logoLite from '../../assets/logoLite.png';
 import ReminderOverlay from '../Notifications/ReminderOverlay';
 import { useReminders } from '../../hooks/useReminders';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../../config';
 
 interface SidebarItemProps {
     to: string;
@@ -99,8 +101,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <div className="mb-10 mt-2 px-2 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3 animate-fade-in">
                         <img
-                            src={theme === 'dark' ? logoDark : logoLite}
-                            alt="CertiFlow Logo"
+                            src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                            alt="CertifEns Logo"
                             style={{ height: '57px', width: 'auto' }}
                             className="object-contain"
                         />
@@ -129,8 +131,24 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <SidebarItem to="/courses" icon={<BookOpen size={20} />} label="Catalogue des Cours" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/enrolled-courses" icon={<BookOpen size={20} className="text-primary" />} label="Mes Cours Inscrits" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/completed-courses" icon={<BookOpen size={20} className="text-success" />} label="Cours Terminés" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/live-class" icon={<Video size={20} className="text-danger" />} label="Rejoindre le Direct" onClick={closeSidebarOnMobile} />
+
+                    
+                    {(() => {
+                        const user = JSON.parse(localStorage.getItem('user') || '{}');
+                        const isInfoSpeciality = user.specialite?.toLowerCase().includes('informatique');
+                        return isInfoSpeciality && (
+                            <SidebarItem 
+                                to="/code-editor" 
+                                icon={<Code size={20} className="text-accent" />} 
+                                label="Éditeur de Code" 
+                                onClick={closeSidebarOnMobile} 
+                            />
+                        );
+                    })()}
 
                     <SidebarItem to="/settings" icon={<Settings size={20} />} label="Paramètres" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/encadrement" icon={<ClipboardList size={20} />} label="Mon Encadrement" onClick={closeSidebarOnMobile} />
 
                     {/* Spacer to push logout to bottom if space permits */}
                     <div className="flex-1" />
@@ -162,13 +180,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         )}
                         {!isSidebarOpen && (
                             <img
-                                src={theme === 'dark' ? logoDark : logoLite}
-                                alt="CertiFlow"
+                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                                alt="CertifEns"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain sm:hidden"
                             />
                         )}
-                        <h2 className="font-bold text-lg hidden sm:block">CertiFlow Apprenant</h2>
+                        <h2 className="font-bold text-lg hidden sm:block">CertifEns Apprenant</h2>
                     </div>
 
                     <div className="flex items-center gap-[10px]">
@@ -205,7 +223,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                             <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-500/30 overflow-hidden">
                                 {JSON.parse(localStorage.getItem('user') || '{}').photoProfile && JSON.parse(localStorage.getItem('user') || '{}').photoProfile !== 'default.png' ? (
                                     <img
-                                        src={`http://localhost:8082/api/v1/files/profiles/${JSON.parse(localStorage.getItem('user') || '{}').photoProfile}`}
+                                        src={`${API_APPRENANT}/files/profiles/${JSON.parse(localStorage.getItem('user') || '{}').photoProfile}`}
                                         alt="Profile"
                                         className="w-full h-full object-cover"
                                     />

@@ -36,13 +36,13 @@ public class SecurityConfiguration {
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
-                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                                 .requestMatchers("/api/v1/verify/**").permitAll()
                                                 .requestMatchers("/api/v1/files/**").permitAll()
                                                 .requestMatchers("/api/v1/courses/**").permitAll()
                                                 .requestMatchers("/api/v1/specialites/**").permitAll()
+                                                .requestMatchers("/ws/**").permitAll()
                                                 .requestMatchers("/error").permitAll()
                                                 .anyRequest().authenticated())
                                 .sessionManagement(session -> session
@@ -57,8 +57,16 @@ public class SecurityConfiguration {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
                 configuration.setAllowedOriginPatterns(List.of(
-                                "http://localhost:[*]",
-                                "http://127.0.0.1:[*]"));
+                                "http://localhost:*",
+                                "https://localhost:*",
+                                "http://127.0.0.1:*",
+                                "https://127.0.0.1:*",
+                                "http://192.168.22.*:*",
+                                "http://192.168.100.16:*",
+                                "https://192.168.100.16:*",
+                                "http://10.10.10.*:*",
+                                "http://10.10.10.2",
+                                "http://10.10.10.2:*"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));

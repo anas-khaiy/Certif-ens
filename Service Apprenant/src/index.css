@@ -1282,3 +1282,108 @@ svg {
   font-weight: 700;
   color: var(--text);
 }
+/* ── LiveKit UNIVERSEL MOBILE FIX ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* On force le conteneur racine à remplir TOUT l'écran */
+  .lk-room-container, .lk-video-conference {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 9999 !important;
+    background: #000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* La grille des participants : On force l'affichage en grille même sur petit écran */
+  .lk-grid-layout {
+    flex: 1 !important;
+    display: grid !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    padding-bottom: 100px !important; /* Espace augmenté pour les boutons */
+    align-content: start !important;
+    min-height: 200px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow-y: auto !important;
+  }
+
+  /* Force les cartes des participants à être visibles et avoir une taille minimum */
+  .lk-participant-tile {
+    min-height: 150px !important;
+    background: #111 !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: relative !important;
+    display: block !important;
+  }
+
+  /* Barre de boutons : Style "flottant" haut de gamme */
+  .lk-control-bar {
+    position: fixed !important;
+    bottom: 25px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 92% !important;
+    max-width: 450px !important;
+    height: 75px !important;
+    background: rgba(15, 15, 15, 0.9) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border-radius: 30px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-evenly !important;
+    padding: 0 5px !important;
+    z-index: 10000 !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+  }
+
+  /* Boutons tactiles optimisés */
+  .lk-button {
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .lk-button:active {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(0.9) !important;
+  }
+
+  /* Cache les labels texte et flèches secondaires sur mobile */
+  .lk-button span, .lk-button-menu-toggle-icon {
+    display: none !important;
+  }
+
+  .lk-button svg {
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+  }
+
+  /* Chat plein écran pour mobile */
+  .lk-chat {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    z-index: 20000 !important;
+    background: #000 !important;
+  }
+}
+
+
+

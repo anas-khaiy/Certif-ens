@@ -45,4 +45,10 @@ public class EnrollmentController {
         String email = auth.getName();
         return ResponseEntity.ok(enrollmentService.getEnrolledLearners(email));
     }
+
+    @GetMapping("/my/accepted")
+    public ResponseEntity<List<Enrollment>> getMyAcceptedEnrollments(Authentication auth) {
+        String email = auth.getName();
+        return ResponseEntity.ok(enrollmentService.getMyAcceptedEnrollments(email));
+    }
 }

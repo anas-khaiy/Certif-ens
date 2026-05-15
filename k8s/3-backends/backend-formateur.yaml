@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-formateur
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-formateur
+  template:
+    metadata:
+      labels:
+        app: backend-formateur
+    spec:
+      containers:
+      - name: backend-formateur
+        image: certiflow-backend-formateur:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres:5432/certif_db
+        - name: SPRING_DATASOURCE_USERNAME
+          value: postgres
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: password
+        - name: OLLAMA_URL
+          value: http://ollama:11434
+        - name: OLLAMA_MODEL
+          value: mistral
+        - name: LIVEKIT_HOST
+          value: http://livekit-svc:7880
+        ports:
+        - containerPort: 8081
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-formateur
+spec:
+  type: NodePort
+  selector:
+    app: backend-formateur
+  ports:
+  - port: 8081
+    targetPort: 8081
+    nodePort: 30081

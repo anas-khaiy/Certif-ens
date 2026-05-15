@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_ADMIN } from '../config';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api/v1',
+    baseURL: API_ADMIN,
     withCredentials: true, // Crucial for sending cookies
 });
 

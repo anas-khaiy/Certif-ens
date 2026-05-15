@@ -103,7 +103,7 @@ export class YoloDetector {
         }
         
         let globalMaxScore = 0;
-        let detectedClasses: string[] = [];
+        // let detectedClasses: string[] = [];
 
         for (let i = 0; i < numBoxes; i++) {
             let maxScore = 0;

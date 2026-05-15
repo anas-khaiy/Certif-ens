@@ -7,7 +7,8 @@ export interface ReminderItem {
     deadline?: string;
     reminderDays: number;
     daysRemaining?: number;
-    type: 'deadline' | 'general';
+    type: 'deadline' | 'general' | 'alert';
+    taskAlert?: string;
 }
 
 export const useReminders = () => {
@@ -89,6 +90,32 @@ export const useReminders = () => {
                     });
                 }
             }
+
+            // Fetch Encadrements for Alerts
+            try {
+                const encResponse = await api.get('/encadrement/mine');
+                const plans = Array.isArray(encResponse.data) ? encResponse.data : [];
+                plans.forEach((plan: any) => {
+                    const phases = Array.isArray(plan.phases) ? plan.phases : [];
+                    phases.forEach((phase: any) => {
+                        const tasks = Array.isArray(phase.tasks) ? phase.tasks : [];
+                        tasks.forEach((task: any) => {
+                            if (task.alertMessage) {
+                                reminderList.push({
+                                    id: `task-${task.id}`,
+                                    title: task.title || 'Tâche (Sans titre)',
+                                    reminderDays: 0,
+                                    type: 'alert',
+                                    taskAlert: task.alertMessage
+                                });
+                            }
+                        });
+                    });
+                });
+            } catch (encErr) {
+                console.error("Error fetching encadrement alerts:", encErr);
+            }
+
             setReminders(reminderList);
         } catch (err) {
             console.error("Error checking reminders:", err);

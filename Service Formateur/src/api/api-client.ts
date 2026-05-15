@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_FORMATEUR } from '../config';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8081/api/v1',
+    baseURL: API_FORMATEUR,
     withCredentials: true,
 });
 
@@ -21,12 +22,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401 || error.response?.status === 403) {
-            localStorage.removeItem('token');
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
-            }
-        }
         return Promise.reject(error);
     }
 );

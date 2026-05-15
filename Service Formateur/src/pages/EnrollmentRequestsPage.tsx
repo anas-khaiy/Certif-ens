@@ -8,10 +8,15 @@ import {
     X,
     Filter,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    ChevronDown,
+    Briefcase
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+
+import { useNavigate } from 'react-router';
 import api from '../api/api-client';
+import { useCourses } from '../hooks/useCourses';
+
 
 interface Enrollment {
     id: number;
@@ -35,12 +40,16 @@ interface Enrollment {
 
 const EnrollmentRequestsPage: React.FC = () => {
     const navigate = useNavigate();
+     const { courses } = useCourses();
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+    const [enseignantEmails, setEnseignantEmails] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'ACCEPTED' | 'REJECTED'>('PENDING');
+    const [courseFilter, setCourseFilter] = useState<string>('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
+
 
     const fetchEnrollments = async () => {
         setLoading(true);
@@ -54,9 +63,28 @@ const EnrollmentRequestsPage: React.FC = () => {
         }
     };
 
+    const fetchEnseignants = async () => {
+        try {
+            const response = await api.get('/enseignants');
+            const emails = new Set<string>();
+            response.data.forEach((e: any) => {
+                if (e.email) emails.add(e.email.toLowerCase());
+            });
+            setEnseignantEmails(emails);
+        } catch (error) {
+            console.error('Error fetching enseignants:', error);
+        }
+    };
+
     useEffect(() => {
         fetchEnrollments();
+        fetchEnseignants();
     }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [courseFilter, searchTerm, statusFilter]);
+
 
     const handleAction = async (id: number, action: 'accept' | 'reject') => {
         try {
@@ -74,9 +102,11 @@ const EnrollmentRequestsPage: React.FC = () => {
             (e.course.title || '').toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === 'ALL' || e.status === statusFilter;
+        const matchesCourse = courseFilter === 'ALL' || String(e.course.id) === courseFilter;
 
-        return matchesSearch && matchesStatus;
+        return matchesSearch && matchesStatus && matchesCourse;
     });
+
 
     const totalPages = Math.ceil(filteredEnrollments.length / itemsPerPage);
     const currentItems = filteredEnrollments.slice(
@@ -119,8 +149,8 @@ const EnrollmentRequestsPage: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="relative lg:col-span-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
                     <input
                         type="text"
@@ -130,7 +160,7 @@ const EnrollmentRequestsPage: React.FC = () => {
                         className="w-full bg-surface border border-glass-border rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/50 transition-all shadow-sm text-text"
                     />
                 </div>
-                <div className="flex items-center gap-2 bg-surface border border-glass-border p-1 rounded-2xl">
+                <div className="flex items-center gap-2 bg-surface border border-glass-border p-1 rounded-2xl lg:col-span-1">
                     {(['ALL', 'PENDING', 'ACCEPTED', 'REJECTED'] as const).map((status) => (
                         <button
                             key={status}
@@ -144,7 +174,23 @@ const EnrollmentRequestsPage: React.FC = () => {
                         </button>
                     ))}
                 </div>
+                <div className="relative lg:col-span-1">
+                    <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={20} />
+                    <select
+                        value={courseFilter}
+                        onChange={(e) => setCourseFilter(e.target.value)}
+                        className="w-full bg-surface border border-glass-border rounded-2xl py-4 pl-12 pr-10 focus:outline-none focus:border-primary/50 transition-all shadow-sm text-text appearance-none cursor-pointer font-bold"
+                    >
+                        <option value="ALL">Tous les cours</option>
+                        {courses.map(course => (
+                            <option key={course.id} value={String(course.id)}>{course.title}</option>
+                        ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={18} />
+                </div>
+
             </div>
+
 
             <div className="bg-surface border border-glass-border rounded-3xl overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
@@ -188,7 +234,17 @@ const EnrollmentRequestsPage: React.FC = () => {
                                                     {(en.apprenant.prenom?.[0] || 'A')}{(en.apprenant.nom?.[0] || 'P')}
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-text leading-tight">{en.apprenant.prenom} {en.apprenant.nom}</div>
+                                                    <div className="font-bold text-text leading-tight flex items-center gap-2">
+                                                        {en.apprenant.prenom} {en.apprenant.nom}
+                                                        {enseignantEmails.has((en.apprenant.email || '').toLowerCase()) && (
+                                                            <div className="group relative flex items-center justify-center bg-primary/10 w-5 h-5 rounded-md cursor-help">
+                                                                <Briefcase size={12} className="text-primary" />
+                                                                <span className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-surface border border-glass-border px-2 py-1 rounded-lg text-[10px] text-text-muted opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
+                                                                    Formateur
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                     <div className="flex flex-col">
                                                         <div className="text-[10px] text-text-muted font-medium">{en.apprenant.email}</div>
                                                         <div className="text-[10px] text-primary font-black uppercase tracking-wider">{en.apprenant.specialite?.nom || 'Non spécifiée'}</div>

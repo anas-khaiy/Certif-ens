@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-admin
+  template:
+    metadata:
+      labels:
+        app: backend-admin
+    spec:
+      containers:
+      - name: backend-admin
+        image: certiflow-backend-admin:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres:5432/certif_db
+        - name: SPRING_DATASOURCE_USERNAME
+          value: postgres
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: password
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-admin
+spec:
+  type: NodePort
+  selector:
+    app: backend-admin
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080

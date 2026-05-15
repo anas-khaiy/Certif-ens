@@ -19,15 +19,18 @@ public class AuthenticationService {
         private final JwtService jwtService;
         private final AuthenticationManager authenticationManager;
         private final PasswordEncoder passwordEncoder;
+        private final TwoFactorService twoFactorService;
 
         public AuthenticationService(ApprenantRepository repository,
                         JwtService jwtService,
                         AuthenticationManager authenticationManager,
-                        PasswordEncoder passwordEncoder) {
+                        PasswordEncoder passwordEncoder,
+                        TwoFactorService twoFactorService) {
                 this.repository = repository;
                 this.jwtService = jwtService;
                 this.authenticationManager = authenticationManager;
                 this.passwordEncoder = passwordEncoder;
+                this.twoFactorService = twoFactorService;
         }
 
         public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -50,16 +53,83 @@ public class AuthenticationService {
                                                 HttpStatus.NOT_FOUND,
                                                 "Utilisateur non trouvé"));
 
+                if (apprenant.isMfaEnabled()) {
+                        return AuthenticationResponse.builder()
+                                        .email(apprenant.getEmail())
+                                        .mfaEnabled(true)
+                                        .mfaRequired(true)
+                                        .build();
+                }
+
                 String jwtToken = jwtService.generateToken(apprenant);
 
                 return AuthenticationResponse.builder()
+                                .id(apprenant.getId())
                                 .token(jwtToken)
                                 .email(apprenant.getEmail())
                                 .nom(apprenant.getNom())
                                 .prenom(apprenant.getPrenom())
                                 .role("APPRENANT")
                                 .photoProfile(apprenant.getPhotoProfile())
+                                .specialite(apprenant.getSpecialite() != null ? apprenant.getSpecialite().getNom() : null)
+                                .mfaEnabled(false)
+                                .mfaRequired(false)
                                 .build();
+        }
+
+        public AuthenticationResponse verifyMfa(String email, int code) {
+                Apprenant apprenant = repository.findByEmail(email.toLowerCase().trim())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+
+                if (!twoFactorService.isOtpValid(apprenant.getMfaSecret(), code)) {
+                        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Code MFA invalide");
+                }
+
+                String jwtToken = jwtService.generateToken(apprenant);
+
+                return AuthenticationResponse.builder()
+                                .id(apprenant.getId())
+                                .token(jwtToken)
+                                .email(apprenant.getEmail())
+                                .nom(apprenant.getNom())
+                                .prenom(apprenant.getPrenom())
+                                .role("APPRENANT")
+                                .photoProfile(apprenant.getPhotoProfile())
+                                .specialite(apprenant.getSpecialite() != null ? apprenant.getSpecialite().getNom() : null)
+                                .mfaEnabled(true)
+                                .mfaRequired(false)
+                                .build();
+        }
+
+        public String generateMfaSetup(String email) {
+                Apprenant apprenant = repository.findByEmail(email)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+
+                String secret = twoFactorService.generateNewSecret();
+                apprenant.setMfaSecret(secret);
+                repository.save(apprenant);
+
+                return twoFactorService.getQrCodeUrl(secret, apprenant.getEmail());
+        }
+
+        public void enableMfa(String email, int code) {
+                Apprenant apprenant = repository.findByEmail(email)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+
+                if (twoFactorService.isOtpValid(apprenant.getMfaSecret(), code)) {
+                        apprenant.setMfaEnabled(true);
+                        repository.save(apprenant);
+                } else {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Code MFA invalide");
+                }
+        }
+
+        public void disableMfa(String email) {
+                Apprenant apprenant = repository.findByEmail(email)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+                apprenant.setMfaEnabled(false);
+                apprenant.setMfaSecret(null);
+                repository.save(apprenant);
         }
 
         public AuthenticationResponse getUserDetails(String email) {
@@ -68,11 +138,13 @@ public class AuthenticationService {
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Apprenant non trouvé"));
                 return AuthenticationResponse.builder()
+                                .id(apprenant.getId())
                                 .email(apprenant.getEmail())
                                 .nom(apprenant.getNom())
                                 .prenom(apprenant.getPrenom())
                                 .role("APPRENANT")
                                 .photoProfile(apprenant.getPhotoProfile())
+                                .specialite(apprenant.getSpecialite() != null ? apprenant.getSpecialite().getNom() : null)
                                 .build();
         }
 

@@ -138,17 +138,6 @@ const LearnersStatsPage = () => {
                     </div>
                 </div>
 
-                <div className="glass p-6 flex flex-col gap-2">
-                    <div className="flex justify-between items-start">
-                        <div className="p-2 rounded-lg bg-success/10 text-success">
-                            <TrendingUp size={20} />
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-text-muted text-xs">Total Inscriptions</p>
-                        <h3 className="text-2xl font-bold">{data?.totalEnrollments || 0}</h3>
-                    </div>
-                </div>
 
                 <div className="glass p-6 flex flex-col gap-2">
                     <div className="flex justify-between items-start">
@@ -169,7 +158,8 @@ const LearnersStatsPage = () => {
                 <div className="glass p-6" style={{ marginTop: '30px' }}>
                     <h4 className="text-lg font-semibold mb-6 flex items-center gap-2">
                         <TrendingUp size={20} className="text-primary" />
-                        Évolution des Inscriptions
+                        Évolution des Apprenants
+
                     </h4>
                     <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
@@ -187,7 +177,8 @@ const LearnersStatsPage = () => {
                                     contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                                     itemStyle={{ color: '#fff' }}
                                 />
-                                <Area type="monotone" dataKey="students" name="Total Inscriptions" stroke="#6366f1" fillOpacity={1} fill="url(#colorStudents)" />
+                                <Area type="monotone" dataKey="students" name="Total Apprenants" stroke="#6366f1" fillOpacity={1} fill="url(#colorStudents)" />
+
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>

@@ -29,3 +29,10 @@ build/
 .idea/
 *.xlsx
 ~$*.xlsx
+ai-detection-venv/
+.pytest_cache/
+.coverage
+htmlcov/
+*.pdf
+# Ignore the large zip and pdf files if they are just backups/extracts
+# *.zip was already there, but let's be explicit if needed

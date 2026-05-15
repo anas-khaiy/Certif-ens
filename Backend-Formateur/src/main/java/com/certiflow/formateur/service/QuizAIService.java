@@ -85,6 +85,47 @@ public class QuizAIService {
         }
     }
 
+    public String generateContent(String query) {
+        String ollamaBase = System.getenv("OLLAMA_URL") != null
+                ? System.getenv("OLLAMA_URL")
+                : "http://localhost:11434";
+        String url = ollamaBase + "/api/generate";
+
+        String prompt = String.format(
+                "Tu es un expert pédagogique. Rédige le contenu détaillé d'une leçon sur le sujet suivant: '%s'. "
+                        + "Fournis UNIQUEMENT le contenu final formaté en balises HTML valides (utilise <h1>, <h2>, <p>, <ul>, <li>, <strong>, et <pre><code> pour les extraits de code). "
+                        + "NE DONNE SURTOUT PAS de Markdown (n'utilise pas # ou ```). Ne mets pas de balises <html>, <head> ou <body>, donne uniquement le contenu. "
+                        + "Ne dis pas 'Voici le contenu' ou de phrases d'introduction. Renvoie strictement l'HTML pur prêt à être affiché.",
+                query);
+
+        Map<String, Object> body = new HashMap<>();
+        String model = System.getenv("OLLAMA_MODEL") != null
+                ? System.getenv("OLLAMA_MODEL")
+                : "mistral-nemo";
+        body.put("model", model);
+        body.put("prompt", prompt);
+        body.put("stream", false);
+        body.put("format", ""); // No JSON format constraint, we want Markdown text
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode root = objectMapper.readTree(response.getBody());
+                JsonNode responseNode = root.get("response");
+                return responseNode != null ? responseNode.asText() : "";
+            } else {
+                return "Erreur du modèle IA: HTTP " + response.getStatusCode();
+            }
+        } catch (Exception e) {
+            return "Une erreur est survenue lors de la communication avec l'IA: " + e.getMessage();
+        }
+    }
+
     /**
      * Extracts the first valid JSON object block from a string that may contain extra surrounding text.
      */

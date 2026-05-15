@@ -36,4 +36,15 @@ public class QuizAIController {
             }
         }
     }
+
+    @PostMapping(value = "/generate-content", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> generateContent(@RequestBody java.util.Map<String, String> payload) {
+        String prompt = payload.getOrDefault("prompt", "");
+        if (prompt.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Prompt cannot be empty");
+        }
+
+        String markdownContent = quizAIService.generateContent(prompt);
+        return ResponseEntity.ok(markdownContent);
+    }
 }

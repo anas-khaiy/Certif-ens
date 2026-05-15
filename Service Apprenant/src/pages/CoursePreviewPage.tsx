@@ -38,6 +38,7 @@ import api from '../api/api-client';
 import type { Course, Quiz, Question } from '../types';
 import { YoloDetector } from '../utils/yoloDetector';
 import type { YoloDetection } from '../utils/yoloDetector';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 interface StudentAnswer {
     questionId: string;
@@ -702,7 +703,7 @@ const CoursePreviewPage: React.FC = () => {
                             formData.append('file', blob, 'frame.jpg');
 
                             try {
-                                const response = await fetch('http://localhost:8000/detect', {
+                                const response = await fetch(`${AI_DETECT_URL}`, {
                                     method: 'POST',
                                     body: formData
                                 });
@@ -1824,8 +1825,8 @@ const CoursePreviewPage: React.FC = () => {
                 </div>
 
                 {showExamSetup && createPortal(
-                    <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-                        <div className={`w-full ${course?.finalExam?.settings?.isAiDetectionEnabled ? 'max-w-5xl' : 'max-w-xl'} bg-surface rounded-[3rem] border border-glass-border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden animate-slide-up flex flex-col lg:flex-row min-h-[500px] relative`}>
+                    <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-0 sm:p-6 overflow-y-auto">
+                        <div className={`w-full h-full sm:h-auto ${course?.finalExam?.settings?.isAiDetectionEnabled ? 'max-w-5xl' : 'max-w-xl'} bg-surface sm:rounded-[3rem] border-x border-glass-border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-x-hidden animate-slide-up flex flex-col lg:flex-row min-h-screen sm:min-h-[500px] relative`}>
                             {/* Close Button */}
                             <button
                                 onClick={closeExamSetup}
@@ -1836,31 +1837,31 @@ const CoursePreviewPage: React.FC = () => {
 
                             {/* Left: Camera Verification Section - Only visible if AI needed */}
                             {course?.finalExam?.settings?.isAiDetectionEnabled && (
-                                <div className="w-full lg:w-[45%] p-8 sm:p-12 bg-black flex flex-col items-center justify-center relative border-r border-white/5">
-                                    <div className="absolute top-8 left-8 flex items-center gap-3">
+                                <div className="w-full lg:w-[45%] p-6 sm:p-12 bg-black flex flex-col items-center justify-center relative border-b lg:border-b-0 lg:border-r border-white/10">
+                                    <div className="absolute top-6 left-6 flex items-center gap-3">
                                         <div className={`w-2 h-2 rounded-full ${isCameraReady ? 'bg-success animate-pulse' : 'bg-amber-500'}`} />
-                                        <span className="text-[10px] font-black uppercase text-white/50 tracking-[0.2em] leading-none">Sécurité Bio-Visuelle</span>
+                                        <span className="text-[9px] font-black uppercase text-white/50 tracking-[0.2em] leading-none">Sécurité Bio-Visuelle</span>
                                     </div>
 
                                     {!isCameraRequested ? (
-                                        <div className="text-center py-10">
-                                            <div className="w-24 h-24 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-inner">
-                                                <Camera size={44} className="text-primary" />
+                                        <div className="text-center py-6 sm:py-10">
+                                            <div className="w-16 h-16 sm:w-24 sm:h-24 bg-primary/10 rounded-2xl sm:rounded-[2.5rem] flex items-center justify-center mx-auto mb-4 sm:mb-8 border border-primary/20 shadow-inner">
+                                                <Camera size={32} className="text-primary sm:w-[44px] sm:h-[44px]" />
                                             </div>
-                                            <h3 className="text-white text-2xl font-black mb-4">Autorisation Requise</h3>
-                                            <p className="text-white/50 text-sm font-medium leading-relaxed mb-10 max-w-[280px] mx-auto">
-                                                Pour activer la surveillance anti-triche par IA, l'accès à votre caméra est impératif.
+                                            <h3 className="text-white text-xl sm:text-2xl font-black mb-2 sm:mb-4">Caméra Requise</h3>
+                                            <p className="text-white/50 text-xs sm:text-sm font-medium leading-relaxed mb-6 sm:mb-10 max-w-[240px] sm:max-w-[280px] mx-auto">
+                                                L'accès à votre caméra est impératif pour la surveillance IA.
                                             </p>
                                             <button
                                                 onClick={() => setIsCameraRequested(true)}
-                                                className="px-10 py-5 bg-primary text-white font-black rounded-2xl shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all text-sm uppercase tracking-wider"
+                                                className="px-8 py-4 bg-primary text-white font-black rounded-xl sm:rounded-2xl shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all text-xs uppercase tracking-wider"
                                             >
-                                                Activer la Caméra
+                                                Activer
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="w-full h-full flex flex-col justify-center py-6">
-                                            <div className="w-full aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-surface/5 flex items-center justify-center relative group mb-6">
+                                        <div className="w-full flex flex-col justify-center py-4 sm:py-6">
+                                            <div className="w-full aspect-[4/3] sm:aspect-video rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-surface/5 flex items-center justify-center relative group mb-4 sm:mb-6">
                                                 <video
                                                     ref={(el) => {
                                                         if (el && !el.srcObject) {
@@ -1874,7 +1875,7 @@ const CoursePreviewPage: React.FC = () => {
                                                                 .catch(err => {
                                                                     console.error("Camera access error:", err);
                                                                     setIsCameraReady(false);
-                                                                    setCameraError("L'accès à la caméra a été refusé. Veuillez l'autoriser dans les réglages de votre navigateur.");
+                                                                    setCameraError("Caméra inaccessible.");
                                                                 });
                                                         }
                                                     }}
@@ -1884,80 +1885,68 @@ const CoursePreviewPage: React.FC = () => {
                                                     className="w-full h-full object-cover"
                                                 />
                                                 {cameraError && (
-                                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-black/90 backdrop-blur-sm">
-                                                        <AlertTriangle size={48} className="text-amber-500 mb-6" />
-                                                        <p className="text-white text-sm font-black leading-relaxed mb-6">{cameraError}</p>
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-black/90 backdrop-blur-sm">
+                                                        <AlertTriangle size={32} className="text-amber-500 mb-4" />
+                                                        <p className="text-white text-[10px] font-black leading-tight mb-4">{cameraError}</p>
                                                         <button
                                                             onClick={() => setIsCameraRequested(false)}
-                                                            className="px-6 py-3 border border-primary/30 text-primary text-xs font-black rounded-xl hover:bg-primary/10 transition-all uppercase tracking-widest"
+                                                            className="px-4 py-2 border border-primary/30 text-primary text-[10px] font-black rounded-lg hover:bg-primary/10 transition-all uppercase tracking-widest"
                                                         >
-                                                            Réessayer la demande
+                                                            Réessayer
                                                         </button>
                                                     </div>
                                                 )}
                                                 {isCameraReady && (
-                                                    <div className="absolute bottom-4 left-4 right-4 py-3 px-4 bg-success/20 backdrop-blur-md border border-success/30 rounded-2xl flex items-center justify-center gap-2">
-                                                        <CheckCircle size={16} className="text-success" />
-                                                        <span className="text-[11px] font-black text-white uppercase">Flux vidéo validé</span>
+                                                    <div className="absolute bottom-3 left-3 right-3 py-2 px-3 bg-success/20 backdrop-blur-md border border-success/30 rounded-xl flex items-center justify-center gap-2">
+                                                        <CheckCircle size={14} className="text-success" />
+                                                        <span className="text-[10px] font-black text-white uppercase">Flux validé</span>
                                                     </div>
                                                 )}
                                             </div>
-                                            <p className="text-white/30 text-[10px] font-bold text-center uppercase tracking-[0.2em]">Votre image reste locale et sécurisée</p>
+                                            <p className="text-white/30 text-[9px] font-bold text-center uppercase tracking-[0.2em] hidden sm:block">Votre image reste locale et sécurisée</p>
                                         </div>
                                     )}
                                 </div>
                             )}
 
                             {/* Right: Rules & Final Action Section */}
-                            <div className={`w-full ${course?.finalExam?.settings?.isAiDetectionEnabled ? 'lg:w-[55%]' : 'w-full'} p-10 sm:p-16 flex flex-col justify-between text-text bg-surface relative`}>
+                            <div className={`w-full ${course?.finalExam?.settings?.isAiDetectionEnabled ? 'lg:w-[55%]' : 'w-full'} p-6 sm:p-16 flex flex-col justify-between text-text bg-surface relative`}>
                                 <div>
-                                    <div className="flex items-center gap-4 mb-10">
-                                        <div className="p-4 bg-primary/10 text-primary rounded-2xl shadow-inner border border-primary/10"><Shield size={32} /></div>
+                                    <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-10">
+                                        <div className="p-3 sm:p-4 bg-primary/10 text-primary rounded-2xl shadow-inner border border-primary/10"><Shield size={24} className="sm:w-8 sm:h-8" /></div>
                                         <div>
-                                            <h2 className="text-4xl font-black tracking-tight leading-none mb-2">Prêt pour l'examen ?</h2>
-                                            <p className="text-sm text-text-muted font-bold tracking-tight">Vérifiez les conditions avant de continuer.</p>
+                                            <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-none mb-1 sm:mb-2">Prêt pour l'examen ?</h2>
+                                            <p className="text-xs sm:text-sm text-text-muted font-bold tracking-tight">Vérifiez les conditions avant de continuer.</p>
                                         </div>
                                     </div>
 
-
-
-                                    {/* Premium Rules Row - Right Aligned Style */}
-                                    <div className="flex flex-col items-end gap-3 mb-8">
-                                        <div className="flex flex-wrap justify-end gap-3">
-                                            <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl flex items-center gap-2 shadow-sm">
-                                                <Maximize size={14} className="text-primary" />
-                                                <span className="text-[10px] font-black uppercase tracking-wider text-primary">Plein Écran</span>
-                                            </div>
-                                            <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl flex items-center gap-2 shadow-sm">
-                                                <Monitor size={14} className="text-primary" />
-                                                <span className="text-[10px] font-black uppercase tracking-wider text-primary">{course?.finalExam?.settings?.isAiDetectionEnabled ? 'Surveillance IA' : 'Sans Caméra'}</span>
-                                            </div>
-                                            <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl flex items-center gap-2 shadow-sm">
-                                                <Clock size={14} className="text-primary" />
-                                                <span className="text-[10px] font-black uppercase tracking-wider text-primary">{course?.finalExam?.settings?.timeLimit || 60} Minutes</span>
-                                            </div>
+                                    {/* Premium Rules Row */}
+                                    <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3 mb-6 sm:mb-8">
+                                        <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2">
+                                            <Maximize size={12} className="text-primary sm:w-3.5 sm:h-3.5" />
+                                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">Plein Écran</span>
                                         </div>
-                                        <div className="w-24 h-1 bg-gradient-to-l from-primary to-transparent rounded-full opacity-30 mt-1" />
+                                        <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2">
+                                            <Monitor size={12} className="text-primary sm:w-3.5 sm:h-3.5" />
+                                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">{course?.finalExam?.settings?.isAiDetectionEnabled ? 'Surveillance IA' : 'Sans Caméra'}</span>
+                                        </div>
+                                        <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2">
+                                            <Clock size={12} className="text-primary sm:w-3.5 sm:h-3.5" />
+                                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">{course?.finalExam?.settings?.timeLimit || 60} min</span>
+                                        </div>
                                     </div>
 
-                                    {/* Condensed Table de Spécification - Right Aligned Labels */}
-                                    <div className="mb-8 overflow-hidden rounded-3xl border border-glass-border bg-surface/30 shadow-inner">
-                                        <div className="px-6 py-3 bg-primary/5 border-b border-glass-border flex items-center justify-between">
+                                    {/* Smart Specification View */}
+                                    <div className="mb-6 sm:mb-8 overflow-hidden rounded-2xl sm:rounded-3xl border border-glass-border bg-surface/30 shadow-inner">
+                                        <div className="px-5 py-3 bg-primary/5 border-b border-glass-border flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <BarChart3 size={16} className="text-primary" />
-                                                <span className="text-[11px] font-black uppercase tracking-[0.15em] text-primary">Répartition</span>
+                                                <BarChart3 size={14} className="text-primary sm:w-4 sm:h-4" />
+                                                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-primary">Répartition</span>
                                             </div>
-                                            <span className="text-[9px] font-bold text-text-muted uppercase">Objectifs par chapitre</span>
+                                            <span className="text-[8px] sm:text-[9px] font-bold text-text-muted uppercase">Objectifs par chapitre</span>
                                         </div>
-                                        <table className="w-full text-left border-collapse">
-                                            <thead>
-                                                <tr className="bg-surface/50 text-[9px] font-black uppercase tracking-widest text-text-muted/60 border-b border-glass-border/30">
-                                                    <th className="py-3 pl-6">Chapitre</th>
-                                                    <th className="py-3 text-right">Poids</th>
-                                                    <th className="py-3 text-right pr-6">Nb. Questions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-glass-border/10">
+
+                                        <div className="p-0">
                                             {(() => {
                                                 const parseMH = (str?: string) => {
                                                     if (!str) return 1;
@@ -1968,7 +1957,6 @@ const CoursePreviewPage: React.FC = () => {
                                                 const totalMH = sectionsWithWeight.reduce((sum, s) => sum + parseMH(s.masseHoraire), 0);
                                                 const totalQuestions = course?.finalExam?.settings?.totalQuestions || 20;
 
-                                                // 1. Calculate ideal counts and floors
                                                 const items = sectionsWithWeight.map(section => {
                                                     const mh = parseMH(section.masseHoraire);
                                                     const ideal = totalMH > 0 ? (mh / totalMH) * totalQuestions : 0;
@@ -1981,64 +1969,90 @@ const CoursePreviewPage: React.FC = () => {
                                                     };
                                                 });
 
-                                                // 2. Distribute remaining questions using Largest Remainder Method (Hamilton)
+                                                if (items.length === 0) {
+                                                    return <div className="py-8 text-center text-text-muted text-[10px] sm:text-xs font-bold uppercase italic opacity-60">Aucun chapitre avec quiz détecté</div>;
+                                                }
+
                                                 let currentTotal = items.reduce((sum, item) => sum + item.floor, 0);
                                                 const remaining = totalQuestions - currentTotal;
-
                                                 if (remaining > 0) {
-                                                    // Sort by remainder descending, then by original index to keep stability
-                                                    const sortedByRemainder = [...items]
-                                                        .map((item, index) => ({ ...item, originalIndex: index }))
-                                                        .sort((a, b) => b.remainder - a.remainder || a.originalIndex - b.originalIndex);
-
-                                                    for (let i = 0; i < remaining; i++) {
-                                                        const targetIndex = sortedByRemainder[i].originalIndex;
-                                                        items[targetIndex].floor += 1;
+                                                    const sortedByRemainder = [...items].map((item, index) => ({ ...item, originalIndex: index })).sort((a, b) => b.remainder - a.remainder);
+                                                    const toDistribute = Math.min(remaining, sortedByRemainder.length);
+                                                    for (let i = 0; i < toDistribute; i++) {
+                                                        items[sortedByRemainder[i].originalIndex].floor += 1;
                                                     }
                                                 }
 
-                                                return items.map(item => (
-                                                    <tr key={item.section.id} className="text-[11px] font-bold text-text hover:bg-primary/5 transition-colors">
-                                                        <td className="py-3 pl-6 truncate max-w-[140px]" title={item.section.title}>{item.section.title}</td>
-                                                        <td className="py-3 text-right text-primary font-black">{Math.round(item.weight)}%</td>
-                                                        <td className="py-3 text-right pr-6 font-black text-xs">{item.floor}</td>
-                                                    </tr>
-                                                ));
+                                                return (
+                                                    <div className="divide-y divide-glass-border/10">
+                                                        {/* Mobile View: Cards */}
+                                                        <div className="sm:hidden flex flex-col p-4 gap-3">
+                                                            {items.map(item => (
+                                                                <div key={item.section.id} className="flex flex-col gap-1 p-3 bg-background/50 rounded-xl border border-glass-border/50">
+                                                                    <p className="text-[10px] font-black text-text/80 truncate">{item.section.title}</p>
+                                                                    <div className="flex justify-between items-center">
+                                                                        <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">{Math.round(item.weight)}% du parcours</span>
+                                                                        <span className="text-xs font-black text-text">{item.floor} <small className="text-[8px] opacity-60 uppercase">Questions</small></span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+
+                                                        {/* Desktop View: Table */}
+                                                        <table className="hidden sm:table w-full text-left border-collapse">
+                                                            <thead>
+                                                                <tr className="bg-surface/50 text-[9px] font-black uppercase tracking-widest text-text-muted/60 border-b border-glass-border/30">
+                                                                    <th className="py-3 pl-6">Chapitre</th>
+                                                                    <th className="py-3 text-right">Poids</th>
+                                                                    <th className="py-3 text-right pr-6">Nb. Questions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-glass-border/10">
+                                                                {items.map(item => (
+                                                                    <tr key={item.section.id} className="text-[11px] font-bold text-text hover:bg-primary/5 transition-colors">
+                                                                        <td className="py-3 pl-6 truncate max-w-[200px]" title={item.section.title}>{item.section.title}</td>
+                                                                        <td className="py-3 text-right text-primary font-black">{Math.round(item.weight)}%</td>
+                                                                        <td className="py-3 text-right pr-6 font-black text-xs">{item.floor}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                            <tfoot className="bg-primary/5 border-t border-glass-border">
+                                                                <tr className="text-[11px] font-black text-primary">
+                                                                    <td className="py-3 pl-6 uppercase tracking-wider text-[9px]">Total de l'examen</td>
+                                                                    <td className="py-3 text-right">100%</td>
+                                                                    <td className="py-3 text-right pr-6 text-xs">{totalQuestions} pts</td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </div>
+                                                );
                                             })()}
-                                            </tbody>
-                                            <tfoot className="bg-primary/5 border-t border-glass-border">
-                                                <tr className="text-[11px] font-black text-primary">
-                                                    <td className="py-3 pl-6 uppercase tracking-wider text-[9px]">Total & Bilan</td>
-                                                    <td className="py-3 text-right">100%</td>
-                                                    <td className="py-3 text-right pr-6 text-xs">{course?.finalExam?.settings?.totalQuestions || 20}</td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-6">
-                                    <label className="p-5 bg-primary/5 rounded-3xl border border-primary/10 flex items-start gap-4 cursor-pointer hover:bg-primary/10 transition-colors group/terms">
-                                        <div className="relative flex items-center mt-1">
+                                    <label className="p-4 sm:p-5 bg-primary/5 rounded-2xl sm:rounded-3xl border border-primary/10 flex items-start gap-4 cursor-pointer hover:bg-primary/10 transition-colors group/terms">
+                                        <div className="relative flex items-center mt-0.5">
                                             <input 
                                                 type="checkbox" 
                                                 checked={isAgreedToTerms}
                                                 onChange={(e) => setIsAgreedToTerms(e.target.checked)}
-                                                className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-primary/30 transition-all checked:bg-primary checked:border-primary focus:outline-none"
+                                                className="peer h-4 w-4 sm:h-5 sm:w-5 cursor-pointer appearance-none rounded-md border-2 border-primary/30 transition-all checked:bg-primary checked:border-primary focus:outline-none"
                                             />
-                                            <Check size={14} className="absolute left-0.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
+                                            <Check size={12} className="sm:w-[14px] sm:h-[14px] absolute left-0.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
                                         </div>
-                                        <p className="text-[11px] font-bold leading-normal text-text-muted group-hover/terms:text-text transition-colors">
+                                        <p className="text-[9px] sm:text-[11px] font-bold leading-normal text-text-muted group-hover/terms:text-text transition-colors">
                                             {course?.finalExam?.settings?.isAiDetectionEnabled 
-                                                ? <>Je certifie avoir lu les consignes. J'accepte l'utilisation de ma <strong className="text-primary text-[12px]">caméra pour prévenir toute tentative de triche</strong> et je valide l'usage de fonctionnalités de surveillance avancées pour garantir l'intégrité de cet examen.</>
-                                                : <>Je certifie avoir lu les consignes. J'accepte le règlement de l'épreuve et je valide l'usage de fonctionnalités <strong className="text-primary text-[12px]">anti-triche</strong> pour garantir l'intégrité de cet examen.</>
+                                                ? <>Je certifie avoir lu les consignes. J'accepte l'utilisation de ma <strong className="text-primary">caméra pour la surveillance</strong> et je valide l'intégrité de cet examen.</>
+                                                : <>Je certifie avoir lu les consignes. J'accepte le règlement de l'épreuve et les mesures <strong className="text-primary">anti-triche</strong>.</>
                                             }
                                         </p>
                                     </label>
-                                    <div className="flex flex-col sm:flex-row gap-4">
+                                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2 mb-4 sm:mb-0">
                                         <button
                                             onClick={closeExamSetup}
-                                            className="flex-1 py-5 text-sm font-black text-text-muted hover:text-text hover:bg-surface-variant rounded-2xl transition-all"
+                                            className="flex-1 py-4 sm:py-5 text-xs sm:text-sm font-black text-text-muted hover:text-text hover:bg-surface-variant rounded-xl sm:rounded-2xl transition-all border border-glass-border sm:border-0"
                                         >
                                             Annuler
                                         </button>
@@ -2049,9 +2063,9 @@ const CoursePreviewPage: React.FC = () => {
                                                 if ((!needsCamera || isCameraReady) && isAgreedToTerms) startExam();
                                             }}
                                             disabled={(course?.finalExam?.settings?.isAiDetectionEnabled && !isCameraReady) || !isAgreedToTerms}
-                                            className="flex-[2] btn-primary py-5 rounded-2xl text-lg font-black shadow-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed group active:scale-95"
+                                            className="flex-[2] btn-primary py-4 sm:py-5 rounded-xl sm:rounded-2xl text-base sm:text-lg font-black shadow-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed group active:scale-95"
                                         >
-                                            Lancer l'Examen <ChevronRight size={22} className="group-hover:translate-x-1 transition-transform" />
+                                            Lancer <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform sm:w-[22px] sm:h-[22px]" />
                                         </button>
                                     </div>
                                 </div>
@@ -2110,8 +2124,8 @@ const CoursePreviewPage: React.FC = () => {
                                             {/* AI Video Monitoring Preview */}
                                             {course?.finalExam?.settings?.isAiDetectionEnabled && (
                                                 <>
-                                                    <div className="fixed top-28 right-6 z-[100] group pointer-events-auto transition-all duration-500 translate-x-0 opacity-100">
-                                                        <div className={`relative w-80 h-60 rounded-3xl overflow-hidden border-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 ${isModelLoading ? 'border-amber-500/50' : 'border-primary/50'} bg-black`}>
+                                                    <div className="fixed top-20 left-2 lg:top-28 lg:left-auto lg:right-6 z-[100] group pointer-events-auto transition-all duration-500 translate-x-0 opacity-100">
+                                                        <div className={`relative w-24 h-20 lg:w-80 lg:h-60 rounded-2xl lg:rounded-3xl overflow-hidden border-2 lg:border-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 ${isModelLoading ? 'border-amber-500/50' : 'border-primary/50'} bg-black`}>
                                                             <video
                                                                 ref={videoRef}
                                                                 autoPlay
@@ -2122,14 +2136,14 @@ const CoursePreviewPage: React.FC = () => {
                                                             {isModelLoading && (
                                                                 <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-2">
                                                                     <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mb-2" />
-                                                                    <span className="text-[8px] font-black text-white uppercase tracking-widest">IA : Chargement...</span>
+                                                                    <span className="text-[6px] lg:text-[8px] font-black text-white uppercase tracking-widest">IA : Chargement...</span>
                                                                 </div>
                                                             )}
-                                                            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10">
+                                                            <div className="absolute bottom-1 lg:bottom-2 left-1 lg:left-2 right-1 lg:right-2 flex items-center justify-between px-1 lg:px-2 py-0.5 lg:py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10">
                                                                 <div className="flex items-center gap-1.5">
-                                                                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse bg-success`} />
-                                                                    <span className="text-[8px] font-black text-white uppercase tracking-widest">
-                                                                        Surveillance IA Active
+                                                                    <div className={`w-1 lg:w-1.5 h-1 lg:h-1.5 rounded-full animate-pulse bg-success`} />
+                                                                    <span className="text-[6px] lg:text-[8px] font-black text-white uppercase tracking-widest">
+                                                                        {isMobile ? 'IA ACTIVE' : 'Surveillance IA Active'}
                                                                     </span>
                                                                 </div>
                                                             </div>

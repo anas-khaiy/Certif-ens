@@ -90,7 +90,9 @@ const NotificationsPage: React.FC = () => {
                             variants={itemVariants}
                             whileHover={{ scale: 1.01, x: 5 }}
                             className={`group glass overflow-hidden border transition-all shadow-lg hover:shadow-xl ${
-                                reminder.type === 'deadline' 
+                                reminder.type === 'alert'
+                                ? 'border-error/40 hover:border-error/60 bg-error/5'
+                                : reminder.type === 'deadline' 
                                 ? (reminder.daysRemaining! <= 0 ? 'border-error/40 hover:border-error/60 bg-error/5' : 'border-orange-500/30 hover:border-orange-500/50') 
                                 : 'border-primary/30 hover:border-primary/50'
                             }`}
@@ -98,23 +100,30 @@ const NotificationsPage: React.FC = () => {
                             <div className="flex flex-col md:flex-row items-stretch md:items-center p-6 gap-6">
                                 {/* Type Icon */}
                                 <div className={`w-16 h-16 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-inner ${
-                                    reminder.type === 'deadline' 
+                                    reminder.type === 'alert'
+                                    ? 'bg-error/10 text-error'
+                                    : reminder.type === 'deadline' 
                                     ? (reminder.daysRemaining! <= 0 ? 'bg-error/10 text-error' : 'bg-orange-500/10 text-orange-500') 
                                     : 'bg-primary/10 text-primary'
                                 }`}>
-                                    {reminder.type === 'deadline' ? (reminder.daysRemaining! <= 0 ? <AlertCircle size={32} /> : <Clock size={32} />) : <AlertCircle size={32} />}
+                                    {reminder.type === 'alert' ? <AlertCircle size={32} /> : reminder.type === 'deadline' ? (reminder.daysRemaining! <= 0 ? <AlertCircle size={32} /> : <Clock size={32} />) : <AlertCircle size={32} />}
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 space-y-2">
                                     <div className="flex items-center gap-2">
-                                        <BookOpen size={14} className="text-primary" />
-                                        <span className="text-[10px] font-black uppercase text-text-muted tracking-widest italic">Rappel de cours</span>
+                                        <BookOpen size={14} className={reminder.type === 'alert' ? 'text-error' : 'text-primary'} />
+                                        <span className="text-[10px] font-black uppercase text-text-muted tracking-widest italic">{reminder.type === 'alert' ? 'Alerte Tâche' : 'Rappel de cours'}</span>
                                     </div>
-                                    <h3 className="text-xl font-bold text-text group-hover:text-primary transition-colors">{reminder.title}</h3>
+                                    <h3 className={`text-xl font-bold transition-colors ${reminder.type === 'alert' ? 'text-error' : 'text-text group-hover:text-primary'}`}>{reminder.title}</h3>
                                     
                                     <div className="flex flex-wrap items-center gap-3 mt-2">
-                                        {reminder.type === 'deadline' ? (
+                                        {reminder.type === 'alert' ? (
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-error/10 text-error text-xs font-black border border-error/20">
+                                                <AlertCircle size={14} />
+                                                ACTION REQUISE : {reminder.taskAlert}
+                                            </div>
+                                        ) : reminder.type === 'deadline' ? (
                                             reminder.daysRemaining! <= 0 ? (
                                                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-error/10 text-error text-xs font-black border border-error/20 animate-pulse">
                                                     <AlertCircle size={14} />
@@ -145,15 +154,17 @@ const NotificationsPage: React.FC = () => {
                                 {/* Action */}
                                 <div className="flex items-center gap-4">
                                     <button
-                                        onClick={() => navigate(`/courses/${reminder.id}/preview`)}
+                                        onClick={() => navigate(reminder.type === 'alert' ? '/encadrement' : `/courses/${reminder.id}/preview`)}
                                         className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black transition-all shadow-lg active:scale-95 whitespace-nowrap ${
-                                            reminder.type === 'deadline'
+                                            reminder.type === 'alert'
+                                            ? 'bg-error text-white shadow-error/30 hover:bg-error-hover'
+                                            : reminder.type === 'deadline'
                                             ? (reminder.daysRemaining! <= 0 ? 'bg-error text-white shadow-error/30 hover:bg-error-hover' : 'bg-orange-500 text-white shadow-orange-500/30 hover:bg-orange-600')
                                             : 'bg-primary text-white shadow-primary/30 hover:bg-primary-hover'
                                         }`}
                                     >
                                         <PlayCircle size={20} />
-                                        {reminder.daysRemaining! <= 0 ? 'Détails du cours' : 'Reprendre le cours'}
+                                        {reminder.type === 'alert' ? 'Voir l\'alerte' : reminder.daysRemaining! <= 0 ? 'Détails du cours' : 'Reprendre le cours'}
                                         <ChevronRight size={18} />
                                     </button>
                                 </div>

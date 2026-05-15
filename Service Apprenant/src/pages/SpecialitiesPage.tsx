@@ -22,8 +22,8 @@ const SpecialitiesPage = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [specialityToDelete, setSpecialityToDelete] = useState<string | null>(null);
     const [editingSpeciality, setEditingSpeciality] = useState<Speciality | null>(null);
-    const [formData, setFormData] = useState<{ name: string; type: 'Licence' | 'Master'; semesters: string[] }>({
-        name: '',
+    const [formData, setFormData] = useState<{ nom: string; type: 'Licence' | 'Master'; semesters: string[] }>({
+        nom: '',
         type: 'Licence',
         semesters: []
     });
@@ -47,16 +47,16 @@ const SpecialitiesPage = () => {
 
     const loadInitialData = () => {
         const initial: Speciality[] = [
-            { id: '1', name: 'Génie Informatique', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
-            { id: '2', name: 'Intelligence Artificielle', type: 'Master', semesters: ['S1', 'S2'] },
-            { id: '3', name: 'Génie Civil', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
-            { id: '4', name: 'Management des Entreprises', type: 'Master', semesters: ['S1', 'S2'] },
-            { id: '5', name: 'Droit Public', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
-            { id: '6', name: 'Finance et Comptabilité', type: 'Master', semesters: ['S1', 'S2'] },
-            { id: '7', name: 'Marketing Digital', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
-            { id: '8', name: 'Ressources Humaines', type: 'Master', semesters: ['S1', 'S2'] },
-            { id: '9', name: 'Logistique et Transport', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
-            { id: '10', name: 'Cybersécurité', type: 'Master', semesters: ['S1', 'S2'] },
+            { id: '1', nom: 'Génie Informatique', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
+            { id: '2', nom: 'Intelligence Artificielle', type: 'Master', semesters: ['S1', 'S2'] },
+            { id: '3', nom: 'Génie Civil', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
+            { id: '4', nom: 'Management des Entreprises', type: 'Master', semesters: ['S1', 'S2'] },
+            { id: '5', nom: 'Droit Public', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
+            { id: '6', nom: 'Finance et Comptabilité', type: 'Master', semesters: ['S1', 'S2'] },
+            { id: '7', nom: 'Marketing Digital', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
+            { id: '8', nom: 'Ressources Humaines', type: 'Master', semesters: ['S1', 'S2'] },
+            { id: '9', nom: 'Logistique et Transport', type: 'Licence', semesters: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] },
+            { id: '10', nom: 'Cybersécurité', type: 'Master', semesters: ['S1', 'S2'] },
         ];
         setSpecialities(initial);
         localStorage.setItem('specialities', JSON.stringify(initial));
@@ -107,13 +107,13 @@ const SpecialitiesPage = () => {
         if (spec) {
             setEditingSpeciality(spec);
             setFormData({
-                name: spec.name || '',
+                nom: spec.nom || '',
                 type: spec.type || 'Licence',
                 semesters: spec.semesters || []
             });
         } else {
             setEditingSpeciality(null);
-            setFormData({ name: '', type: 'Licence', semesters: [] });
+            setFormData({ nom: '', type: 'Licence', semesters: [] });
         }
         setIsModalOpen(true);
     };
@@ -141,7 +141,7 @@ const SpecialitiesPage = () => {
     const filteredSpecs = specialities.filter(s => {
         const search = searchTerm.toLowerCase();
         return (
-            (s.name || '').toLowerCase().includes(search) ||
+            (s.nom || '').toLowerCase().includes(search) ||
             (s.type || '').toLowerCase().includes(search)
         );
     });
@@ -227,7 +227,7 @@ const SpecialitiesPage = () => {
                                 {currentItems.length > 0 ? (
                                     currentItems.map((spec) => (
                                         <tr key={spec.id} className="hover:bg-surface-hover/30 transition-colors">
-                                            <td className="font-bold text-text">{spec.name}</td>
+                                            <td className="font-bold text-text">{spec.nom}</td>
                                             <td>
                                                 <span className={`tag ${spec.type === 'Licence' ? 'tag-licence' : 'tag-master'}`}>
                                                     {spec.type}
@@ -350,8 +350,8 @@ const SpecialitiesPage = () => {
                                             className="form-input"
                                             style={{ paddingLeft: '48px' }}
                                             placeholder="Ex: Intelligence Artificielle"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            value={formData.nom}
+                                            onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
                                         />
                                     </div>
                                 </div>

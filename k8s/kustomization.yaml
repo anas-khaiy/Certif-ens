@@ -1,0 +1,11 @@
+resources:
+  - 1-database/postgres.yaml
+  - 2-services/ai-service.yaml
+  - 2-services/ollama.yaml
+  - 2-services/livekit.yaml
+  - 3-backends/backend-admin.yaml
+  - 3-backends/backend-formateur.yaml
+  - 3-backends/backend-apprenant.yaml
+  - 4-frontends/frontend-admin.yaml
+  - 4-frontends/frontend-formateur.yaml
+  - 4-frontends/frontend-apprenant.yaml

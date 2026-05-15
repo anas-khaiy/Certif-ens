@@ -667,7 +667,7 @@ public class StatsController {
             "    AND (CASE WHEN cp2.completed_sub_section_ids = '' OR cp2.completed_sub_section_ids IS NULL THEN 0 " +
             "              ELSE (LENGTH(cp2.completed_sub_section_ids) - LENGTH(REPLACE(cp2.completed_sub_section_ids, ',', '')) + 1) END) >= " +
             "        (SELECT count(*) FROM sub_sections ss4 JOIN sections s4 ON ss4.section_id = s4.id WHERE s4.course_id = co.id) " +
-            "    AND (co.final_exam_id IS NULL OR co.exam_enabled = false OR EXISTS (SELECT 1 FROM quiz_results qr2 WHERE qr2.apprenant_id = e.apprenant_id AND qr2.course_id = co.id AND qr2.passed = true AND (qr.quiz_id = 'final_exam' OR qr.quiz_id = CAST(co.final_exam_id AS VARCHAR))))" +
+            "    AND (co.final_exam_id IS NULL OR co.exam_enabled = false OR EXISTS (SELECT 1 FROM quiz_results qr2 WHERE qr2.apprenant_id = e.apprenant_id AND qr2.course_id = co.id AND qr2.passed = true AND (qr2.quiz_id = 'final_exam' OR qr2.quiz_id = CAST(co.final_exam_id AS VARCHAR))))" +
             "  )" +
             ") as t ORDER BY cert_date DESC LIMIT 10"
         ).getResultList();
@@ -843,6 +843,133 @@ public class StatsController {
         pieData.add(r2);
         pieData.add(r3);
         result.put("pieData", pieData);
+
+        return result;
+    }
+
+    @GetMapping("/bundles")
+    public Map<String, Object> getBundleStats() {
+        Map<String, Object> result = new HashMap<>();
+
+        // Common subquery for progress calculation
+        String progressSubquery = 
+            "(SELECT COALESCE(AVG(progress_val), 0) FROM (" +
+            "  SELECT CASE " +
+            "    WHEN (SELECT COUNT(*) FROM sub_sections ss2 JOIN sections s2 ON ss2.section_id = s2.id WHERE s2.course_id = fbc.course_id) = 0 THEN 100 " +
+            "    ELSE COALESCE((" +
+            "      SELECT cardinality(string_to_array(cp.completed_sub_section_ids, ',')) * 100.0 / " +
+            "      (SELECT COUNT(*) FROM sub_sections ss2 JOIN sections s2 ON ss2.section_id = s2.id WHERE s2.course_id = fbc.course_id)" +
+            "      FROM course_progress cp " +
+            "      WHERE cp.course_id = fbc.course_id " +
+            "      AND cp.apprenant_id = (CASE WHEN be.apprenant_id IS NOT NULL THEN be.apprenant_id ELSE (SELECT a2.id FROM apprenants a2 JOIN enseignants e2 ON a2.email = e2.email WHERE e2.id = be.enseignant_id LIMIT 1) END)" +
+            "    ), 0) " +
+            "  END as progress_val " +
+            "  FROM formateur_bundle_courses fbc WHERE fbc.bundle_id = be.bundle_id" +
+            ") t)";
+
+        // 1. KPIs
+        Number totalBundles = (Number) entityManager.createNativeQuery("SELECT COUNT(*) FROM formateur_bundles").getSingleResult();
+        Number totalEnrollments = (Number) entityManager.createNativeQuery("SELECT COUNT(*) FROM formateur_bundle_enrollments WHERE status = 'ACCEPTED'").getSingleResult();
+        
+        // Completions based on 100% progress or completed_at
+        Number totalCompletions = (Number) entityManager.createNativeQuery(
+            "SELECT COUNT(*) FROM (" +
+            "  SELECT be.id, " + progressSubquery + " as progress " +
+            "  FROM formateur_bundle_enrollments be WHERE be.status = 'ACCEPTED'" +
+            ") t2 WHERE t2.progress >= 100"
+        ).getSingleResult();
+
+        Number avgProgressNum = (Number) entityManager.createNativeQuery(
+            "SELECT COALESCE(AVG(progress), 0) FROM (" +
+            "  SELECT " + progressSubquery + " as progress " +
+            "  FROM formateur_bundle_enrollments be WHERE be.status = 'ACCEPTED'" +
+            ") t3"
+        ).getSingleResult();
+
+        result.put("totalBundles", totalBundles.intValue());
+        result.put("totalEnrollments", totalEnrollments.intValue());
+        result.put("totalCompletions", totalCompletions.intValue());
+        result.put("avgProgress", Math.round(avgProgressNum.doubleValue()));
+
+        // 2. Monthly Evolution (Last 6 Months)
+        List<Map<String, Object>> monthlyData = new ArrayList<>();
+        String[] monthNames = {"Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"};
+        LocalDate now = LocalDate.now();
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("YYYY-MM");
+
+        for (int i = 5; i >= 0; i--) {
+            LocalDate d = now.minusMonths(i);
+            Map<String, Object> m = new HashMap<>();
+            m.put("monthKey", d.format(fmt));
+            m.put("month", monthNames[d.getMonthValue() - 1]);
+            m.put("enrollments", 0);
+            m.put("completions", 0);
+            monthlyData.add(m);
+        }
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> monthlyRows = entityManager.createNativeQuery(
+            "SELECT TO_CHAR(enrolled_at, 'YYYY-MM') as month_key, " +
+            "COUNT(*) as enroll_count, " +
+            "SUM(CASE WHEN " + progressSubquery + " >= 100 THEN 1 ELSE 0 END) as comp_count " +
+            "FROM formateur_bundle_enrollments be " +
+            "WHERE enrolled_at >= CURRENT_DATE - INTERVAL '6 months' " +
+            "AND status = 'ACCEPTED' " +
+            "GROUP BY month_key"
+        ).getResultList();
+
+        for (Object[] row : monthlyRows) {
+            String key = row[0].toString();
+            for (Map<String, Object> m : monthlyData) {
+                if (m.get("monthKey").equals(key)) {
+                    m.put("enrollments", ((Number) row[1]).intValue());
+                    m.put("completions", ((Number) row[2]).intValue());
+                }
+            }
+        }
+        result.put("monthlyData", monthlyData);
+
+        // 3. Distribution by Specialty
+        @SuppressWarnings("unchecked")
+        List<Object[]> distRows = entityManager.createNativeQuery(
+            "SELECT s.nom, COUNT(b.id) FROM formateur_bundles b " +
+            "JOIN specialites s ON b.specialite_id = s.id " +
+            "GROUP BY s.nom"
+        ).getResultList();
+
+        List<Map<String, Object>> distributionData = new ArrayList<>();
+        for (Object[] row : distRows) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("name", row[0]);
+            m.put("value", row[1]);
+            distributionData.add(m);
+        }
+        result.put("distributionData", distributionData);
+
+        // 4. Recent Enrollments
+        @SuppressWarnings("unchecked")
+        List<Object[]> recentRows = entityManager.createNativeQuery(
+            "SELECT " +
+            "  COALESCE(a.prenom || ' ' || a.nom, e.prenom || ' ' || e.nom) as user_name, " +
+            "  b.title, be.enrolled_at, be.status, " + progressSubquery + " as progress " +
+            "FROM formateur_bundle_enrollments be " +
+            "JOIN formateur_bundles b ON be.bundle_id = b.id " +
+            "LEFT JOIN apprenants a ON be.apprenant_id = a.id " +
+            "LEFT JOIN enseignants e ON be.enseignant_id = e.id " +
+            "ORDER BY be.enrolled_at DESC LIMIT 20"
+        ).getResultList();
+
+        List<Map<String, Object>> recentEnrollments = new ArrayList<>();
+        for (Object[] row : recentRows) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("userName", row[0]);
+            m.put("bundleTitle", row[1]);
+            m.put("date", row[2]);
+            m.put("progress", ((Number) row[4]).doubleValue());
+            m.put("status", row[3]);
+            recentEnrollments.add(m);
+        }
+        result.put("recentEnrollments", recentEnrollments);
 
         return result;
     }

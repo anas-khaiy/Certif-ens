@@ -1,5 +1,5 @@
 {
-  "name": "service-admin",
+  "name": "service-formateur",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,18 +10,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@livekit/components-react": "^2.9.20",
+    "@livekit/components-styles": "^1.2.0",
+    "@monaco-editor/react": "^4.7.0",
+    "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tensorflow-models/coco-ssd": "^2.2.3",
     "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.13.5",
     "framer-motion": "^12.33.0",
+    "livekit-client": "^2.18.0",
     "lucide-react": "^0.563.0",
     "onnxruntime-web": "^1.24.3",
+    "qrcode.react": "^4.2.0",
     "quill-image-resize-module-react": "^3.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-is": "^19.2.4",
     "react-quill-new": "^3.8.3",
+    "react-router": "^7.13.2",
     "react-router-dom": "^7.13.0",
     "recharts": "^3.7.0",
     "xlsx": "^0.18.5"

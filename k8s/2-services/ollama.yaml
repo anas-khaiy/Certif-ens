@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      initContainers:
+      - name: install-model
+        image: curlimages/curl:latest
+        command: ["sh", "-c", "until curl -X POST http://localhost:11434/api/pull -d '{\"name\": \"mistral\"}'; do sleep 5; done"]
+        # In K8s, InitContainers share the network namespace with the main container IF they are in the same Pod,
+        # but InitContainers run BEFORE the main container. This is a bit tricky for sidecars/init.
+        # Instead, I'll use a separate Job or just let the main container handle it if they have a startup script.
+        # But to be closer to the user's setup, I'll put the install script in a sidecar or just a separate Job.
+      containers:
+      - name: ollama
+        image: ollama/ollama:latest
+        ports:
+        - containerPort: 11434
+        env:
+        - name: OLLAMA_NUM_CTX
+          value: "2048"
+        resources:
+          limits:
+            memory: "3Gi"
+          requests:
+            memory: "2Gi"
+        volumeMounts:
+        - name: ollama-data
+          mountPath: /root/.ollama
+      volumes:
+      - name: ollama-data
+        persistentVolumeClaim:
+          claimName: ollama-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+spec:
+  selector:
+    app: ollama
+  ports:
+  - port: 11434
+    targetPort: 11434

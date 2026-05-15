@@ -1,0 +1,135 @@
+\chapter{Technologies et réalisation}
+
+Ce chapitre décrit l'ensemble des technologies, outils et méthodes qui ont été utilisés pour la mise en œuvre du projet. Il présente d'abord les choix techniques, puis détaille l'environnement de déploiement, l'implémentation du système (structure du code et interfaces utilisateur), ainsi que la stratégie de tests appliquée. Enfin, une conclusion synthétique fait le point sur les réalisations et les éventuelles difficultés rencontrées.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Dans cette section introductive, l'objectif est de donner une vue d'ensemble des aspects techniques et pratiques abordés dans ce chapitre. Nous y expliquons notamment :
+\begin{itemize}
+    \item \textbf{Les choix technologiques :} Justification des outils et frameworks sélectionnés en fonction des besoins fonctionnels (scalabilité, sécurité) et des contraintes techniques du projet.
+    \item \textbf{L'environnement de déploiement :} La manière dont l'infrastructure est configurée, notamment via la conteneurisation, pour supporter l'écosystème microservices.
+    \item \textbf{L'implémentation et l'interface utilisateur :} Les détails sur la structuration du code source (backend et frontend) et la conception ergonomique des interfaces.
+    \item \textbf{La stratégie de validation :} La méthodologie adoptée pour tester le système et garantir sa conformité aux exigences initiales.
+\end{itemize}
+
+Cette partie prépare le lecteur à comprendre comment les décisions prises au niveau de la conception se traduisent concrètement lors de la réalisation technique de la plateforme CertifEns.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Choix techniques et outils}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+La sélection de la pile technologique pour \textbf{CertifEns} n'est pas fortuite ; elle résulte d'une analyse comparative visant à concilier réactivité, sécurité et modularité.
+
+\subsection{Langages, Frameworks et Bases de données}
+Cette sous-section détaille les piliers technologiques sur lesquels repose l'ossature du système.
+
+\begin{itemize}
+    \item \textbf{Framework Backend (Java/Spring Boot) :}  
+    Spring Boot a été choisi pour orchestrer les microservices métier (\textit{Admin}, \textit{Formateur}, \textit{Apprenant}). Sa force réside dans les mécanismes d'\textbf{Inversion de Contrôle (IoC)} et d'\textbf{Injection de Dépendances (DI)}, qui simplifient le découplage des modules. L'intégration de \textit{Spring Security} a été déterminante pour implémenter une authentification robuste par jetons JWT (\textit{JSON Web Tokens}) et une validation par \textit{Double Authentification (MFA)}.
+    
+    \item \textbf{Framework Frontend (React \& Tailwind CSS) :}  
+    Pour offrir une interface fluide de type \textbf{Single Page Application (SPA)}, nous avons opté pour React. Sa gestion par composants réutilisables et son \textit{Virtual DOM} garantissent une mise à jour ultra-rapide des vues, ce qui est crucial lors de l'affichage des alertes de surveillance en temps réel. Tailwind CSS complète ce choix en fournissant un moteur de style utilitaire permettant un design hautement personnalisé et \textit{responsive}.
+    
+    \item \textbf{Intelligence Artificielle (Python/FastAPI \& YOLOv8) :}  
+    Le service de proctoring IA nécessite un traitement d'image intensif. \textbf{YOLOv8} (\textit{You Only Look Once}) a été sélectionné pour sa capacité à détecter des objets (téléphones, personnes multiples) avec une latence minimale. \textbf{FastAPI}, un framework ASGI moderne, assure l'exposition de ces modèles via des APIs asynchrones performantes, surpassant les solutions classiques comme Flask en termes de débit de requêtes.
+    
+    \item \textbf{Visioconférence (LiveKit) :}  
+    Contrairement aux architectures classiques de type "Mesh", LiveKit utilise une architecture \textbf{SFU (Selective Forwarding Unit)}. Cela permet de déporter le mixage des flux média vers le serveur, réduisant ainsi drastiquement la charge CPU sur les navigateurs des apprenants et garantissant une qualité vidéo stable même avec plusieurs participants.
+    
+    \item \textbf{Persistance des données (PostgreSQL) :}  
+    Pour la gestion des certifications et des résultats, la fiabilité est primordiale. PostgreSQL, avec son respect strict des propriétés \textbf{ACID}, assure l'intégrité des données transactionnelles. L'utilisation de \textit{Spring Data JPA/Hibernate} permet un mapping objet-relationnel fluide et performant.
+\end{itemize}
+
+\subsection{Outils de développement et collaboration}
+La qualité du code et la fluidité du cycle de développement ont été assurées par les outils suivants :
+\begin{itemize}
+    \item \textbf{Environnements (IDE) :} \textbf{VS Code} a été privilégié pour le développement Frontend et Python, tandis qu'\textbf{IntelliJ IDEA} a servi au développement Java pour ses capacités de refactoring avancées.
+    \item \textbf{Gestion de versions (Git) :} L'utilisation de Git avec une stratégie de branches par fonctionnalité (\textit{Feature Branching}) a permis de maintenir une base de code stable et de faciliter l'intégration continue.
+    \item \textbf{Tests d'API (Postman) :} Postman a été utilisé pour simuler les interactions entre microservices et valider les contrats d'interface (entrées/sorties) avant la phase d'intégration frontend.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Architecture de déploiement}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+L'architecture de déploiement de \textbf{CertifEns} repose sur une stratégie de conteneurisation intégrale, utilisant \textbf{Docker} et \textbf{Docker Compose}. Cette approche répond à la philosophie \textit{"Build once, run anywhere"}, garantissant que l'application se comporte de manière identique sur le serveur de production et sur la machine de développement.
+
+\begin{itemize}
+    \item \textbf{Orchestration des Conteneurs (Docker Compose) :}  
+    Le système est composé de plus de dix conteneurs interconnectés. Docker Compose gère le cycle de vie de ces services, leur ordre de démarrage (\textit{depends\_on}) et leur communication interne via un réseau virtuel (\textit{Bridge Network}) isolé du monde extérieur pour plus de sécurité.
+    
+    \item \textbf{Infrastructure de Support et IA :}  
+    \begin{itemize}
+        \item \textbf{Base de données :} Un conteneur PostgreSQL 15-alpine gère la persistance. Nous utilisons des \textbf{Volumes Docker} nommés (\textit{postgres\_data}) pour garantir que les données ne sont pas perdues lors du redémarrage des conteneurs.
+        \item \textbf{Serveur d'IA \& LLM :} Le service \textit{Ollama} héberge le modèle \textbf{Mistral 7B}. Un service d'installation automatique (\textit{ollama-model-installer}) a été conçu pour "pull" le modèle dès le premier démarrage, automatisant ainsi le provisionnement de l'intelligence artificielle.
+        \item \textbf{Serveur de Média :} Le serveur \textbf{LiveKit} est configuré via un fichier YAML spécifique pour gérer les flux WebRTC sur des ports UDP dédiés, essentiels pour la visioconférence.
+    \end{itemize}
+    
+    \item \textbf{Optimisation des Ressources et Sécurité :}  
+    \begin{itemize}
+        \item \textbf{Gestion mémoire :} Nous avons alloué une réservation de \textbf{6 Go de RAM} spécifique au conteneur Ollama pour éviter les plantages système lors des phases de génération de quiz par LLM.
+        \item \textbf{Isolation réseau :} Chaque microservice backend n'écoute que sur son port spécifique (9091, 9092, 9093), tandis que les communications sensibles avec la base de données s'effectuent via le réseau interne Docker.
+    \end{itemize}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Implémentation et interfaces}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+L'implémentation de CertifEns suit les standards du développement microservices et du Web moderne, en mettant l'accent sur la clarté du code et l'ergonomie des interfaces.
+
+\subsection{Structure du code Backend}
+Chaque microservice Spring Boot est organisé selon une architecture en couches (\textit{Layered Architecture}), garantissant une maintenance aisée :
+\begin{itemize}
+    \item \textbf{Controller :} Définit les points de terminaison REST et gère les requêtes entrantes.
+    \item \textbf{Service :} Contient la logique métier (calculs de scores, validation de sessions, appels à l'IA).
+    \item \textbf{Repository :} Assure l'interface avec PostgreSQL via Spring Data JPA.
+    \item \textbf{Model/Entity :} Définit les structures de données mappées en base de données.
+    \item \textbf{DTO (Data Transfer Object) :} Sécurise les échanges en ne transmettant que les données nécessaires au frontend.
+    \item \textbf{Security :} Gère l'authentification JWT et la validation du MFA.
+\end{itemize}
+
+\subsection{Structure du code Frontend}
+Les portails React utilisent une architecture modulaire basée sur les composants :
+\begin{itemize}
+    \item \textbf{Components :} Éléments UI réutilisables (boutons, cartes, formulaires).
+    \item \textbf{Pages :} Représentent les différentes vues de l'application (Dashboard, Examen, Paramètres).
+    \item \textbf{Services/API :} Gèrent les appels asynchrones vers les microservices via Axios.
+    \item \textbf{Hooks :} Logique d'état partagée pour la gestion des sessions et des flux média.
+\end{itemize}
+
+\subsection{Présentation des fonctionnalités clés}
+L'implémentation de CertifEns ne se limite pas à une simple interface CRUD ; elle intègre des processus complexes de traitement de données.
+
+\subsubsection{Surveillance intelligente (Proctoring IA)}
+Le module de surveillance est le cœur sécuritaire du système. Son implémentation repose sur une boucle de rétroaction entre le navigateur et le service FastAPI :
+\begin{itemize}
+    \item \textbf{Analyse d'image :} Pour optimiser les ressources, le frontend capture une image du flux webcam toutes les deux secondes (au lieu d'un flux continu), réduisant ainsi la bande passante.
+    \item \textbf{Inférence YOLOv8 :} Le modèle analyse l'image pour détecter des objets spécifiques : \textit{"Cell Phone"}, \textit{"Person"} (pour compter les individus) ou l'absence de l'apprenant. Un \textbf{seuil de confiance (\textit{Confidence Threshold}) de 0,5} a été fixé pour minimiser les faux positifs.
+    \item \textbf{Alertes :} En cas de détection suspecte, le service IA notifie immédiatement le microservice \textit{Apprenant}, qui incrémente un compteur de fraude et peut déclencher l'arrêt automatique de l'examen.
+\end{itemize}
+
+\subsubsection{Générateur de Quiz via LLM (Ollama/Mistral)}
+L'innovation de CertifEns réside également dans l'automatisation de la création de contenus :
+\begin{itemize}
+    \item \textbf{Prompt Engineering :} Nous avons conçu des \textit{prompts} spécifiques forçant le modèle \textbf{Mistral 7B} à répondre exclusivement au format JSON. 
+    \item \textbf{Extraction de contexte :} Le texte extrait des supports de cours est injecté dans le contexte du modèle, lui permettant de générer des questions pertinentes, des options de réponse et les explications associées, garantissant ainsi une évaluation cohérente avec le contenu pédagogique.
+\end{itemize}
+
+\subsubsection{Visioconférence et Collaboration via LiveKit}
+La communication en temps réel est gérée par des \textbf{Tokens d'accès} générés dynamiquement par le backend Spring Boot. L'apprenant utilise ce jeton pour rejoindre une "Room" LiveKit, où les flux audio et vidéo sont acheminés de manière sécurisée via le protocole WebRTC.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Stratégie de tests et validation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+La fiabilité de CertifEns a été éprouvée par une pyramide de tests rigoureuse :
+\begin{itemize}
+    \item \textbf{Tests Unitaires (JUnit 5 \& Mockito) :} Plus de 80\% de couverture de code sur les services critiques, notamment pour les algorithmes de calcul de scores et la logique de validation des sessions MFA.
+    \item \textbf{Validation des APIs (Postman) :} Des suites de tests automatisées vérifient que chaque microservice répond correctement aux requêtes et gère les erreurs de manière granulaire (codes 401, 403, 404).
+    \item \textbf{Tests de charge IA :} Nous avons mesuré le temps d'inférence moyen de YOLOv8 sur différents processeurs pour nous assurer que la surveillance reste fluide même sur des machines de milieu de gamme.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Ce chapitre a permis de démontrer comment les défis techniques identifiés lors de la conception ont été surmontés grâce à des choix technologiques modernes et une architecture rigoureuse. La réalisation de CertifEns prouve qu'il est possible de créer un écosystème pédagogique sécurisé, intelligent et hautement disponible en orchestrant des services hétérogènes (Java, Python, IA, WebRTC).
+
+Malgré les défis liés à la latence du traitement vidéo et à l'interopérabilité des microservices, l'utilisation de Docker Compose a simplifié l'orchestration et garanti la stabilité de la plateforme. CertifEns est désormais une solution fonctionnelle, prête à transformer l'expérience de certification en ligne.

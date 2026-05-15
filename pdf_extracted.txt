@@ -1,0 +1,233 @@
+Université Cadi Ayyad
+École Normale Supérieure
+Département d’Informatique
+Rapport de Projet de Fin d’Études
+Mise en place d’un chatbot intelligent ZahraChat
+pour l’accompagnement des étudiants en e-learning :
+une approche basée sur l’analyse des sentiments.
+Réalisé par :
+Agourram Fatima Ezzahra
+Encadré par :
+Pr. Oumaima STITINI
+Présenté devant le jury composé de :
+Pr. Ahmed IBNAIN (Président du jury)
+Pr. Oumaima STITINI (Encadrante)
+Pr. Zahid Noureddine (Examinateur)
+Rapport présenté en vue de l’obtention du
+Diplôme de fin d’études Licence
+Année Universitaire : 2024–2025
+Déclaration
+Je soussignée, Fatima Ezzahra Agourram , de l’École Normale Supérieure, Université Cadi
+Ayyad, Département d’Informatique, déclare que le présent rapport, y compris l’ensemble des textes,
+figures, tableaux, extraits de code et illustrations, constitue le fruit de mon travail personnel. Les
+sources externes utilisées ont fait l’objet de citations et références explicites. Je reconnais que tout
+manquement à cet engagement relèverait du plagiat, considéré comme une infraction académique
+passible de sanctions.
+J’autorise la mise à disposition d’un exemplaire de ce rapport à des fins pédagogiques, au bénéfice des
+futurs étudiants et chercheurs, et j’accepte qu’il soit consulté dans l’intérêt général de l’Enseignement
+Supérieur et de la Recherche.
+Fatima Ezzahra Agourram
+16 avril 2026
+i
+Remerciements
+Avant tout, je dédie ce travail à Dieu Tout-Puissant, source de ma force, de ma patience et de
+mes espérances. C’est à Lui que je confie mes efforts, mes doutes et mes victoires.
+Je tiens à exprimer ma profonde gratitude à mon encadrante, Madame STITINI Oumaima, qui a
+attendu ce jour avec tant de bienveillance et de confiance. Dans chaque ligne de ce PFE, dans chaque
+décision prise, il y a son ombre douce, son regard encourageant, son accompagnement silencieux. Ce
+travail est aussi un hommage à ce qu’elle a semé en moi. Merci pour votre générosité en matière de
+formation et d’encadrement.
+Mes remerciements s’adressent également à Monsieur ZAHID, chef de département, pour son
+soutien et ses orientations précieuses qui ont éclairé mon parcours.
+À la lumière de ma vie, ma mère, qui a été bien plus qu’une maman. Elle a été mon refuge, mon
+moteur, mon pilier. Tu as porté mille rôles avec un seul cœur. Tu as tout donné sans jamais compter,
+tu as porté mes douleurs comme les tiennes. Ce travail porte ton nom dans chaque ligne, chaque
+réussite, chaque étape franchie.
+Merci à tous les enseignants de l’École Normale Supérieure (ENS) pour leurs grands efforts dans
+le but de nous garantir un avenir professionnel meilleur, nous préparant à devenir de futurs cadres
+compétents et responsables.
+Je me permets aussi de me remercier moi-même, pour avoir tenu bon face aux tempêtes, pour
+avoir continué à avancer quand le cœur était lourd. Ce chemin n’a pas été facile, mais je suis fière
+de celle que je suis devenue.
+Enfin, que les membres du jury trouvent ici l’expression de ma profonde gratitude pour l’honneur
+qu’ils me font en acceptant d’évaluer ce travail.
+ii
+Abstract
+The project described in this report is one of the graduating projects for the Bachelor of Science
+in Computer Science degree. It is about the design and implementation of an intelligent chatbot for
+supporting students using online learning systems. In the digital age and with the growing trend for
+e-learning tools, personalized support for studies has become crucial. The project seeks to fill this
+gap with the design of a chatbot that is able to comprehend questions from the students, emotions
+detection,andrecommendingresourcesaccordinglybasedonareasofstudyandstudydifficulties.The
+system is based on the integration of sentiment analysis methodologies for evaluating the learner’s
+emotional condition and adjusting responses accordingly. The system also keeps in mind the context
+of studies while offering targeted support for improving the learning process as a whole. In design, we
+used the UML modeling language. In terms of development, the application is developed based on
+the Flask framework in Python for the backend, while for the interface, it is based on HTML, CSS,
+and JavaScript. The project adds value to the educational technology area through the introduction
+of a smart assistant that eases information access, engages the learner, and delivers personalized
+study assistance in real time.
+Keywords :Chatbot, Sentiment Analysis, Student Assistance, Flask, Python, HTML, CSS, JavaS-
+cript, UML, E-learning.
+iii
+Résumé
+Le document présenté fait partie du projet de fin d’études pour l’obtention du Diplôme de Licence
+en Informatique.
+L’accompagnement des étudiants sur les plateformes d’apprentissage en ligne représente un enjeu
+majeur dans l’amélioration de leur expérience éducative. Les difficultés rencontrées, qu’elles soient
+académiquesouémotionnelles,peuventfreinerleurprogression.C’estpourquoiunsystèmeintelligent,
+capable d’interagir avec les étudiants, de comprendre leurs besoins et d’identifier leurs émotions,
+s’avère particulièrement pertinent dans ce contexte.
+Le projet présenté consiste en la conception et la réalisation d’un chatbot intelligent, capable de
+répondre aux questions des étudiants, de leur recommander des ressources pédagogiques selon leurs
+difficultés, et de détecter leur état émotionnel grâce à des techniques d’analyse des sentiments. Ce
+système vise ainsi à offrir un soutien personnalisé et continu aux étudiants en ligne.
+Facile d’utilisation et accessible, cette application permet d’assurer une interaction fluide avec
+les utilisateurs, tout en améliorant leur autonomie. Elle s’inscrit également dans une démarche pé-
+dagogique innovante, intégrant les technologies du traitement du langage naturel (NLP).
+Pour mener à bien ce projet, j’ai adopté une approche méthodique basée sur des outils modernes.
+Le framework Flask, couplé à Python, a été retenu pour le développement backend, tandis que les
+technologies HTML, CSS et JavaScript ont été utilisées pour le développement de l’interface utilisa-
+teur. La conception du système a été assurée à l’aide du langage de modélisation UML, permettant
+une représentation claire et précise des interactions entre les différentes composantes.
+Mots clés : Chatbot, Apprentissage en ligne, Analyse des sentiments, Assistance aux étudiants,
+Python, Flask, HTML, CSS, JavaScript, UML.
+iv
+Liste des abréviations
+Note : Trier en ordre alphabétique
+AI Artificial Intelligence(Intelligence Artificielle)
+NLP Natural Language Processing(Traitement du Langage Naturel)
+API Application Programming Interface(Interface de Programmation d’Application)
+UML Unified Modeling Language(Langage de Modélisation Unifié)
+DOM Document Object Model(Modèle d’Objet de Document)
+HTTP HyperText Transfer Protocol(Protocole de Transfert Hypertexte)
+JSON JavaScript Object Notation(Notation d’Objet JavaScript)
+GUI Graphical User Interface(Interface Graphique Utilisateur)
+HTML HyperText Markup Language(Langage de balisage hypertexte)
+CSS Cascading Style Sheets(Feuilles de style en cascade)
+JS JavaScript (JavaScript)
+Flask Micro-framework Pythonutilisé pour le développement web
+Python Python (Langage de programmation utilisé pour le backend)
+UI User Interface(Interface Utilisateur)
+DB Database (Base de données)
+UI/UX User Interface / User Experience(Interface Utilisateur / Expérience Utilisateur)
+AI-based
+Chatbot
+Chatbot basé sur l’intelligence artificielle(Système intelligent d’interaction avec
+les utilisateurs)
+Sentiment
+Analysis
+Analyse des sentiments(Technique d’analyse des émotions des utilisateurs)
+v
+Table des figures
+1.1 Schéma du cycle Scrum et de ses principales étapes . . . . . . . . . . . . . . . . . . 5
+1.2 Diagramme de Gantt pour ZAHRACHAT . . . . . . . . . . . . . . . . . . . . . . . . 7
+2.1 Machine Learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+2.2 Algorithmes mis en œuvre par le Machine Learning. . . . . . . . . . . . . . . . . . . 9
+2.3 Solutions proposées. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+2.4 Limites et defis. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+4.1 Logo de l’UML . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+4.2 Architecture applicative du projet. . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+4.3 Le diagramme de classe. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+4.4 diagramme de cas d’utilisation "users" . . . . . . . . . . . . . . . . . . . . . . . . . 22
+4.5 diagramme de cas d’utilisation "chatbot" . . . . . . . . . . . . . . . . . . . . . . . . 23
+4.6 Diagramme de séquence ”Admin" . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+4.7 Diagramme de séquence ”Etudiant" . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+5.1 Langages de programmation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+5.2 Frameworks . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+5.3 système de gestion de base de données relationnelle (SGBDR) . . . . . . . . . . . . 31
+5.4 Logo proposé pour notre site . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+5.5 La page d’accueil. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+5.6 section "footer". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+5.7 Confirmation de l’envoi réussi du formulaire de newsletter via Formspree. . . . . . . 34
+5.8 La page "fonctionnalités". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+5.9 La page "À propos". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+5.10 Formulaire "Contact". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+5.11 reçu d’email. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+5.12 page de login. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+5.13 page "chatbot". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+5.14 page "outils". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+5.15 Tableau de bord principal affichant les statistiques en temps réel. . . . . . . . . . . . 40
+5.16 Liste des interactions récentes du chatbot. . . . . . . . . . . . . . . . . . . . . . . . 40
+5.17 Aperçu d’un fichierCSV généré via la fonction l’exportation du tableau de bord. . . . 41
+5.18 Résultats détaillés de l’exécution des tests automatisés du chatbot éducatif. . . . . . 42
+vi
+Liste des tableaux
+1.1 Équipe Scrum du projet. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+1.2 Les sprints du projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+2.1 Comparaison des plateformes de chatbots éducatifs . . . . . . . . . . . . . . . . . . 13
+3.1 Description des rôles des acteurs du système . . . . . . . . . . . . . . . . . . . . . . 18
+4.1 Description textuelle de l’utilisateur . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+4.2 Description textuelle de l’étudiant. . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+4.3 Description textuelle de l’administrateur . . . . . . . . . . . . . . . . . . . . . . . . 24
+4.4 Description textuelle du chatbot . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+vii
+Table des matières
+Abstract iii
+Résumé iv
+Liste des abréviations v
+Table des figures vi
+Liste des tableaux vii
+Introduction Générale 1
+1 Contexte général du projet 2
+1.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.2 Présentation du projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.2.1 Sujet du projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.2.2 Intérêt du projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.3 Problématique et état de l’existant . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.4 Objectifs du projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.5 Démarche de gestion de projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+1.5.1 Choix de la méthode de gestion du projet . . . . . . . . . . . . . . . . . . . 4
+1.5.2 Planification du projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+1.6 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+2 État de l’art 8
+2.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+2.2 Concepts fondamentaux . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+2.2.1 Intelligence artificielle (IA) . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+2.2.2 Apprentissage automatique (Machine Learning) . . . . . . . . . . . . . . . . 8
+2.2.3 Traitement du langage naturel (NLP) . . . . . . . . . . . . . . . . . . . . . 10
+2.2.4 Analyse des sentiments . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+2.2.5 Systèmes de recommandation . . . . . . . . . . . . . . . . . . . . . . . . . 10
+2.2.6 Travaux connexes et solutions existantes . . . . . . . . . . . . . . . . . . . . 10
+2.3 Analyse Comparative des Solutions Existantes . . . . . . . . . . . . . . . . . . . . . 13
+2.4 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+3 Étude préliminaire et fonctionnelle 15
+3.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+3.2 Étude des besoins . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+3.2.1 Besoins fonctionnels . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+3.2.2 Besoins non fonctionnels . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+3.2.3 Identification des acteurs . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+viii
+TABLE DES MATIÈRES ix
+3.3 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+4 Analyse et conception 19
+4.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+4.2 Le formalisme UML . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+4.3 Architecture applicative . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+4.4 Diagrammes de conception . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+4.4.1 Diagramme de classes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+4.4.2 Diagrammes de cas d’utilisation . . . . . . . . . . . . . . . . . . . . . . . . 22
+4.4.3 Diagrammes de séquence . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+4.5 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+5 Technologies et réalisation 29
+5.1 Environnement de développement technique . . . . . . . . . . . . . . . . . . . . . . 29
+5.1.1 Langages de programmation . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+5.1.2 Frameworks . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+5.1.3 Base de données . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+5.1.4 Critères de sélection . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+5.2 Environnement de développement logiciel . . . . . . . . . . . . . . . . . . . . . . . 31
+5.3 Logo du site web . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+5.4 Implémentation et interfaces . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+5.5 Stratégie de tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+5.5.1 Tests Unitaires . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+5.5.2 Tests d’Intégration . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+5.5.3 Tests Système . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+5.6 Méthodologie et Techniques de Test . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+5.6.1 Architecture du Système de Test . . . . . . . . . . . . . . . . . . . . . . . . 43
+5.6.2 Techniques d’Évaluation Automatisée . . . . . . . . . . . . . . . . . . . . . 43
+5.6.3 Mesure de Performance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+5.6.4 Génération de Rapport Automatisé . . . . . . . . . . . . . . . . . . . . . . . 44
+5.7 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+Conclusion générale 45
+Bibliographie 47
+Appendices 50

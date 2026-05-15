@@ -22,11 +22,13 @@ public class Question {
     private Long id;
 
     private String type; // QCU, QCM, OPEN
+    
+    @Column(columnDefinition = "TEXT")
     private String text;
 
     @ElementCollection
     @CollectionTable(name = "question_options", joinColumns = @JoinColumn(name = "question_id"))
-    @Column(name = "option_text")
+    @Column(name = "option_text", columnDefinition = "TEXT")
     @Builder.Default
     private List<String> options = new ArrayList<>();
 

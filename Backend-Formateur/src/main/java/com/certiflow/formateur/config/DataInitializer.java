@@ -148,7 +148,7 @@ public class DataInitializer implements CommandLineRunner {
 
             Enseignant trainer = new Enseignant();
             trainer.setNom("Formateur");
-            trainer.setPrenom("Certiflow");
+            trainer.setPrenom("CertiFlow");
             trainer.setEmail("trainer@certiflow.com");
             trainer.setMotDePasse(passwordEncoder.encode("trainer123"));
             trainer.setSpecialite(spec);

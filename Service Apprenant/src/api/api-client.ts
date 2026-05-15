@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_APPRENANT } from '../config';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8082/api/v1',
+    baseURL: API_APPRENANT,
     withCredentials: true,
 });
 

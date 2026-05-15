@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Course } from '../types';
 import api from '../api/api-client';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 export const useCourses = () => {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -35,11 +36,11 @@ export const useCourses = () => {
                 category: c.category || 'Cours',
                 specialiteId: c.specialiteId ?? c.specialite_id ?? null,
                 trainerName: c.enseignant ? `${c.enseignant.prenom} ${c.enseignant.nom}` : 'Formateur Inconnu',
-                trainerImage: c.enseignant?.photoProfile ? `http://localhost:8081/api/v1/files/profiles/${c.enseignant.photoProfile}` : undefined,
+                trainerImage: c.enseignant?.photoProfile ? `${API_FORMATEUR}/files/profiles/${c.enseignant.photoProfile}` : undefined,
                 coverImage: c.coverImage ? (
                     c.coverImage.startsWith('http') || c.coverImage.startsWith('data:')
                         ? c.coverImage
-                        : `http://localhost:8081/api/v1/files/content-images/${c.coverImage}`
+                        : `${API_FORMATEUR}/files/content-images/${c.coverImage}`
                 ) : undefined,
                 deadlineDate: c.deadlineDate ?? c.deadline_date,
                 reminderDays: c.reminderDays ?? c.reminder_days,
@@ -79,11 +80,11 @@ export const useCourses = () => {
                     })),
                 category: c.category || 'Cours',
                 trainerName: c.enseignant ? `${c.enseignant.prenom} ${c.enseignant.nom}` : 'Formateur Inconnu',
-                trainerImage: c.enseignant?.photoProfile ? `http://localhost:8081/api/v1/files/profiles/${c.enseignant.photoProfile}` : undefined,
+                trainerImage: c.enseignant?.photoProfile ? `${API_FORMATEUR}/files/profiles/${c.enseignant.photoProfile}` : undefined,
                 coverImage: c.coverImage ? (
                     c.coverImage.startsWith('http') || c.coverImage.startsWith('data:')
                         ? c.coverImage
-                        : `http://localhost:8081/api/v1/files/content-images/${c.coverImage}`
+                        : `${API_FORMATEUR}/files/content-images/${c.coverImage}`
                 ) : undefined,
                 deadlineDate: c.deadlineDate ?? c.deadline_date,
                 reminderDays: c.reminderDays ?? c.reminder_days,

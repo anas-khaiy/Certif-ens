@@ -48,4 +48,10 @@ public class Apprenant {
     @ManyToOne
     @JoinColumn(name = "formation_id")
     private Formation formation;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean mfaEnabled = false;
+
+    private String mfaSecret;
 }

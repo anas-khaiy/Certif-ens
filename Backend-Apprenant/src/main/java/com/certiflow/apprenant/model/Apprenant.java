@@ -50,6 +50,13 @@ public class Apprenant implements UserDetails {
     @JoinColumn(name = "cycle_id")
     private Cycle cycle;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean mfaEnabled = false;
+
+    @JsonIgnore
+    private String mfaSecret;
+
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {

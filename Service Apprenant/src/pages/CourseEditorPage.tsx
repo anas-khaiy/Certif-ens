@@ -650,7 +650,7 @@ const QuizEditorModal: React.FC<{
     title?: string;
     description?: string;
     isExam?: boolean;
-}> = ({ initialQuiz, onSave, onClose, maxPoolSize = 60, maxSelectionPerType = 30, title = "Éditeur de Quiz", description, isExam = false }) => {
+}> = ({ initialQuiz, onSave, onClose, maxPoolSize = 60, maxSelectionPerType = 30, title = "Éditeur de Quiz", description,  }) => {
     const [quizMode, setQuizMode] = useState<'manual' | 'dynamic'>(initialQuiz?.settings?.mode || 'manual');
     const [isGenerating, setIsGenerating] = useState(false);
     const [settings, setSettings] = useState<QuizSettings>(initialQuiz?.settings || {

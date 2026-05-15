@@ -8,6 +8,7 @@ import java.util.List;
 @Repository
 public interface QuizResultRepository extends JpaRepository<QuizResult, Long> {
     List<QuizResult> findByCourseId(Long courseId);
+    List<QuizResult> findByApprenantIdAndCourseId(Long apprenantId, Long courseId);
 
     void deleteByCourseIdAndQuizId(Long courseId, String quizId);
 }

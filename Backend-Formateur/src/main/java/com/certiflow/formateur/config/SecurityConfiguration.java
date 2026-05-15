@@ -37,16 +37,26 @@ public class SecurityConfiguration {
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                                 .authorizeHttpRequests(auth -> auth
-                                                // Allow trainer login
-                                                .requestMatchers("/api/v1/auth/authenticate").permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                                                // Allow trainer login and password reset
+                                                .requestMatchers("/api/v1/auth/authenticate",
+                                                                "/api/v1/auth/forgot-password",
+                                                                "/api/v1/auth/verify-reset-code",
+                                                                "/api/v1/auth/reset-password").permitAll()
                                                 // Allow serving profile & certificate images without auth
                                                 .requestMatchers("/api/v1/files/profiles/**",
                                                                 "/api/v1/files/certificates/**")
                                                 .permitAll()
                                                 // Allow fetching specialities and formations without authentication
                                                 .requestMatchers("/api/v1/specialites", "/api/v1/formations").permitAll()
+                                                // Allow admin cross-service requests
+                                                .requestMatchers("/api/v1/bundles", "/api/v1/bundles/admin/**", "/api/v1/courses/all").permitAll()
                                                 // Allow serving content images without auth (needed for <img> tags in lesson content)
                                                 .requestMatchers("/api/v1/files/content-images/**").permitAll()
+                                                // Allow LiveKit token generation without auth — secured by LiveKit API key/secret
+                                                .requestMatchers("/api/v1/livekit/**").permitAll()
+                                                // Allow certificate verification without auth
+                                                .requestMatchers("/api/v1/verify/**").permitAll()
                                                 // Allow error page
                                                 .requestMatchers("/error").permitAll()
                                                 // Explicitly require authentication for auth/me and other auth endpoints
@@ -69,14 +79,18 @@ public class SecurityConfiguration {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                // Allow both admin frontend and formateur frontend, including 127.0.0.1
-                configuration.setAllowedOrigins(List.of(
-                                "http://localhost:5173",
-                                "http://localhost:5174",
-                                "http://localhost:5175",
-                                "http://127.0.0.1:5173",
-                                "http://127.0.0.1:5174",
-                                "http://127.0.0.1:5175"));
+                // Use allowedOriginPatterns for more flexibility with localhost, internal IPs and server IPs
+                configuration.setAllowedOriginPatterns(List.of(
+                                "http://localhost:*",
+                                "https://localhost:*",
+                                "http://127.0.0.1:*",
+                                "https://127.0.0.1:*",
+                                "http://192.168.22.*:*",
+                                "http://192.168.100.16:*",
+                                "https://192.168.100.16:*",
+                                "http://10.10.10.*:*",
+                                "http://10.10.10.2",
+                                "http://10.10.10.2:*"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));

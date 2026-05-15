@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body { background: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; padding: 20px; }
+        #diagram { width: 100%; max-width: 1000px; }
+    </style>
+</head>
+<body>
+    <div id="diagram" class="mermaid">
+        graph TD
+            subgraph "Système CertifEns"
+                UC1(S'authentifier)
+                
+                %% Admin Use Cases
+                UC2(Gérer les utilisateurs)
+                UC3(Configurer les cycles & bundles)
+                UC4(Consulter les statistiques globales)
+                
+                %% Formateur Use Cases
+                UC5(Gérer les contenus de cours)
+                UC6(Générer des quiz/résumés par IA)
+                UC7(Animer des visioconférences)
+                UC8(Gérer l'encadrement)
+                UC9(Superviser les examens)
+                
+                %% Apprenant Use Cases
+                UC10(Consulter les cours)
+                UC11(Effectuer les tâches d'encadrement)
+                UC12(Passer un examen supervisé)
+                UC13(Consulter résultats & certificats)
+            end
+
+            Admin((Administrateur))
+            Trainer((Formateur))
+            Learner((Apprenant))
+
+            Admin --> UC1
+            Admin --> UC2
+            Admin --> UC3
+            Admin --> UC4
+
+            Trainer --> UC1
+            Trainer --> UC5
+            Trainer --> UC6
+            Trainer --> UC7
+            Trainer --> UC8
+            Trainer --> UC9
+
+            Learner --> UC1
+            Learner --> UC10
+            Learner --> UC11
+            Learner --> UC12
+            Learner --> UC13
+            Learner --> UC7
+    </div>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default', flowchart: { curve: 'basis' } });
+    </script>
+</body>
+</html>

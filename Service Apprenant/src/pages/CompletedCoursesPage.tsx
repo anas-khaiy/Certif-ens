@@ -24,6 +24,7 @@ import api from '../api/api-client';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Course } from '../types';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 interface CompletionData {
     id: number;
@@ -46,7 +47,7 @@ interface CertificatePrototype {
     message: string;
 }
 
-const ADMIN_API = 'http://localhost:8080/api/v1';
+const ADMIN_API = API_ADMIN;
 
 const CompletedCoursesPage = () => {
     const navigate = useNavigate();
@@ -143,9 +144,9 @@ const CompletedCoursesPage = () => {
                         );
 
                         // 3. Final Exam Check
-                        const hasFinalExam = course.finalExam && (course as any).examEnabled !== false &&
-                            ((course.finalExam.questions?.length ?? 0) > 0 ||
-                                (course.finalExam.settings?.generatedPool?.length ?? 0) > 0);
+                        // Only check for existence + enabled status (consistent with backend DashboardService logic).
+                        // Do NOT require questions array, as the enrollment API may not include it.
+                        const hasFinalExam = !!course.finalExam && (course as any).examEnabled !== false;
                         const finalExamResult = quizResults.find((r: any) =>
                             (String(r.quizId) === String(course.finalExam?.id) || String(r.quizId) === 'final_exam') &&
                             r.passed === true
@@ -156,11 +157,12 @@ const CompletedCoursesPage = () => {
                         const totalItems = uniqueSubSectionIds.size + (hasFinalExam ? 1 : 0);
                         const completedItems = uniqueCompletedIds.size + (hasFinalExam && finalExamResult ? 1 : 0);
 
+                        // A course with no lessons and no exam is NOT considered completed (progress = 0%)
                         const percentage = totalItems > 0
                             ? Math.round((completedItems / totalItems) * 100)
-                            : 100; // Empty course is completed by default
+                            : 0;
 
-                        if (percentage >= 100) {
+                        if (totalItems > 0 && percentage >= 100) {
                             const trainerFullName = course.enseignant
                                 ? `${course.enseignant.prenom} ${course.enseignant.nom}`
                                 : 'Formateur Principal';
@@ -174,7 +176,7 @@ const CompletedCoursesPage = () => {
                                 coverImage: course.coverImage ? (
                                     course.coverImage.startsWith('http') || course.coverImage.startsWith('data:')
                                         ? course.coverImage
-                                        : `http://localhost:8081/api/v1/files/content-images/${course.coverImage}`
+                                        : `${API_FORMATEUR}/files/content-images/${course.coverImage}`
                                 ) : undefined,
                             };
                             completed.push(mappedCourse);
@@ -346,12 +348,12 @@ const CompletedCoursesPage = () => {
         const completion = coursesCompletion[course.id] || coursesCompletion[course.id.toString()];
         const certId = completion?.certificateId || `CERT-${course.id}`;
         const shareUrl = `${window.location.protocol}//${window.location.host}/verify/${certId}`;
-        const shareText = `Je suis ravi de partager mon nouveau certificat pour la formation "${course.title}" sur CertiFlow ! 🚀`;
+        const shareText = `Je suis ravi de partager mon nouveau certificat pour la formation "${course.title}" sur CertifEns ! 🚀`;
 
         switch (platform) {
             case 'linkedin':
                 // Using LinkedIn's updated sharing URL with summary
-                window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent('Certification CertiFlow')}&summary=${encodeURIComponent(shareText)}`, '_blank');
+                window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent('Certification CertifEns')}&summary=${encodeURIComponent(shareText)}`, '_blank');
                 break;
             case 'facebook':
                 window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`, '_blank');
@@ -422,7 +424,7 @@ const CompletedCoursesPage = () => {
                     </div>
                     <div style={{ width: `${qrSize}px`, height: `${qrSize}px`, background: 'white', border: '1px solid #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', boxSizing: 'border-box' }}>
                         <QRCodeSVG
-                            value={`http://localhost:5175/verify/${currentCertId}`}
+                            value={`${VERIFY_URL_APPRENANT}/${currentCertId}`}
                             size={Math.round(qrSize * 0.9)}
                             level="H"
                             includeMargin={false}

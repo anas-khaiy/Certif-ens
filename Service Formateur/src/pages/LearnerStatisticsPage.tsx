@@ -6,7 +6,8 @@ import {
     Search,
     ChevronLeft,
     ChevronRight,
-    Loader2
+    Loader2,
+    Briefcase
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../api/api-client';
@@ -25,6 +26,7 @@ const LearnerStatisticsPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [learners, setLearners] = useState<Learner[]>([]);
+    const [enseignantEmails, setEnseignantEmails] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
     const itemsPerPage = 8;
 
@@ -40,7 +42,21 @@ const LearnerStatisticsPage: React.FC = () => {
             }
         };
 
+        const fetchEnseignants = async () => {
+            try {
+                const response = await api.get('/enseignants');
+                const emails = new Set<string>();
+                response.data.forEach((e: any) => {
+                    if (e.email) emails.add(e.email.toLowerCase());
+                });
+                setEnseignantEmails(emails);
+            } catch (error) {
+                console.error('Error fetching enseignants for Stats:', error);
+            }
+        };
+
         fetchLearners();
+        fetchEnseignants();
     }, []);
 
     const filteredLearners = learners.filter(l =>
@@ -116,7 +132,17 @@ const LearnerStatisticsPage: React.FC = () => {
                                         {learner.name.split(' ').map(n => n[0]).join('')}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-sm text-text group-hover:text-primary transition-colors">{learner.name}</h4>
+                                        <h4 className="font-bold text-sm text-text group-hover:text-primary transition-colors flex items-center gap-2">
+                                            {learner.name}
+                                            {enseignantEmails.has((learner.email || '').toLowerCase()) && (
+                                                <div className="group/tooltip relative flex items-center justify-center bg-primary/10 w-5 h-5 rounded-md cursor-help">
+                                                    <Briefcase size={12} className="text-primary" />
+                                                    <span className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-surface border border-glass-border px-2 py-1 rounded-lg text-[10px] text-text-muted opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
+                                                        Formateur
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </h4>
                                         <p className="text-[10px] text-text-muted truncate max-w-[120px]">{learner.email}</p>
                                     </div>
                                 </div>

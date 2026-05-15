@@ -8,5 +8,6 @@ import java.util.List;
 @Repository
 public interface TpSubmissionRepository extends JpaRepository<TpSubmission, Long> {
     List<TpSubmission> findByCourseId(Long courseId);
-    List<TpSubmission> findByCourseIdAndApprenantId(Long courseId, Long apprenantId);
+    List<TpSubmission> findByApprenantIdAndCourseIdAndSubSectionId(Long apprenantId, Long courseId, String subSectionId);
+    List<TpSubmission> findByApprenantIdAndCourseId(Long apprenantId, Long courseId);
 }

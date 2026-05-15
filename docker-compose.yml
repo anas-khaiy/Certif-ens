@@ -23,11 +23,14 @@ services:
       context: ./Backend-Admin
     container_name: certiflow-backend-admin
     ports:
-      - "8080:8080"
+      - "9091:9091"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,13 +41,17 @@ services:
       context: ./Backend-Formateur
     container_name: certiflow-backend-formateur
     ports:
-      - "8081:8081"
+      - "9092:9092"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
       - OLLAMA_URL=http://ollama:11434
       - OLLAMA_MODEL=mistral
+      - LIVEKIT_HOST=http://livekit:7880
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,11 +65,14 @@ services:
       context: ./Backend-Apprenant
     container_name: certiflow-backend-apprenant
     ports:
-      - "8082:8082"
+      - "9093:9093"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
       postgres:
         condition: service_healthy
@@ -147,6 +157,21 @@ services:
       - ./Service Apprenant:/app
       - /app/node_modules
 
+  # LiveKit Server (Video Conferencing / Google Meet alternative)
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: certiflow-livekit
+    command: ["--config", "/etc/livekit.yaml", "--node-ip=217.65.145.127"]
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    environment:
+      - "LIVEKIT_KEYS=devkey: devsecret32charslongtofitrequirement"
+
 volumes:
   postgres_data:
   ollama_data:
+

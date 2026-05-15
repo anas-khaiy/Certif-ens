@@ -12,6 +12,7 @@ import {
 import { motion } from 'framer-motion';
 import defaultProfile from '../assets/profile.png';
 import api from '../api/api-client';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 const SettingsPage = () => {
     // State for profile
@@ -33,7 +34,7 @@ const SettingsPage = () => {
                 const formatAvatarUrl = (fileName: string) => {
                     if (!fileName) return '';
                     if (fileName.startsWith('http')) return fileName;
-                    return `http://localhost:8081/api/v1/files/profiles/${fileName}`;
+                    return `${API_FORMATEUR}/files/profiles/${fileName}`;
                 };
 
                 setProfile({
@@ -168,7 +169,7 @@ const SettingsPage = () => {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 const fileName = response.data;
-                const newAvatarUrl = `http://localhost:8081/api/v1/files/profiles/${fileName}`;
+                const newAvatarUrl = `${API_FORMATEUR}/files/profiles/${fileName}`;
 
                 // Update local profile with the actual URL
                 setProfile((prev: any) => ({ ...prev, avatar: newAvatarUrl }));

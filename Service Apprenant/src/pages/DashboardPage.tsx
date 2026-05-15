@@ -16,8 +16,9 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    AreaChart,
-    Area
+    BarChart,
+    Bar,
+    Cell
 } from 'recharts';
 import { motion } from 'framer-motion';
 
@@ -231,8 +232,9 @@ const DashboardPage = () => {
                         </div>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart 
+                                <BarChart
                                     data={stats?.courseProgressData || []}
+                                    barCategoryGap="30%"
                                     onMouseMove={(e: any) => {
                                         if (e.activePayload && e.activePayload.length > 0) {
                                             setHoverData(e.activePayload[0].payload);
@@ -242,13 +244,44 @@ const DashboardPage = () => {
                                     }}
                                     onMouseLeave={() => setHoverData(null)}
                                 >
-                                    <Tooltip 
+                                    <defs>
+                                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
+                                            <stop offset="100%" stopColor="#818cf8" stopOpacity={0.7} />
+                                        </linearGradient>
+                                        <linearGradient id="barGradientDone" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
+                                            <stop offset="100%" stopColor="#4ade80" stopOpacity={0.7} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} opacity={0.3} />
+                                    <XAxis
+                                        dataKey="courseTitle"
+                                        stroke="#94a3b8"
+                                        fontSize={10}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dy={10}
+                                        fontStyle="bold"
+                                        tickFormatter={(title) => title.length > 15 ? `${title.substring(0, 12)}...` : title}
+                                    />
+                                    <YAxis
+                                        domain={[0, 100]}
+                                        stroke="#94a3b8"
+                                        fontSize={11}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dx={-10}
+                                        fontStyle="bold"
+                                        tickFormatter={(value) => `${value}%`}
+                                    />
+                                    <Tooltip
                                         content={({ active, payload }: any) => {
                                             if (active && payload && payload.length > 0) {
                                                 const data = payload[0].payload;
                                                 return (
                                                     <div className="bg-[#1e2a3a]/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 shadow-2xl">
-                                                        <p className="text-[#22d3ee] text-[10px] font-black uppercase tracking-wider mb-0.5">
+                                                        <p className="text-[#818cf8] text-[10px] font-black uppercase tracking-wider mb-0.5">
                                                             {data.courseTitle}
                                                         </p>
                                                         <p className="text-white text-xs font-bold">
@@ -259,46 +292,17 @@ const DashboardPage = () => {
                                             }
                                             return null;
                                         }}
-                                        cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '3 3' }} 
+                                        cursor={{ fill: 'rgba(99,102,241,0.08)' }}
                                     />
-                                    <defs>
-                                        <linearGradient id="colorProgress" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} opacity={0.3} />
-                                    <XAxis 
-                                        dataKey="courseTitle" 
-                                        stroke="#94a3b8" 
-                                        fontSize={10} 
-                                        tickLine={false} 
-                                        axisLine={false} 
-                                        dy={10} 
-                                        fontStyle="bold"
-                                        tickFormatter={(title) => title.length > 15 ? `${title.substring(0, 12)}...` : title}
-                                    />
-                                    <YAxis 
-                                        domain={[0, 100]}
-                                        stroke="#94a3b8" 
-                                        fontSize={11} 
-                                        tickLine={false} 
-                                        axisLine={false} 
-                                        dx={-10} 
-                                        fontStyle="bold"
-                                        tickFormatter={(value) => `${value}%`}
-                                    />
-                                    <Area 
-                                        type="monotone" 
-                                        dataKey="progress" 
-                                        stroke="#6366f1" 
-                                        strokeWidth={4} 
-                                        fillOpacity={1} 
-                                        fill="url(#colorProgress)" 
-                                        animationDuration={1500}
-                                        activeDot={{ r: 6, stroke: '#6366f1', strokeWidth: 2, fill: '#fff' }}
-                                    />
-                                </AreaChart>
+                                    <Bar dataKey="progress" radius={[8, 8, 0, 0]} animationDuration={1200}>
+                                        {(stats?.courseProgressData || []).map((_: any, index: number) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={_.progress >= 100 ? 'url(#barGradientDone)' : 'url(#barGradient)'}
+                                            />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>

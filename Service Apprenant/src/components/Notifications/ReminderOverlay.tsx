@@ -80,13 +80,20 @@ const ReminderOverlay: React.FC = () => {
                                 >
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <BookOpen size={14} className="text-primary" />
-                                            <span className="text-[10px] font-black uppercase text-text-muted tracking-widest">Cours en cours</span>
+                                            <BookOpen size={14} className={reminder.type === 'alert' ? 'text-error' : 'text-primary'} />
+                                            <span className="text-[10px] font-black uppercase text-text-muted tracking-widest">
+                                                {reminder.type === 'alert' ? 'Tâche Supervisée' : 'Cours en cours'}
+                                            </span>
                                         </div>
-                                        <h4 className="font-bold text-text group-hover:text-primary transition-colors">{reminder.title}</h4>
+                                        <h4 className={`font-bold transition-colors ${reminder.type === 'alert' ? 'text-error' : 'text-text group-hover:text-primary'}`}>{reminder.title}</h4>
                                         
                                         <div className="flex items-center gap-3 mt-3">
-                                            {reminder.type === 'deadline' ? (
+                                            {reminder.type === 'alert' ? (
+                                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-error/10 text-error text-[10px] font-black border border-error/20">
+                                                    <AlertCircle size={12} />
+                                                    ALERTE TÂCHE
+                                                </div>
+                                            ) : reminder.type === 'deadline' ? (
                                                 isExpired ? (
                                                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-error/10 text-error text-[10px] font-black border border-error/20 animate-pulse">
                                                         <AlertCircle size={12} />
@@ -112,7 +119,11 @@ const ReminderOverlay: React.FC = () => {
                                     
                                     <button
                                         onClick={() => {
-                                            navigate(`/courses/${reminder.id}/preview`);
+                                            if (reminder.type === 'alert') {
+                                                navigate('/encadrement');
+                                            } else {
+                                                navigate(`/courses/${reminder.id}/preview`);
+                                            }
                                             setShow(false);
                                         }}
                                         className={`w-12 h-12 rounded-2xl text-white flex items-center justify-center shadow-lg group-hover:scale-110 active:scale-95 transition-all ${
