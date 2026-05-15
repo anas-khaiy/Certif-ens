@@ -1,7 +1,7 @@
 // ─── Central Server Configuration ────────────────────────────────────────────
 // Change SERVER_HOST to switch between environments (localhost, IP, domain…)
 
-export const SERVER_HOST = '217.65.145.127';
+export const SERVER_HOST = 'srv1674744.hstgr.cloud';
 
 // ── API base URLs (Via Nginx HTTPS Proxy) ──────────────────────────────────
 export const API_FORMATEUR = `https://${SERVER_HOST}:5444/api/v1`;
