@@ -7,19 +7,20 @@ import io
 from PIL import Image
 import mediapipe as mp
 try:
-    from mediapipe.python.solutions import face_mesh as mp_face_mesh
-    from mediapipe.python.solutions import drawing_utils as mp_drawing
-    from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
+    try:
+        from mediapipe.python.solutions import face_mesh as mp_face_mesh
+    except ImportError:
+        import mediapipe.solutions.face_mesh as mp_face_mesh
+    
+    face_mesh = mp_face_mesh.FaceMesh(
+        max_num_faces=1,
+        refine_landmarks=True,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5
+    )
 except ImportError:
-    import mediapipe.solutions.face_mesh as mp_face_mesh
-    import mediapipe.solutions.drawing_utils as mp_drawing
-    import mediapipe.solutions.drawing_styles as mp_drawing_styles
-face_mesh = mp_face_mesh.FaceMesh(
-    max_num_faces=1,
-    refine_landmarks=True,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-)
+    print("WARNING: MediaPipe could not be loaded. Head pose detection will be disabled.")
+    face_mesh = None
 
 app = FastAPI(title="CertiFlow AI Detection Service")
 
@@ -97,33 +98,34 @@ async def detect_objects(file: UploadFile = File(...)):
 
     # --- MediaPipe Head Pose Estimation ---
     looking_away = False
-    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    face_results = face_mesh.process(rgb_img)
-    
-    if face_results.multi_face_landmarks:
-        for face_landmarks in face_results.multi_face_landmarks:
-            # Nose tip (4), Left eye inner corner (133), Right eye inner corner (362)
-            # We use a simple ratio-based approach for yaw (turning head)
-            nose_tip = face_landmarks.landmark[4]
-            left_eye = face_landmarks.landmark[33]
-            right_eye = face_landmarks.landmark[263]
-            
-            # Distance from nose to left/right eye to detect head turn (Yaw)
-            dist_left = abs(nose_tip.x - left_eye.x)
-            dist_right = abs(nose_tip.x - right_eye.x)
-            
-            # Ratio shows if head is centered or turned
-            if dist_right > 0 and dist_left > 0:
-                ratio = dist_left / dist_right
-                # Thresholds for looking away left/right
-                if ratio > 2.5 or ratio < 0.4:
+    if face_mesh is not None:
+        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        face_results = face_mesh.process(rgb_img)
+        
+        if face_results.multi_face_landmarks:
+            for face_landmarks in face_results.multi_face_landmarks:
+                # Nose tip (4), Left eye inner corner (133), Right eye inner corner (362)
+                # We use a simple ratio-based approach for yaw (turning head)
+                nose_tip = face_landmarks.landmark[4]
+                left_eye = face_landmarks.landmark[33]
+                right_eye = face_landmarks.landmark[263]
+                
+                # Distance from nose to left/right eye to detect head turn (Yaw)
+                dist_left = abs(nose_tip.x - left_eye.x)
+                dist_right = abs(nose_tip.x - right_eye.x)
+                
+                # Ratio shows if head is centered or turned
+                if dist_right > 0 and dist_left > 0:
+                    ratio = dist_left / dist_right
+                    # Thresholds for looking away left/right
+                    if ratio > 2.5 or ratio < 0.4:
+                        looking_away = True
+                
+                # Pitch detection (Looking up/down)
+                avg_eye_y = (left_eye.y + right_eye.y) / 2
+                # If nose is too close or above eyes, student might be looking down/up
+                if (nose_tip.y - avg_eye_y) < 0.01:
                     looking_away = True
-            
-            # Pitch detection (Looking up/down)
-            avg_eye_y = (left_eye.y + right_eye.y) / 2
-            # If nose is too close or above eyes, student might be looking down/up
-            if (nose_tip.y - avg_eye_y) < 0.01:
-                looking_away = True
 
     # EXTREMELY STRICT: Count humans
     human_labels = ["person", "face", "head", "man", "woman", "personne"]
