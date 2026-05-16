@@ -124,7 +124,7 @@ services:
       context: ./Service Admin
     container_name: certiflow-frontend-admin
     ports:
-      - "5173:5173"
+      - "6173:6173"
     environment:
       - CHOKIDAR_USEPOLLING=true # Utile sous Windows
     volumes:
@@ -137,7 +137,7 @@ services:
       context: ./Service Formateur
     container_name: certiflow-frontend-formateur
     ports:
-      - "5174:5174"
+      - "6174:6174"
     environment:
       - CHOKIDAR_USEPOLLING=true
     volumes:
@@ -150,7 +150,7 @@ services:
       context: ./Service Apprenant
     container_name: certiflow-frontend-apprenant
     ports:
-      - "5175:5175"
+      - "6175:6175"
     environment:
       - CHOKIDAR_USEPOLLING=true
     volumes:
