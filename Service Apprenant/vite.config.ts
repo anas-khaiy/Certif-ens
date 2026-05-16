@@ -7,6 +7,6 @@ export default defineConfig({
   server: {
     port: 6175,
     host: true,
-    allowedHosts: ['srv1674744.hstgr.cloud'],
+    allowedHosts: ['certif.fun'],
   },
 })
