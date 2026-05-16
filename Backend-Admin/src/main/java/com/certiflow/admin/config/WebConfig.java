@@ -21,7 +21,14 @@ public class WebConfig implements WebMvcConfigurer {
                         "https://217.65.145.127",
                         "https://217.65.145.127:5443",
                         "https://217.65.145.127:5444",
-                        "https://217.65.145.127:5445"
+                        "https://217.65.145.127:5445",
+                        "https://srv1674744.hstgr.cloud",
+                        "https://srv1674744.hstgr.cloud:5173",
+                        "https://srv1674744.hstgr.cloud:5174",
+                        "https://srv1674744.hstgr.cloud:5175",
+                        "https://srv1674744.hstgr.cloud:5443",
+                        "https://srv1674744.hstgr.cloud:5444",
+                        "https://srv1674744.hstgr.cloud:5445"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
