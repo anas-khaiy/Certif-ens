@@ -26,7 +26,13 @@ app = FastAPI(title="CertiFlow AI Detection Service")
 # Enable CORS for frontend accessibility
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
+        "https://srv1674744.hstgr.cloud",
+        "https://srv1674744.hstgr.cloud:5173",
+        "https://srv1674744.hstgr.cloud:5174",
+        "https://srv1674744.hstgr.cloud:5175"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
