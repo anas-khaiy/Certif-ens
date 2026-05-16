@@ -4148,6 +4148,17 @@ const CourseEditorPage: React.FC = () => {
                                     {course.published ? <Globe size={18} /> : <Lock size={18} />}
                                     <span className="hidden sm:inline">{course.published ? 'Publié' : 'Brouillon'}</span>
                                 </button>
+                                <button
+                                    onClick={() => setCourse(prev => ({ ...prev, contentCompleted: !(prev as any).contentCompleted }))}
+                                    className={`px-4 py-2.5 rounded-xl flex items-center gap-2 font-bold transition-all border-2 text-sm ${(course as any).contentCompleted
+                                        ? 'bg-blue-500/10 text-blue-500 border-blue-500/30 hover:bg-blue-500 hover:text-white'
+                                        : 'bg-purple-500/10 text-purple-500 border-purple-500/30 hover:bg-purple-500 hover:text-white'
+                                        }`}
+                                    title="Marquer le contenu comme terminé pour autoriser les certificats"
+                                >
+                                    {(course as any).contentCompleted ? <CheckCircle2 size={18} /> : <FileText size={18} />}
+                                    <span className="hidden sm:inline">{(course as any).contentCompleted ? 'Contenu Terminé' : 'En Création'}</span>
+                                </button>
                             </>
                         )}
                         <button

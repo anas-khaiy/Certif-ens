@@ -42,6 +42,8 @@ public class Course {
     @Column(columnDefinition = "TEXT")
     private String coverImage;
     private boolean published;
+    @Builder.Default
+    private Boolean contentCompleted = false;
 
     @Builder.Default
     private Boolean examEnabled = true;

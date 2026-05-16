@@ -43,6 +43,8 @@ public class Course {
     private String coverImage;
     private boolean published;
     @Builder.Default
+    private Boolean contentCompleted = false;
+    @Builder.Default
     private Boolean examEnabled = true;
 
     private LocalDateTime deadlineDate;

@@ -75,6 +75,7 @@ export interface Course {
     finalExam?: Quiz;
     examEnabled?: boolean;
     isPublished?: boolean;
+    contentCompleted?: boolean;
     trainerName?: string;
     trainerSignature?: string;
     trainerImage?: string;

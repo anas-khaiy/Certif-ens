@@ -162,7 +162,7 @@ const CompletedCoursesPage = () => {
                             ? Math.round((completedItems / totalItems) * 100)
                             : 0;
 
-                        if (totalItems > 0 && percentage >= 100) {
+                        if (totalItems > 0 && percentage >= 100 && (course as any).contentCompleted === true) {
                             const trainerFullName = course.enseignant
                                 ? `${course.enseignant.prenom} ${course.enseignant.nom}`
                                 : 'Formateur Principal';

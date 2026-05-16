@@ -86,6 +86,7 @@ export interface Course {
     finalExam?: Quiz | null;
     examEnabled?: boolean;
     published?: boolean;
+    contentCompleted?: boolean;
     createdAt?: string;
     updatedAt?: string;
     deadlineDate?: string;
