@@ -7,10 +7,7 @@ import io
 from PIL import Image
 import mediapipe as mp
 try:
-    try:
-        from mediapipe.python.solutions import face_mesh as mp_face_mesh
-    except ImportError:
-        import mediapipe.solutions.face_mesh as mp_face_mesh
+    mp_face_mesh = mp.solutions.face_mesh
     
     face_mesh = mp_face_mesh.FaceMesh(
         max_num_faces=1,
@@ -18,11 +15,12 @@ try:
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5
     )
-except ImportError:
-    print("WARNING: MediaPipe could not be loaded. Head pose detection will be disabled.")
+except Exception as e:
+    print(f"WARNING: MediaPipe could not be loaded: {e}. Head pose detection will be disabled.")
     face_mesh = None
 
 app = FastAPI(title="CertiFlow AI Detection Service")
+
 
 # Enable CORS for frontend accessibility
 app.add_middleware(
