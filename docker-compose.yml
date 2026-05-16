@@ -125,11 +125,6 @@ services:
     container_name: certiflow-frontend-admin
     ports:
       - "6173:6173"
-    environment:
-      - CHOKIDAR_USEPOLLING=true # Utile sous Windows
-    volumes:
-      - ./Service Admin:/app
-      - /app/node_modules
 
   # Frontend Formateur
   service-formateur:
@@ -138,11 +133,6 @@ services:
     container_name: certiflow-frontend-formateur
     ports:
       - "6174:6174"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-    volumes:
-      - ./Service Formateur:/app
-      - /app/node_modules
 
   # Frontend Apprenant
   service-apprenant:
@@ -151,11 +141,6 @@ services:
     container_name: certiflow-frontend-apprenant
     ports:
       - "6175:6175"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-    volumes:
-      - ./Service Apprenant:/app
-      - /app/node_modules
 
   # LiveKit Server (Video Conferencing / Google Meet alternative)
   livekit:
