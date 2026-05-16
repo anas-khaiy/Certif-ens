@@ -13,8 +13,10 @@ export const WS_APPRENANT = `wss://${SERVER_HOST}:5445/ws`;
 export const WS_LIVEKIT = `https://${SERVER_HOST}:5447`;
 
 // ── Front-end verify URL (used in certificate share links) ───────────────────
-export const VERIFY_URL_FORMATEUR = `https://${SERVER_HOST}:5444/verify`;
-export const VERIFY_URL_APPRENANT = `https://${SERVER_HOST}:5445/verify`;
+// These point to the Apprenant FRONTEND app (port 443 = default HTTPS, no port needed)
+// because /verify/:id is a React route, NOT a backend API route.
+export const VERIFY_URL_FORMATEUR = `https://${SERVER_HOST}/verify`;
+export const VERIFY_URL_APPRENANT = `https://${SERVER_HOST}/verify`;
 
 // ── AI detection service ──────────────────────────────────────────────────────
 export const AI_DETECT_URL = `https://${SERVER_HOST}:5446/detect`;
