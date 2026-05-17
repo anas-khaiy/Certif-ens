@@ -52,7 +52,7 @@ public class FileController {
         String filename = fileService.saveContentImageFile(file);
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
         String url = baseUrl + "/api/v1/files/content-images/" + filename;
-        return ResponseEntity.ok(java.util.Map.of("url", url));
+        return ResponseEntity.ok(java.util.Map.of("url", url, "filename", filename));
     }
 
     /**

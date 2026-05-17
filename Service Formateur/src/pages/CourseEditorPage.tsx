@@ -2541,8 +2541,9 @@ const CourseEditorPage: React.FC = () => {
                         body: formData,
                     });
                     if (res.ok) {
-                        const { url } = await res.json() as { url: string };
-                        img.setAttribute('src', url);
+                        const { url, filename } = await res.json() as { url: string, filename?: string };
+                        const finalUrl = filename ? `${API_FORMATEUR}/files/content-images/${filename}` : url;
+                        img.setAttribute('src', finalUrl);
                     }
                 }
                 // Serialize back to HTML string (body inner content only)
