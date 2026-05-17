@@ -394,6 +394,7 @@ const SettingsPage = () => {
                                 >
                                     <option value="mistral">Mistral (7B) - Standard</option>
                                     <option value="qwen2.5:7b">Qwen 2.5 (7B) - Haute qualité / Français</option>
+                                    <option value="llama3.2:3b">Llama 3.2 (3B) - Très rapide / Léger</option>
                                 </select>
                             </div>
                         </div>

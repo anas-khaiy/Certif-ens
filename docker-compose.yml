@@ -118,7 +118,9 @@ services:
       curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"mistral\"}' && \
       echo 'Modèle Mistral installé !' && \
       curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"qwen2.5:7b\"}' && \
-      echo 'Modèle Qwen 2.5 installé !';"
+      echo 'Modèle Qwen 2.5 installé !' && \
+      curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"llama3.2:3b\"}' && \
+      echo 'Modèle Llama 3.2 (3B) installé !';"
 
   # Frontend Administrateur
   service-admin:
