@@ -7,12 +7,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import com.certiflow.formateur.model.SystemSetting;
+import com.certiflow.formateur.repository.SystemSettingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class QuizAIService {
 
+    @Autowired
+    private SystemSettingRepository systemSettingRepository;
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private String getModelName() {
+        Optional<SystemSetting> setting = systemSettingRepository.findById("OLLAMA_MODEL");
+        if (setting.isPresent() && setting.get().getSettingValue() != null) {
+            return setting.get().getSettingValue();
+        }
+        return System.getenv("OLLAMA_MODEL") != null ? System.getenv("OLLAMA_MODEL") : "mistral";
+    }
 
     public String generateQuestions(String topic, int count) {
         String ollamaBase = System.getenv("OLLAMA_URL") != null
@@ -40,9 +54,7 @@ public class QuizAIService {
                 count, topic);
 
         Map<String, Object> body = new HashMap<>();
-        String model = System.getenv("OLLAMA_MODEL") != null
-                ? System.getenv("OLLAMA_MODEL")
-                : "mistral-nemo";
+        String model = getModelName();
         body.put("model", model);
         body.put("prompt", prompt);
         body.put("stream", false);
@@ -99,9 +111,7 @@ public class QuizAIService {
                 query);
 
         Map<String, Object> body = new HashMap<>();
-        String model = System.getenv("OLLAMA_MODEL") != null
-                ? System.getenv("OLLAMA_MODEL")
-                : "mistral-nemo";
+        String model = getModelName();
         body.put("model", model);
         body.put("prompt", prompt);
         body.put("stream", false);

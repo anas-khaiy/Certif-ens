@@ -5,7 +5,8 @@ import {
     Camera,
     Save,
     Shield,
-    Loader2
+    Loader2,
+    Cpu
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../api/api-client';
@@ -30,11 +31,14 @@ const SettingsPage = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [updatingProfile, setUpdatingProfile] = useState(false);
     const [updatingPassword, setUpdatingPassword] = useState(false);
+    const [aiModel, setAiModel] = useState('mistral');
+    const [updatingAiModel, setUpdatingAiModel] = useState(false);
 
     const API_BASE_URL = API_ADMIN;
 
     useEffect(() => {
         fetchProfile();
+        fetchSettings();
     }, []);
 
     const fetchProfile = async () => {
@@ -51,6 +55,18 @@ const SettingsPage = () => {
             setLoading(false);
         }
     };
+
+    const fetchSettings = async () => {
+        try {
+            const response = await api.get('/admin/settings/OLLAMA_MODEL');
+            if (response.data && response.data.value) {
+                setAiModel(response.data.value);
+            }
+        } catch (error) {
+            // Ignore if not found
+        }
+    };
+
 
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -144,6 +160,21 @@ const SettingsPage = () => {
             setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         }
     };
+
+    const handleAiModelSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setUpdatingAiModel(true);
+        try {
+            await api.post('/admin/settings/OLLAMA_MODEL', { value: aiModel });
+            setMessage({ type: 'success', text: 'Modèle IA mis à jour avec succès !' });
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Erreur lors de la mise à jour du modèle IA' });
+        } finally {
+            setUpdatingAiModel(false);
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+        }
+    };
+
 
     if (loading) {
         return (
@@ -335,6 +366,46 @@ const SettingsPage = () => {
                             >
                                 {updatingPassword ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
                                 Modifier
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {/* AI Model Section */}
+                <div className="glass p-3 mb-[30px]">
+                    <div className="flex items-center gap-3 border-b border-glass-border pb-3 mb-[30px]" style={{ marginBottom: 30 }}>
+                        <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-500">
+                            <Cpu size={14} />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-text">Intelligence Artificielle</h3>
+                            <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Choisir le modèle IA local</p>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleAiModelSubmit} className="space-y-3">
+                        <div className="form-group mb-4">
+                            <label className="form-label text-[10px] uppercase tracking-wider mb-0.5 block">Modèle Ollama (Local)</label>
+                            <div className="relative">
+                                <select
+                                    className="form-input h-8 text-xs bg-surface w-full"
+                                    value={aiModel}
+                                    onChange={(e) => setAiModel(e.target.value)}
+                                >
+                                    <option value="mistral">Mistral (7B) - Standard</option>
+                                    <option value="qwen2.5:7b">Qwen 2.5 (7B) - Haute qualité / Français</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end pt-1">
+                            <button
+                                type="submit"
+                                disabled={updatingAiModel}
+                                className="primary px-4 h-7 bg-blue-500 hover:bg-blue-600 text-[10px] font-bold uppercase tracking-wide rounded-md flex items-center gap-2"
+                            >
+                                {updatingAiModel ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                                Enregistrer
                             </button>
                         </div>
                     </form>

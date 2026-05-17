@@ -116,7 +116,9 @@ services:
       echo 'Attente du démarrage d Ollama...' && \
       sleep 10 && \
       curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"mistral\"}' && \
-      echo 'Modèle Mistral installé !';"
+      echo 'Modèle Mistral installé !' && \
+      curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"qwen2.5:7b\"}' && \
+      echo 'Modèle Qwen 2.5 installé !';"
 
   # Frontend Administrateur
   service-admin:
