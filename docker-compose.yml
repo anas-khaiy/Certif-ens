@@ -99,9 +99,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 6G               # Mistral 7B needs ~4-5GB RAM
+          memory: 10G               # Increased for Qwen2.5 7B
         reservations:
-          memory: 4G
+          memory: 6G
 
   # SERVICE D'INSTALLATION AUTOMATIQUE DU MODÈLE
   # Ce service s'exécute, vérifie que Ollama est là, tire le modèle, puis s'arrête.
