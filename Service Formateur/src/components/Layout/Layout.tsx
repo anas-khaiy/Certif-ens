@@ -119,8 +119,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     {!isSidebarCollapsed ? (
                         <div className="flex items-center gap-3 animate-fade-in whitespace-nowrap overflow-hidden">
                             <img
-                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertiFlow Logo"
+                                src={theme === 'dark' ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
+                                alt="Certif-fun Logo"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain"
                             />
@@ -128,7 +128,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     ) : (
                         <div className="flex justify-center w-full">
                             <img
-                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                                src={theme === 'dark' ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
                                 alt="Logo"
                                 style={{ height: '40px', width: '40px' }}
                                 className="object-contain"
@@ -199,13 +199,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         )}
                         {isSidebarCollapsed && (
                             <img
-                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertiFlow"
+                                src={theme === 'dark' ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
+                                alt="Certif-fun"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain sm:hidden"
                             />
                         )}
-                        <h2 className="font-bold text-lg hidden lg:block text-text/80 tracking-tight">CertiFlow Formateur</h2>
+                        <h2 className="font-bold text-lg hidden lg:block text-text/80 tracking-tight">Certif-fun Formateur</h2>
                     </div>
 
                     <div className="flex items-center gap-[10px]">

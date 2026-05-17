@@ -144,8 +144,8 @@ const LoginPage = () => {
 
                 <div className="text-center mb-8">
                     <img
-                        src={isDarkMode ? "/logoDark.png" : "/logoLite.png"}
-                        alt="CertiFlow"
+                        src={isDarkMode ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
+                        alt="Certif-fun"
                         className="logo-responsive object-contain mx-auto mb-4"
                     />
                     <h1 className="text-2xl font-bold gradient-text mb-2 tracking-tight">Portail Administration</h1>
@@ -307,7 +307,7 @@ const LoginPage = () => {
             </div>
 
             <div className="absolute bottom-8 text-text-muted/50 text-xs font-semibold uppercase tracking-widest z-10">
-                © 2026 CertiFlow Digital Assets
+                © 2026 Certif-fun Digital Assets
             </div>
         </div>
     );

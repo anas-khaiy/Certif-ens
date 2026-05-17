@@ -92,8 +92,8 @@ const VerifyCertificatePage = () => {
                 >
                     <Link to="/" className="transform hover:scale-105 transition-transform duration-300 block">
                         <img
-                            src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                            alt="CertiFlow Logo"
+                            src={theme === 'dark' ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
+                            alt="Certif-fun Logo"
                             className="h-24 md:h-40 w-auto object-contain"
                         />
                     </Link>
@@ -150,8 +150,8 @@ const VerifyCertificatePage = () => {
             >
                 <Link to="/" className="transform hover:scale-105 transition-transform duration-300 block">
                     <img
-                        src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                        alt="CertiFlow Logo"
+                        src={theme === 'dark' ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
+                        alt="Certif-fun Logo"
                         className="h-24 md:h-40 w-auto object-contain"
                     />
                 </Link>
@@ -268,7 +268,7 @@ const VerifyCertificatePage = () => {
                 </div>
 
                 <div className="mt-8 text-center text-text-muted text-sm">
-                    <p>© 2026 CertiFlow. Tous droits réservés.</p>
+                    <p>© 2026 Certif-fun. Tous droits réservés.</p>
                 </div>
             </motion.div>
         </div>

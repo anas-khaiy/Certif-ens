@@ -128,8 +128,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     {!isSidebarCollapsed ? (
                         <div className="flex items-center gap-3 animate-fade-in whitespace-nowrap overflow-hidden">
                             <img
-                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertiFlow Logo"
+                                src={theme === 'dark' ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
+                                alt="Certif-fun Logo"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain"
                             />
@@ -137,7 +137,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     ) : (
                         <div className="flex justify-center w-full">
                             <img
-                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
+                                src={theme === 'dark' ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
                                 alt="Logo"
                                 style={{ height: '40px', width: '40px' }}
                                 className="object-contain"
@@ -205,12 +205,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         </button>
                         <div className="flex items-center gap-3">
                             <img
-                                src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertiFlow"
+                                src={theme === 'dark' ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
+                                alt="Certif-fun"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain lg:hidden"
                             />
-                            <h2 className="font-bold text-lg hidden sm:block">CertiFlow Admin</h2>
+                            <h2 className="font-bold text-lg hidden sm:block">Certif-fun Admin</h2>
                         </div>
                     </div>
 

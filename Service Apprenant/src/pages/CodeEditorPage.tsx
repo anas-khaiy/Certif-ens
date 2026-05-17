@@ -275,7 +275,7 @@ const CodeEditorPage = () => {
                 </div>
                 <h1 className="text-3xl font-black mb-4">Accès Réservé</h1>
                 <p className="max-w-md text-text-muted font-medium text-lg">
-                    Désolé, l'Éditeur CertiFlow est exclusivement réservé aux apprenants de la spécialité <span className="text-primary font-bold">Informatique</span>.
+                    Désolé, l'Éditeur Certif-fun est exclusivement réservé aux apprenants de la spécialité <span className="text-primary font-bold">Informatique</span>.
                 </p>
                 <div className="mt-8 flex gap-4">
                     <button onClick={() => window.history.back()} className="px-8 py-3 glass hover:bg-surface-hover rounded-xl font-bold transition-all">Retour</button>

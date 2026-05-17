@@ -162,8 +162,8 @@ const LoginPage = () => {
                             className="inline-flex items-center justify-center relative mb-4"
                         >
                             <img
-                                src={isDarkMode ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertiFlow Logo"
+                                src={isDarkMode ? "/logoDark.png?v=2" : "/logoLite.png?v=2"}
+                                alt="Certif-fun Logo"
                                 className="logo-responsive object-contain relative z-10"
                             />
                         </motion.div>
@@ -395,7 +395,7 @@ const LoginPage = () => {
                     transition={{ delay: 1 }}
                     className="mt-8 text-text-muted/50 text-xs font-semibold uppercase tracking-widest relative z-10"
                 >
-                    © 2026 CertiFlow Digital Assets
+                    © 2026 Certif-fun Digital Assets
                 </motion.div>
             </div>
 

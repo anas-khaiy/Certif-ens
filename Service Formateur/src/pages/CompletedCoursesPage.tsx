@@ -337,11 +337,11 @@ const CompletedCoursesPage = () => {
         const certId = completion?.certificateId || `CERT-${course.id}`;
         // Verify link points to the Trainer verify page (port 5174)
         const shareUrl = `${VERIFY_URL_APPRENANT}/${certId}`;
-        const shareText = `Je suis ravi de partager mon nouveau certificat pour la formation "${course.title}" sur CertiFlow ! 🚀`;
+        const shareText = `Je suis ravi de partager mon nouveau certificat pour la formation "${course.title}" sur Certif-fun ! 🚀`;
 
         switch (platform) {
             case 'linkedin':
-                window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent('Certification CertiFlow')}&summary=${encodeURIComponent(shareText)}`, '_blank');
+                window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent('Certification Certif-fun')}&summary=${encodeURIComponent(shareText)}`, '_blank');
                 break;
             case 'facebook':
                 window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`, '_blank');

@@ -348,12 +348,12 @@ const CompletedCoursesPage = () => {
         const completion = coursesCompletion[course.id] || coursesCompletion[course.id.toString()];
         const certId = completion?.certificateId || `CERT-${course.id}`;
         const shareUrl = `${window.location.protocol}//${window.location.host}/verify/${certId}`;
-        const shareText = `Je suis ravi de partager mon nouveau certificat pour la formation "${course.title}" sur CertiFlow ! 🚀`;
+        const shareText = `Je suis ravi de partager mon nouveau certificat pour la formation "${course.title}" sur Certif-fun ! 🚀`;
 
         switch (platform) {
             case 'linkedin':
                 // Using LinkedIn's updated sharing URL with summary
-                window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent('Certification CertiFlow')}&summary=${encodeURIComponent(shareText)}`, '_blank');
+                window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent('Certification Certif-fun')}&summary=${encodeURIComponent(shareText)}`, '_blank');
                 break;
             case 'facebook':
                 window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`, '_blank');
