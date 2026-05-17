@@ -62,10 +62,10 @@ const CodeEditorPage = () => {
         let presenceInterval: any;
 
         // Force a stable ID across the session to prevent multiple ghost learners
-        let fallbackId = sessionStorage.getItem('certifens_fallback_id');
+        let fallbackId = sessionStorage.getItem('certiflow_fallback_id');
         if (!fallbackId) {
             fallbackId = Math.floor(Math.random() * 10000).toString();
-            sessionStorage.setItem('certifens_fallback_id', fallbackId);
+            sessionStorage.setItem('certiflow_fallback_id', fallbackId);
         }
         
         const actualId = userData.id || parseInt(fallbackId);
@@ -171,7 +171,7 @@ const CodeEditorPage = () => {
 
         if (stompClientRef.current && stompClientRef.current.active && stompClientRef.current.connected) {
             const userData = JSON.parse(localStorage.getItem('user') || '{}');
-            const fallbackId = sessionStorage.getItem('certifens_fallback_id') || Math.floor(Math.random() * 10000).toString();
+            const fallbackId = sessionStorage.getItem('certiflow_fallback_id') || Math.floor(Math.random() * 10000).toString();
             const actualId = userData.id || parseInt(fallbackId);
             
             stompClientRef.current.publish({
@@ -253,7 +253,7 @@ const CodeEditorPage = () => {
         // Instantly notify trainer of the language change and new default code
         if (stompClientRef.current && stompClientRef.current.active && stompClientRef.current.connected) {
             const userData = JSON.parse(localStorage.getItem('user') || '{}');
-            const fallbackId = sessionStorage.getItem('certifens_fallback_id') || Math.floor(Math.random() * 10000).toString();
+            const fallbackId = sessionStorage.getItem('certiflow_fallback_id') || Math.floor(Math.random() * 10000).toString();
             const actualId = userData.id || parseInt(fallbackId);
             stompClientRef.current.publish({
                 destination: '/app/course/global/code',
@@ -275,7 +275,7 @@ const CodeEditorPage = () => {
                 </div>
                 <h1 className="text-3xl font-black mb-4">Accès Réservé</h1>
                 <p className="max-w-md text-text-muted font-medium text-lg">
-                    Désolé, l'Éditeur CertifEns est exclusivement réservé aux apprenants de la spécialité <span className="text-primary font-bold">Informatique</span>.
+                    Désolé, l'Éditeur CertiFlow est exclusivement réservé aux apprenants de la spécialité <span className="text-primary font-bold">Informatique</span>.
                 </p>
                 <div className="mt-8 flex gap-4">
                     <button onClick={() => window.history.back()} className="px-8 py-3 glass hover:bg-surface-hover rounded-xl font-bold transition-all">Retour</button>

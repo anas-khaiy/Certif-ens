@@ -145,7 +145,7 @@ const LoginPage = () => {
                 <div className="text-center mb-8">
                     <img
                         src={isDarkMode ? "/logoDark.png" : "/logoLite.png"}
-                        alt="CertifEns"
+                        alt="CertiFlow"
                         className="logo-responsive object-contain mx-auto mb-4"
                     />
                     <h1 className="text-2xl font-bold gradient-text mb-2 tracking-tight">Portail Administration</h1>
@@ -178,7 +178,7 @@ const LoginPage = () => {
                                 <input
                                     type="email"
                                     required
-                                    placeholder="admin@certifens.com"
+                                    placeholder="admin@certiflow.com"
                                     className="form-input w-full pl-14 h-14 bg-background/30 border-white/10 text-base outline-none"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -243,7 +243,7 @@ const LoginPage = () => {
                                 <label className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 block ml-1 text-center">Réinitialisation</label>
                                 <div className="relative input-focus-effect rounded-xl transition-all duration-300">
                                     <div className="absolute left-5 top-1/2 -translate-y-1/2 flex items-center justify-center text-primary z-20 pointer-events-none"><Mail size={20} strokeWidth={2.5} /></div>
-                                    <input type="email" required placeholder="admin@certifens.com" className="form-input w-full pl-14 h-14 bg-background/30 border-white/10 text-base outline-none" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} />
+                                    <input type="email" required placeholder="admin@certiflow.com" className="form-input w-full pl-14 h-14 bg-background/30 border-white/10 text-base outline-none" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} />
                                 </div>
                                 <p className="text-xs text-text-muted text-center mt-4">Entrez votre adresse email pour recevoir un code.</p>
                             </div>
@@ -307,7 +307,7 @@ const LoginPage = () => {
             </div>
 
             <div className="absolute bottom-8 text-text-muted/50 text-xs font-semibold uppercase tracking-widest z-10">
-                © 2026 CertifEns Digital Assets
+                © 2026 CertiFlow Digital Assets
             </div>
         </div>
     );

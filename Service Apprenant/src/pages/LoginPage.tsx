@@ -194,7 +194,7 @@ const LoginPage = () => {
                     >
                         <img
                             src={isDarkMode ? "/logoDark.png" : "/logoLite.png"}
-                            alt="CertifEns Logo"
+                            alt="CertiFlow Logo"
                             className="logo-responsive object-contain relative z-10"
                         />
                     </motion.div>
@@ -252,7 +252,7 @@ const LoginPage = () => {
                                     <input
                                         type="email"
                                         required
-                                        placeholder="admin@certifens.com"
+                                        placeholder="admin@certiflow.com"
                                         className="form-input w-full h-14 bg-background/30 backdrop-blur-md border border-white/10 rounded-xl pl-14 pr-6 text-base focus:bg-background/50 transition-all outline-none text-text"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
@@ -488,7 +488,7 @@ const LoginPage = () => {
                 transition={{ delay: 1 }}
                 className="absolute bottom-8 text-text-muted/50 text-xs font-semibold uppercase tracking-widest z-10"
             >
-                © 2026 CertifEns Digital Assets
+                © 2026 CertiFlow Digital Assets
             </motion.div>
         </div>
     );

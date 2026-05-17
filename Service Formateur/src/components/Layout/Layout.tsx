@@ -120,7 +120,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         <div className="flex items-center gap-3 animate-fade-in whitespace-nowrap overflow-hidden">
                             <img
                                 src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertifEns Logo"
+                                alt="CertiFlow Logo"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain"
                             />
@@ -200,12 +200,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         {isSidebarCollapsed && (
                             <img
                                 src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertifEns"
+                                alt="CertiFlow"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain sm:hidden"
                             />
                         )}
-                        <h2 className="font-bold text-lg hidden lg:block text-text/80 tracking-tight">CertifEns Formateur</h2>
+                        <h2 className="font-bold text-lg hidden lg:block text-text/80 tracking-tight">CertiFlow Formateur</h2>
                     </div>
 
                     <div className="flex items-center gap-[10px]">

@@ -102,7 +102,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <div className="flex items-center gap-3 animate-fade-in">
                         <img
                             src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                            alt="CertifEns Logo"
+                            alt="CertiFlow Logo"
                             style={{ height: '57px', width: 'auto' }}
                             className="object-contain"
                         />
@@ -181,12 +181,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         {!isSidebarOpen && (
                             <img
                                 src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertifEns"
+                                alt="CertiFlow"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain sm:hidden"
                             />
                         )}
-                        <h2 className="font-bold text-lg hidden sm:block">CertifEns Apprenant</h2>
+                        <h2 className="font-bold text-lg hidden sm:block">CertiFlow Apprenant</h2>
                     </div>
 
                     <div className="flex items-center gap-[10px]">

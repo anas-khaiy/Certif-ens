@@ -129,7 +129,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         <div className="flex items-center gap-3 animate-fade-in whitespace-nowrap overflow-hidden">
                             <img
                                 src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertifEns Logo"
+                                alt="CertiFlow Logo"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain"
                             />
@@ -206,11 +206,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                         <div className="flex items-center gap-3">
                             <img
                                 src={theme === 'dark' ? "/logoDark.png" : "/logoLite.png"}
-                                alt="CertifEns"
+                                alt="CertiFlow"
                                 style={{ height: '57px', width: 'auto' }}
                                 className="object-contain lg:hidden"
                             />
-                            <h2 className="font-bold text-lg hidden sm:block">CertifEns Admin</h2>
+                            <h2 className="font-bold text-lg hidden sm:block">CertiFlow Admin</h2>
                         </div>
                     </div>
 
