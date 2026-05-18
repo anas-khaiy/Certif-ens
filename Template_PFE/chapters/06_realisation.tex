@@ -96,6 +96,31 @@ Les portails React utilisent une architecture modulaire basée sur les composant
     \item \textbf{Hooks :} Logique d'état partagée pour la gestion des sessions et des flux média.
 \end{itemize}
 
+\subsection{Interfaces utilisateur et scénarios de navigation}
+L'ergonomie des interfaces de \textbf{Certif-fun} a été conçue pour offrir une expérience utilisateur (UX) fluide, immersive et moderne, articulée autour de trois portails distincts adaptés à chaque profil :
+
+\begin{enumerate}
+    \item \textbf{Portail Apprenant (Espace Apprenant) :}
+    \begin{itemize}
+        \item \textbf{Tableau de bord :} Affiche la liste des cours rejoints, l'état d'avancement (barres de progression), les rappels d'examens et les tâches assignées par les formateurs pour l'encadrement structuré.
+        \item \textbf{Écran d'Examen et AI Proctoring :} C'est l'interface la plus critique. Elle affiche le questionnaire à choix multiples (QCM) au centre. Dans le coin supérieur droit, un encart vidéo discret affiche le flux de la webcam de l'apprenant. Ce flux est traité localement et montre un cadre vert de confiance. En cas de fraude détectée (téléphone, absence), une notification visuelle subtile s'affiche pour alerter l'apprenant avant d'incrémenter le compteur de fraude.
+        \item \textbf{Salle de Visioconférence (LiveKit) :} Interface épurée permettant de rejoindre le formateur en temps réel, incluant un chat intégré, le partage d'écran et la gestion dynamique des flux audio/vidéo via WebRTC.
+    \end{itemize}
+
+    \item \textbf{Portail Formateur (Espace Formateur) :}
+    \begin{itemize}
+        \item \textbf{Éditeur de Cours Enrichi :} Permet la création de chapitres et de leçons. L'éditeur intègre le support du copier-coller d'images et du format enrichi (Markdown/HTML), facilitant l'intégration rapide de schémas et de figures directement stockés de manière persistante sur le serveur.
+        \item \textbf{Générateur de Quiz assisté par IA :} Le formateur sélectionne une leçon, clique sur "Générer avec l'IA" et prévisualise instantanément un QCM structuré (questions, choix multiples, explications des réponses) généré localement. Il peut ensuite modifier, valider et publier le quiz en un clic.
+        \item \textbf{Suivi de l'Encadrement :} Fournit un tableau Kanban interactif pour suivre la progression des apprenants, attribuer des tâches d'encadrement, et réviser les livrables soumis sous forme de liens valides (GitHub, Google Drive).
+    \end{itemize}
+
+    \item \textbf{Portail Administrateur (Espace Admin) :}
+    \begin{itemize}
+        \item \textbf{Gestion globale :} Tableaux de bord synthétiques affichant les statistiques de réussite, le taux d'utilisation de la plateforme et le monitoring des tentatives de fraude.
+        \item \textbf{Configuration dynamique de l'IA (Dashboard Settings) :} Permet à l'administrateur de modifier le modèle d'IA global en temps réel via un menu déroulant (\textit{Mistral, Qwen 2.5, Llama 3.2}). Le choix est immédiatement répercuté sur l'ensemble de la plateforme grâce à un mécanisme de configuration dynamique en base de données.
+    \end{itemize}
+\end{enumerate}
+
 \subsection{Présentation des fonctionnalités clés}
 L'implémentation de Certif-fun ne se limite pas à une simple interface CRUD ; elle intègre des processus complexes de traitement de données.
 
@@ -128,8 +153,28 @@ La fiabilité de Certif-fun a été éprouvée par une pyramide de tests rigoure
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Difficultés rencontrées et solutions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Durant la phase de réalisation de la plateforme \textbf{Certif-fun}, nous avons été confrontés à plusieurs défis techniques de haut niveau. Le tableau suivant récapitule les principales difficultés rencontrées ainsi que les solutions d'ingénierie apportées pour y remédier :
+
+\begin{table}[h!]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|p{5.5cm}|p{8.5cm}|}
+\hline
+\textbf{Difficulté rencontrée} & \textbf{Solution d'ingénierie implémentée} \\ \hline
+\textbf{Latence élevée et goulot d'étranglement de l'inférence IA} lors de l'analyse vidéo continue des webcams. & Mise en place d'un \textbf{échantillonnage intelligent} côté client (capture toutes les 2 secondes au lieu de 30 FPS). L'envoi de requêtes asynchrones en arrière-plan à FastAPI a permis de réduire drastiquement l'usage du processeur et la bande passante réseau tout en maintenant la sécurité. \\ \hline
+\textbf{Instabilité système et saturation de la RAM} par le service LLM (Ollama) lors des requêtes concurrentes de génération de quiz. & Configuration de \textbf{limites et réservations de ressources matérielles} strictes dans Docker Compose (\textit{limits: 10G}, \textit{reservations: 6G}) pour forcer Ollama à libérer la mémoire inactive, combinée au choix du modèle optimisé \textbf{Mistral 7B} et de modèles locaux ultra-légers (\textit{Qwen 2.5 / Llama 3.2}). \\ \hline
+\textbf{Perte et corruption des images collées} dans le contenu enrichi des leçons du cours (erreurs 413 Payload Too Large et CORS). & Reconfiguration globale de la directive \textbf{client\_max\_body\_size} à 50 Mo sur le proxy inverse Nginx, et refactoring du backend pour extraire automatiquement les images encodées en base64, les stocker localement sous forme de fichiers binaires et réécrire dynamiquement les URLs en liens absolus HTTPS sécurisés. \\ \hline
+\end{tabular}
+\caption{Synthèse des difficultés techniques rencontrées et solutions implémentées.}
+\label{table:difficultes}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Ce chapitre a permis de démontrer comment les défis techniques identifiés lors de la conception ont été surmontés grâce à des choix technologiques modernes et une architecture rigoureuse. La réalisation de Certif-fun prouve qu'il est possible de créer un écosystème pédagogique sécurisé, intelligent et hautement disponible en orchestrant des services hétérogènes (Java, Python, IA, WebRTC).
 
-Malgré les défis liés à la latence du traitement vidéo et à l'interopérabilité des microservices, l'utilisation de Docker Compose a simplifié l'orchestration et garanti la stabilité de la plateforme. Certif-fun est désormais une solution fonctionnelle, prête à transformer l'expérience de certification en ligne.
+Malgré les défis liés à la latence du traitement vidéo, à la gestion mémoire des grands modèles de langage (LLM) et à l'interopérabilité des microservices, l'utilisation de Docker Compose combinée à une gestion rigoureuse des limites système a garanti la robustesse et la stabilité de la plateforme. Certif-fun est désormais une solution fonctionnelle, hautement sécurisée et parfaitement prête à transformer l'expérience de certification numérique et d'encadrement en ligne.
