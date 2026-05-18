@@ -13,12 +13,12 @@ Dans cette section introductive, l'objectif est de donner une vue d'ensemble des
     \item \textbf{La stratégie de validation :} La méthodologie adoptée pour tester le système et garantir sa conformité aux exigences initiales.
 \end{itemize}
 
-Cette partie prépare le lecteur à comprendre comment les décisions prises au niveau de la conception se traduisent concrètement lors de la réalisation technique de la plateforme CertifEns.
+Cette partie prépare le lecteur à comprendre comment les décisions prises au niveau de la conception se traduisent concrètement lors de la réalisation technique de la plateforme Certif-fun.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Choix techniques et outils}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-La sélection de la pile technologique pour \textbf{CertifEns} n'est pas fortuite ; elle résulte d'une analyse comparative visant à concilier réactivité, sécurité et modularité.
+La sélection de la pile technologique pour \textbf{Certif-fun} n'est pas fortuite ; elle résulte d'une analyse comparative visant à concilier réactivité, sécurité et modularité.
 
 \subsection{Langages, Frameworks et Bases de données}
 Cette sous-section détaille les piliers technologiques sur lesquels repose l'ossature du système.
@@ -51,7 +51,7 @@ La qualité du code et la fluidité du cycle de développement ont été assuré
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Architecture de déploiement}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-L'architecture de déploiement de \textbf{CertifEns} repose sur une stratégie de conteneurisation intégrale, utilisant \textbf{Docker} et \textbf{Docker Compose}. Cette approche répond à la philosophie \textit{"Build once, run anywhere"}, garantissant que l'application se comporte de manière identique sur le serveur de production et sur la machine de développement.
+L'architecture de déploiement de \textbf{Certif-fun} repose sur une stratégie de conteneurisation intégrale, utilisant \textbf{Docker} et \textbf{Docker Compose}. Cette approche répond à la philosophie \textit{"Build once, run anywhere"}, garantissant que l'application se comporte de manière identique sur le serveur de production et sur la machine de développement.
 
 \begin{itemize}
     \item \textbf{Orchestration des Conteneurs (Docker Compose) :}  
@@ -74,7 +74,7 @@ L'architecture de déploiement de \textbf{CertifEns} repose sur une stratégie d
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Implémentation et interfaces}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-L'implémentation de CertifEns suit les standards du développement microservices et du Web moderne, en mettant l'accent sur la clarté du code et l'ergonomie des interfaces.
+L'implémentation de Certif-fun suit les standards du développement microservices et du Web moderne, en mettant l'accent sur la clarté du code et l'ergonomie des interfaces.
 
 \subsection{Structure du code Backend}
 Chaque microservice Spring Boot est organisé selon une architecture en couches (\textit{Layered Architecture}), garantissant une maintenance aisée :
@@ -97,7 +97,7 @@ Les portails React utilisent une architecture modulaire basée sur les composant
 \end{itemize}
 
 \subsection{Présentation des fonctionnalités clés}
-L'implémentation de CertifEns ne se limite pas à une simple interface CRUD ; elle intègre des processus complexes de traitement de données.
+L'implémentation de Certif-fun ne se limite pas à une simple interface CRUD ; elle intègre des processus complexes de traitement de données.
 
 \subsubsection{Surveillance intelligente (Proctoring IA)}
 Le module de surveillance est le cœur sécuritaire du système. Son implémentation repose sur une boucle de rétroaction entre le navigateur et le service FastAPI :
@@ -108,7 +108,7 @@ Le module de surveillance est le cœur sécuritaire du système. Son implémenta
 \end{itemize}
 
 \subsubsection{Générateur de Quiz via LLM (Ollama/Mistral)}
-L'innovation de CertifEns réside également dans l'automatisation de la création de contenus :
+L'innovation de Certif-fun réside également dans l'automatisation de la création de contenus :
 \begin{itemize}
     \item \textbf{Prompt Engineering :} Nous avons conçu des \textit{prompts} spécifiques forçant le modèle \textbf{Mistral 7B} à répondre exclusivement au format JSON. 
     \item \textbf{Extraction de contexte :} Le texte extrait des supports de cours est injecté dans le contexte du modèle, lui permettant de générer des questions pertinentes, des options de réponse et les explications associées, garantissant ainsi une évaluation cohérente avec le contenu pédagogique.
@@ -120,7 +120,7 @@ La communication en temps réel est gérée par des \textbf{Tokens d'accès} gé
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Stratégie de tests et validation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-La fiabilité de CertifEns a été éprouvée par une pyramide de tests rigoureuse :
+La fiabilité de Certif-fun a été éprouvée par une pyramide de tests rigoureuse :
 \begin{itemize}
     \item \textbf{Tests Unitaires (JUnit 5 \& Mockito) :} Plus de 80\% de couverture de code sur les services critiques, notamment pour les algorithmes de calcul de scores et la logique de validation des sessions MFA.
     \item \textbf{Validation des APIs (Postman) :} Des suites de tests automatisées vérifient que chaque microservice répond correctement aux requêtes et gère les erreurs de manière granulaire (codes 401, 403, 404).
@@ -130,6 +130,6 @@ La fiabilité de CertifEns a été éprouvée par une pyramide de tests rigoureu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Ce chapitre a permis de démontrer comment les défis techniques identifiés lors de la conception ont été surmontés grâce à des choix technologiques modernes et une architecture rigoureuse. La réalisation de CertifEns prouve qu'il est possible de créer un écosystème pédagogique sécurisé, intelligent et hautement disponible en orchestrant des services hétérogènes (Java, Python, IA, WebRTC).
+Ce chapitre a permis de démontrer comment les défis techniques identifiés lors de la conception ont été surmontés grâce à des choix technologiques modernes et une architecture rigoureuse. La réalisation de Certif-fun prouve qu'il est possible de créer un écosystème pédagogique sécurisé, intelligent et hautement disponible en orchestrant des services hétérogènes (Java, Python, IA, WebRTC).
 
-Malgré les défis liés à la latence du traitement vidéo et à l'interopérabilité des microservices, l'utilisation de Docker Compose a simplifié l'orchestration et garanti la stabilité de la plateforme. CertifEns est désormais une solution fonctionnelle, prête à transformer l'expérience de certification en ligne.
+Malgré les défis liés à la latence du traitement vidéo et à l'interopérabilité des microservices, l'utilisation de Docker Compose a simplifié l'orchestration et garanti la stabilité de la plateforme. Certif-fun est désormais une solution fonctionnelle, prête à transformer l'expérience de certification en ligne.

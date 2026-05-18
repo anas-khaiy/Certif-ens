@@ -5,7 +5,7 @@
 % INTRODUCTION
 % =============================
 \section{Introduction}
-L'objectif de ce chapitre est de traduire les besoins fonctionnels et non fonctionnels, identifiés lors de la phase d'analyse, en une solution technique détaillée et structurée. Cette étape de conception est cruciale car elle permet de définir l'ossature du système avant l'implémentation. Nous détaillerons ici les choix architecturaux, le formalisme de modélisation adopté ainsi que les diagrammes UML qui décrivent tant la structure statique que le comportement dynamique de CertifEns. Ces choix sont justifiés par la nécessité de répondre aux exigences de scalabilité, de performance en temps réel et de sécurité propres à une plateforme de certification intelligente.
+L'objectif de ce chapitre est de traduire les besoins fonctionnels et non fonctionnels, identifiés lors de la phase d'analyse, en une solution technique détaillée et structurée. Cette étape de conception est cruciale car elle permet de définir l'ossature du système avant l'implémentation. Nous détaillerons ici les choix architecturaux, le formalisme de modélisation adopté ainsi que les diagrammes UML qui décrivent tant la structure statique que le comportement dynamique de Certif-fun. Ces choix sont justifiés par la nécessité de répondre aux exigences de scalabilité, de performance en temps réel et de sécurité propres à une plateforme de certification intelligente.
 
 \section{Formalisme de modélisation : UML}
 \subsection{Motivation et choix}
@@ -41,7 +41,7 @@ l’approche adoptée et en expliquant la répartition fonctionnelle et techniqu
 
 \subsection{Approche architecturale}
 \subsection{Approche architecturale : Microservices}
-Pour le projet CertifEns, nous avons confronté deux approches majeures : l'architecture monolithique et l'architecture microservices.
+Pour le projet Certif-fun, nous avons confronté deux approches majeures : l'architecture monolithique et l'architecture microservices.
 
 \begin{itemize}
     \item \textbf{Architecture monolithique :} Bien qu'elle offre une simplicité de développement initial et un déploiement unifié, elle présente des inconvénients majeurs en termes de maintenance et de scalabilité. Dans notre cas, la charge de traitement imposée par l'IA de surveillance ralentirait l'ensemble de la plateforme si elle était intégrée à un monolithe.
@@ -49,12 +49,12 @@ Pour le projet CertifEns, nous avons confronté deux approches majeures : l'arch
 \end{itemize}
 
 \subsection{Schéma de l'architecture et organisation en couches}
-L'architecture de CertifEns est conçue selon un modèle multicouche qui favorise la séparation des préoccupations et la modularité. Le schéma suivant illustre l'organisation globale du système :
+L'architecture de Certif-fun est conçue selon un modèle multicouche qui favorise la séparation des préoccupations et la modularité. Le schéma suivant illustre l'organisation globale du système :
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{figures/architecture_globale.png}
-    \caption{Schéma de l'architecture globale du système CertifEns.}
+    \caption{Schéma de l'architecture globale du système Certif-fun.}
     \label{fig:architecture_globale}
 \end{figure}
 
@@ -92,7 +92,7 @@ Le diagramme de classes suivant présente la structure statique du système, dé
 \end{figure}
 
 \subsection{Analyse détaillée des entités et de leurs rôles métier}
-Cette section détaille les responsabilités de chaque entité au sein de l'écosystème CertifEns, en expliquant comment elles collaborent pour assurer une formation sécurisée et certifiante.
+Cette section détaille les responsabilités de chaque entité au sein de l'écosystème Certif-fun, en expliquant comment elles collaborent pour assurer une formation sécurisée et certifiante.
 
 \paragraph{A. Gestion des Acteurs et de la Sécurité}
 \begin{itemize}
@@ -159,7 +159,7 @@ Cette section détaille les responsabilités de chaque entité au sein de l'éco
 \end{itemize}
 
 \subsection{Diagrammes de séquence}
-Les diagrammes de séquence suivants illustrent la dynamique du système en montrant les interactions chronologiques entre les différents composants pour les processus les plus critiques de la plateforme CertifEns.
+Les diagrammes de séquence suivants illustrent la dynamique du système en montrant les interactions chronologiques entre les différents composants pour les processus les plus critiques de la plateforme Certif-fun.
 
 \subsubsection{Passage d'examen avec surveillance IA (Proctoring)}
 Ce diagramme détaille le flux de surveillance en temps réel. Pendant que l'apprenant répond aux questions du quiz, son flux vidéo est capturé par la webcam et envoyé au microservice IA. Ce dernier analyse l'image (détection de téléphone, absence, ou présence multiple) et alerte immédiatement le backend en cas de suspicion de fraude, garantissant ainsi l'intégrité de l'évaluation.
@@ -202,4 +202,4 @@ Ce scénario décrit la négociation WebRTC facilitée par le serveur LiveKit (S
 \end{figure}
 
 \section{Conclusion}
-En conclusion, ce chapitre a permis de poser les fondements techniques de la plateforme CertifEns à travers une modélisation rigoureuse et une architecture microservices parfaitement adaptée aux enjeux du projet. Le choix du formalisme UML pour les diagrammes de classes et de séquences, combiné à une architecture découpée en couches fonctionnelles, garantit une séparation nette des responsabilités entre les modules. Cette structure facilite non seulement l'intégration de services complexes tels que la surveillance proactive par IA et la visioconférence en temps réel, mais elle simplifie également la maintenance et les évolutions futures du système. Ces décisions architecturales assurent une modularité optimale et répondent aux exigences critiques de performance, de haute disponibilité et de sécurité, indispensables à une plateforme de certification de ce calibre. Les modèles et schémas ainsi définis constituent le socle technique indispensable sur lequel s'appuiera la phase de réalisation pratique et de déploiement, dont les détails techniques et les interfaces seront présentés de manière approfondie dans le chapitre suivant.
+En conclusion, ce chapitre a permis de poser les fondements techniques de la plateforme Certif-fun à travers une modélisation rigoureuse et une architecture microservices parfaitement adaptée aux enjeux du projet. Le choix du formalisme UML pour les diagrammes de classes et de séquences, combiné à une architecture découpée en couches fonctionnelles, garantit une séparation nette des responsabilités entre les modules. Cette structure facilite non seulement l'intégration de services complexes tels que la surveillance proactive par IA et la visioconférence en temps réel, mais elle simplifie également la maintenance et les évolutions futures du système. Ces décisions architecturales assurent une modularité optimale et répondent aux exigences critiques de performance, de haute disponibilité et de sécurité, indispensables à une plateforme de certification de ce calibre. Les modèles et schémas ainsi définis constituent le socle technique indispensable sur lequel s'appuiera la phase de réalisation pratique et de déploiement, dont les détails techniques et les interfaces seront présentés de manière approfondie dans le chapitre suivant.

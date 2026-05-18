@@ -1,7 +1,7 @@
 \chapter{État de l'art}
 
 \section{Introduction}
-Le présent chapitre vise à positionner le projet \textbf{CertifEns} dans son contexte scientifique et technique, en s'appuyant sur un examen des approches et des travaux déjà réalisés dans le domaine. Il a pour rôle de situer notre démarche par rapport aux solutions existantes et d'aider à justifier la pertinence de notre proposition. Nous aborderons ici une recherche bibliographique sur les technologies de surveillance (\textit{Proctoring}), l'IA générative en éducation, ainsi qu'une comparaison des plateformes et architectures actuelles pour mettre en exergue les besoins encore non satisfaits.
+Le présent chapitre vise à positionner le projet \textbf{Certif-fun} dans son contexte scientifique et technique, en s'appuyant sur un examen des approches et des travaux déjà réalisés dans le domaine. Il a pour rôle de situer notre démarche par rapport aux solutions existantes et d'aider à justifier la pertinence de notre proposition. Nous aborderons ici une recherche bibliographique sur les technologies de surveillance (\textit{Proctoring}), l'IA générative en éducation, ainsi qu'une comparaison des plateformes et architectures actuelles pour mettre en exergue les besoins encore non satisfaits.
 
 \section{Travaux connexes et solutions existantes}
 \subsection{Proctoring automatisé (IA de surveillance)}
@@ -30,15 +30,15 @@ Les architectures microservices se démocratisent dans l'EdTech pour répondre a
 Cette partie compare les solutions citées selon divers critères techniques, économiques et fonctionnels.
 
 \subsection{Synthèse comparative}
-Le tableau \ref{table:comparaison_existant} résume les forces et faiblesses des approches actuelles par rapport à CertifEns.
+Le tableau \ref{table:comparaison_existant} résume les forces et faiblesses des approches actuelles par rapport à Certif-fun.
 
 \begin{table}[H]
 \centering
-\caption{Comparaison des solutions existantes avec CertifEns.}
+\caption{Comparaison des solutions existantes avec Certif-fun.}
 \label{table:comparaison_existant}
 \begin{tabular}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
 \hline
-\textbf{Critères} & \textbf{LMS Classiques (Moodle)} & \textbf{Proctoring Dédié (Proctorio)} & \textbf{CertifEns} \\ \hline
+\textbf{Critères} & \textbf{LMS Classiques (Moodle)} & \textbf{Proctoring Dédié (Proctorio)} & \textbf{Certif-fun} \\ \hline
 \textbf{Surveillance IA} & Via plugins tiers & Très avancée & \textbf{Native (YOLOv8)} \\ \hline
 \textbf{Génération IA} & Limitée / Externe & Aucune & \textbf{Native (Ollama)} \\ \hline
 \textbf{Architecture} & Monolithique & Propriétaire & \textbf{Microservices} \\ \hline
@@ -51,10 +51,10 @@ Le tableau \ref{table:comparaison_existant} résume les forces et faiblesses des
 \begin{itemize}
     \item \textbf{Aspects techniques :} L'association YOLOv8 + MediaPipe permet un traitement en temps réel sur du matériel standard, surpassant les versions antérieures en rapidité.
     \item \textbf{Aspects économiques :} L'usage d'Ollama (LLM local) réduit les coûts d'API cloud (OpenAI) et préserve la confidentialité des données (RGPD).
-    \item \textbf{Aspects fonctionnels :} CertifEns se distingue en unifiant sécurité et pédagogie, là où les autres solutions sont spécialisées dans un seul domaine.
+    \item \textbf{Aspects fonctionnels :} Certif-fun se distingue en unifiant sécurité et pédagogie, là où les autres solutions sont spécialisées dans un seul domaine.
 \end{itemize}
 
 \section{Conclusion}
 Pour conclure ce chapitre, il est essentiel de faire une mise en perspective. L'analyse de l'état de l'art a permis de constater que si des solutions performantes existent pour la surveillance d'examens ou la gestion de cours, elles restent souvent incomplètes ou perfectibles car elles ne proposent pas d'intégration native et unifiée de l'intelligence artificielle générative et de la surveillance intelligente au sein d'une même architecture modulaire.
 
-Cette étude de l'existant confirme et oriente nos choix stratégiques : l'adoption d'une architecture microservices pour la scalabilité, ainsi que l'utilisation de modèles locaux (\textit{Edge IA}) pour garantir à la fois performance et confidentialité des données. Les conclusions tirées ici serviront de base solide pour élaborer, dans le chapitre suivant, une architecture adaptée et une modélisation \textbf{UML} rigoureuse. Ce cadrage des approches préexistantes met en relief la valeur ajoutée de CertifEns et pave la voie à la phase de \textbf{Conception} technique de notre solution.
+Cette étude de l'existant confirme et oriente nos choix stratégiques : l'adoption d'une architecture microservices pour la scalabilité, ainsi que l'utilisation de modèles locaux (\textit{Edge IA}) pour garantir à la fois performance et confidentialité des données. Les conclusions tirées ici serviront de base solide pour élaborer, dans le chapitre suivant, une architecture adaptée et une modélisation \textbf{UML} rigoureuse. Ce cadrage des approches préexistantes met en relief la valeur ajoutée de Certif-fun et pave la voie à la phase de \textbf{Conception} technique de notre solution.
