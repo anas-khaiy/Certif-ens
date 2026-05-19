@@ -1,14 +1,14 @@
 \babel@toc {french}{}\relax 
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {1.1}{\ignorespaces Schéma du cycle Scrum et de ses principales étapes.}}{4}{figure.caption.10}%
-\contentsline {figure}{\numberline {1.2}{\ignorespaces Diagramme de Gantt du projet CertifEns.}}{6}{figure.caption.13}%
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Diagramme de Gantt du projet Certif-fun.}}{6}{figure.caption.13}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces Diagramme de cas d'utilisation global de CertifEns.}}{10}{figure.caption.18}%
-\contentsline {figure}{\numberline {2.2}{\ignorespaces Diagramme de processus métier global (BPMN) de CertifEns.}}{11}{figure.caption.19}%
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Diagramme de cas d'utilisation global de Certif-fun.}}{10}{figure.caption.18}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Diagramme de processus métier global (BPMN) de Certif-fun.}}{11}{figure.caption.19}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {4.1}{\ignorespaces Logo du formalisme UML utilisé pour la modélisation.}}{16}{figure.caption.21}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Schéma de l'architecture globale du système CertifEns.}}{18}{figure.caption.22}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Schéma de l'architecture globale du système Certif-fun.}}{18}{figure.caption.22}%
 \contentsline {figure}{\numberline {4.3}{\ignorespaces Diagramme de classes global de la base de données certif\_db.}}{19}{figure.caption.23}%
 \contentsline {figure}{\numberline {4.4}{\ignorespaces Diagramme de séquence du processus de surveillance IA.}}{22}{figure.caption.30}%
 \contentsline {figure}{\numberline {4.5}{\ignorespaces Diagramme de séquence de l'encadrement et de l'évaluation.}}{23}{figure.caption.32}%

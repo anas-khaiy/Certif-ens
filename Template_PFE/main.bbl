@@ -1,26 +1,3 @@
 \begin{thebibliography}{xx}
 
-\harvarditem[Bauer et~al.]{Bauer, King \harvardand\
-  Gregory}{2007}{bauer2007hibernate}
-Bauer, C., King, G. \harvardand\ Gregory, G.  \harvardyearleft
-  2007\harvardyearright , {\em Hibernate in Action}, Manning Publications.
-\newblock An essential guide to object-relational mapping using Hibernate.
-
-\harvarditem{Duckett}{2011}{duckett2011html}
-Duckett, J.  \harvardyearleft 2011\harvardyearright , {\em HTML and CSS: Design
-  and Build Websites}, Wiley.
-\newblock A widely used reference for modern web design, covering both HTML and
-  CSS.
-
-\harvarditem{Horstmann}{2014}{horstmann2014jee}
-Horstmann, C.~S.  \harvardyearleft 2014\harvardyearright , {\em Java EE 7: The
-  Big Picture}, McGraw-Hill Education.
-\newblock Provides an overview of the architecture and components of Java
-  Enterprise Edition.
-
-\harvarditem{Keogh}{2002}{keogh2002jsp}
-Keogh, J.  \harvardyearleft 2002\harvardyearright , {\em JavaServer Pages: The
-  Complete Reference}, McGraw-Hill.
-\newblock A comprehensive guide for developing JavaServer Pages applications.
-
 \end{thebibliography}

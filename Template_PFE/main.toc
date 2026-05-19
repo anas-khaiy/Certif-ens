@@ -77,19 +77,26 @@
 \contentsline {section}{\numberline {5.1}Introduction}{27}{section.5.1}%
 \contentsline {section}{\numberline {5.2}Choix techniques et outils}{27}{section.5.2}%
 \contentsline {subsection}{\numberline {5.2.1}Langages, Frameworks et Bases de données}{27}{subsection.5.2.1}%
-\contentsline {subsection}{\numberline {5.2.2}Outils de développement et collaboration}{28}{subsection.5.2.2}%
-\contentsline {section}{\numberline {5.3}Architecture de déploiement}{29}{section.5.3}%
-\contentsline {section}{\numberline {5.4}Implémentation et interfaces}{29}{section.5.4}%
-\contentsline {subsection}{\numberline {5.4.1}Structure du code Backend}{29}{subsection.5.4.1}%
-\contentsline {subsection}{\numberline {5.4.2}Structure du code Frontend}{30}{subsection.5.4.2}%
-\contentsline {subsection}{\numberline {5.4.3}Présentation des fonctionnalités clés}{30}{subsection.5.4.3}%
-\contentsline {subsubsection}{Surveillance intelligente (Proctoring IA)}{30}{section*.37}%
-\contentsline {subsubsection}{Générateur de Quiz via LLM (Ollama/Mistral)}{30}{section*.38}%
-\contentsline {subsubsection}{Visioconférence et Collaboration via LiveKit}{30}{section*.39}%
-\contentsline {section}{\numberline {5.5}Stratégie de tests et validation}{31}{section.5.5}%
-\contentsline {section}{\numberline {5.6}Conclusion}{31}{section.5.6}%
-\contentsline {chapter}{Conclusion générale}{32}{chapter*.40}%
-\contentsline {chapter}{Bibliographie}{34}{chapter*.42}%
-\contentsline {chapter}{Appendices}{35}{section*.43}%
-\contentsline {chapter}{\numberline {A}Annexes (Facultatif)}{35}{appendix.1.A}%
-\contentsline {chapter}{\numberline {B}Annexes (Facultatif)}{36}{appendix.1.B}%
+\contentsline {subsection}{\numberline {5.2.2}Outils de développement et collaboration}{29}{subsection.5.2.2}%
+\contentsline {section}{\numberline {5.3}Architecture de déploiement}{30}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Environnement cible et infrastructure d'hébergement}{30}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Stratégie de conteneurisation via Docker et Docker Compose}{31}{subsection.5.3.2}%
+\contentsline {subsection}{\numberline {5.3.3}Topologie et distribution des conteneurs applicatifs}{31}{subsection.5.3.3}%
+\contentsline {subsection}{\numberline {5.3.4}Politique d'allocation et d'optimisation des ressources}{32}{subsection.5.3.4}%
+\contentsline {subsection}{\numberline {5.3.5}Pipeline d'intégration et de déploiement continus (CI/CD via Jenkins)}{32}{subsection.5.3.5}%
+\contentsline {section}{\numberline {5.4}Implémentation et interfaces}{33}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}Structure du code Backend}{33}{subsection.5.4.1}%
+\contentsline {subsection}{\numberline {5.4.2}Structure du code Frontend}{33}{subsection.5.4.2}%
+\contentsline {subsection}{\numberline {5.4.3}Interfaces utilisateur et scénarios de navigation}{34}{subsection.5.4.3}%
+\contentsline {subsection}{\numberline {5.4.4}Présentation des fonctionnalités clés}{35}{subsection.5.4.4}%
+\contentsline {subsubsection}{Surveillance intelligente (Proctoring IA)}{35}{section*.37}%
+\contentsline {subsubsection}{Générateur de Quiz via LLM (Ollama/Mistral)}{35}{section*.38}%
+\contentsline {subsubsection}{Visioconférence et Collaboration via LiveKit}{35}{section*.39}%
+\contentsline {section}{\numberline {5.5}Stratégie de tests et validation}{35}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Difficultés rencontrées et solutions}{36}{section.5.6}%
+\contentsline {section}{\numberline {5.7}Conclusion}{36}{section.5.7}%
+\contentsline {chapter}{Conclusion générale}{37}{chapter*.41}%
+\contentsline {chapter}{Bibliographie}{39}{chapter*.43}%
+\contentsline {chapter}{Appendices}{40}{section*.44}%
+\contentsline {chapter}{\numberline {A}Annexes (Facultatif)}{40}{appendix.1.A}%
+\contentsline {chapter}{\numberline {B}Annexes (Facultatif)}{41}{appendix.1.B}%

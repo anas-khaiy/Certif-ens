@@ -21,55 +21,125 @@ Cette partie prépare le lecteur à comprendre comment les décisions prises au 
 La sélection de la pile technologique pour \textbf{Certif-fun} n'est pas fortuite ; elle résulte d'une analyse comparative visant à concilier réactivité, sécurité et modularité.
 
 \subsection{Langages, Frameworks et Bases de données}
-Cette sous-section détaille les piliers technologiques sur lesquels repose l'ossature du système.
+Cette sous-section détaille l'ensemble des piliers technologiques et outils d'infrastructure sur lesquels repose l'ossature de la plateforme \textbf{Certif-fun} :
 
 \begin{itemize}
     \item \textbf{Framework Backend (Java/Spring Boot) :}  
-    Spring Boot a été choisi pour orchestrer les microservices métier (\textit{Admin}, \textit{Formateur}, \textit{Apprenant}). Sa force réside dans les mécanismes d'\textbf{Inversion de Contrôle (IoC)} et d'\textbf{Injection de Dépendances (DI)}, qui simplifient le découplage des modules. L'intégration de \textit{Spring Security} a été déterminante pour implémenter une authentification robuste par jetons JWT (\textit{JSON Web Tokens}) et une validation par \textit{Double Authentification (MFA)}.
+    Le choix de Spring Boot s'est imposé pour prendre en charge la coordination entre nos différents microservices (Admin, Formateur, Apprenant). Ce framework repose sur deux principes fondamentaux que sont l'Inversion de Contrôle (IoC) et l'Injection de Dépendances (DI), qui nous ont permis de maintenir un couplage faible entre les modules du système. Pour la sécurité, nous avons intégré Spring Security afin de gérer l'authentification via des jetons JWT, avec un contrôle précis des droits selon le rôle de chaque utilisateur.
     
     \item \textbf{Framework Frontend (React \& Tailwind CSS) :}  
-    Pour offrir une interface fluide de type \textbf{Single Page Application (SPA)}, nous avons opté pour React. Sa gestion par composants réutilisables et son \textit{Virtual DOM} garantissent une mise à jour ultra-rapide des vues, ce qui est crucial lors de l'affichage des alertes de surveillance en temps réel. Tailwind CSS complète ce choix en fournissant un moteur de style utilitaire permettant un design hautement personnalisé et \textit{responsive}.
+    Côté interface, notre priorité était de proposer une expérience utilisateur fluide et réactive. React s'est révélé être le choix le plus adapté grâce à son architecture basée sur des composants réutilisables et son Virtual DOM, qui permettent de rafraîchir les vues quasi instantanément --- un atout indispensable pour afficher en temps réel les alertes de surveillance et les indicateurs de session. Nous avons associé React à Tailwind CSS, dont l'approche utilitaire nous a offert une grande liberté dans la conception d'une interface moderne et parfaitement adaptée à tous les formats d'écran.
     
     \item \textbf{Intelligence Artificielle (Python/FastAPI \& YOLOv8) :}  
-    Le service de proctoring IA nécessite un traitement d'image intensif. \textbf{YOLOv8} (\textit{You Only Look Once}) a été sélectionné pour sa capacité à détecter des objets (téléphones, personnes multiples) avec une latence minimale. \textbf{FastAPI}, un framework ASGI moderne, assure l'exposition de ces modèles via des APIs asynchrones performantes, surpassant les solutions classiques comme Flask en termes de débit de requêtes.
+    Le module de surveillance automatisée repose sur un traitement d'images en continu et en temps réel, ce qui implique des exigences techniques élevées. Nous avons retenu YOLOv8 pour ses performances remarquables en détection d'objets --- qu'il s'agisse d'identifier un téléphone portable, plusieurs personnes dans le cadre, ou encore l'absence de l'apprenant --- le tout avec une latence très faible. Pour exposer ces capacités via une API, FastAPI a été préféré à Flask en raison de sa nature asynchrone (ASGI), qui lui confère un meilleur débit et une gestion plus efficace des requêtes simultanées.
     
-    \item \textbf{Visioconférence (LiveKit) :}  
-    Contrairement aux architectures classiques de type "Mesh", LiveKit utilise une architecture \textbf{SFU (Selective Forwarding Unit)}. Cela permet de déporter le mixage des flux média vers le serveur, réduisant ainsi drastiquement la charge CPU sur les navigateurs des apprenants et garantissant une qualité vidéo stable même avec plusieurs participants.
+    \item \textbf{Visioconférence (LiveKit \& WebRTC) :}  
+    Pour les sessions en direct, nous avons écarté les architectures Mesh traditionnelles, trop gourmandes en ressources côté client. LiveKit s'appuie sur une architecture SFU (Selective Forwarding Unit), qui transfère la charge du traitement et du routage des flux médias vers le serveur. Cette approche allège significativement la consommation CPU des navigateurs des apprenants et garantit une qualité audio/vidéo stable, même lorsque plusieurs participants sont connectés simultanément.
+    
+    \item \textbf{Grands Modèles de Langage (Ollama / Mistral 7B, Llama 3.2 (3B) \& Qwen) :}  
+    Pour enrichir l'expérience pédagogique, nous avons intégré un système de génération automatique de quiz à partir du contenu des cours. Ce système s'appuie sur des modèles de langage (LLMs) hébergés localement via Ollama, notamment Mistral 7B, Llama 3.2 (3B) et Qwen 2.5. Ce choix délibéré d'une infrastructure locale présente un double avantage : il garantit que les données pédagogiques restent confidentielles et ne transitent vers aucune API externe, tout en produisant des réponses structurées en JSON, directement exploitables par notre application.
+    
+    \item \textbf{Orchestration et Conteneurisation (Docker \& Docker Compose) :}  
+    Pour assurer une cohérence parfaite entre les environnements de développement et de production, l'ensemble des composants de la plateforme --- microservices, bases de données, serveurs médias et modèles LLM --- a été encapsulé dans des conteneurs Docker. Docker Compose nous permet de démarrer toute l'infrastructure en une seule commande, tout en assurant un réseau interne isolé et sécurisé entre les différents services.
+    
+    \item \textbf{Routage et Proxy Inverse (Nginx) :}  
+    Nginx joue le rôle de point d'entrée unique de la plateforme. Il se charge de rediriger les requêtes vers les bons services (frontends et backends), d'activer la compression des ressources pour améliorer les performances, de configurer les règles CORS, et d'ajuster les limites de taille des requêtes HTTP.
+    
+    \item \textbf{Gestion de Versions et Collaboration (Git \& GitHub) :}  
+    Tout au long du développement du projet, Git a constitué un outil incontournable dans notre flux de travail quotidien. Il nous a permis de garder une trace précise de l'évolution du code source pour chacun des microservices, et de structurer le développement de façon méthodique grâce à un dépôt distant hébergé sur GitHub. Cette organisation a également facilité la mise en place d'un processus de déploiement plus fluide et mieux contrôlé.
     
     \item \textbf{Persistance des données (PostgreSQL) :}  
-    Pour la gestion des certifications et des résultats, la fiabilité est primordiale. PostgreSQL, avec son respect strict des propriétés \textbf{ACID}, assure l'intégrité des données transactionnelles. L'utilisation de \textit{Spring Data JPA/Hibernate} permet un mapping objet-relationnel fluide et performant.
+    La fiabilité du stockage des données était une contrainte non négociable, notamment pour tout ce qui touche aux certifications, aux comptes utilisateurs, aux contenus de cours et aux résultats d'examens. Notre choix s'est porté sur PostgreSQL, dont le respect des propriétés ACID garantit l'intégrité des données même dans des scénarios de transactions complexes. Pour simplifier les interactions entre le code Java et la base de données, nous avons utilisé Spring Data JPA couplé à Hibernate, offrant un mapping objet-relationnel à la fois lisible, performant et sécurisé.
 \end{itemize}
 
 \subsection{Outils de développement et collaboration}
-La qualité du code et la fluidité du cycle de développement ont été assurées par les outils suivants :
+La qualité du code, la rigueur de la modélisation et la fluidité globale du cycle de développement ont été assurées par une sélection rigoureuse d'outils professionnels :
+
 \begin{itemize}
-    \item \textbf{Environnements (IDE) :} \textbf{VS Code} a été privilégié pour le développement Frontend et Python, tandis qu'\textbf{IntelliJ IDEA} a servi au développement Java pour ses capacités de refactoring avancées.
-    \item \textbf{Gestion de versions (Git) :} L'utilisation de Git avec une stratégie de branches par fonctionnalité (\textit{Feature Branching}) a permis de maintenir une base de code stable et de faciliter l'intégration continue.
-    \item \textbf{Tests d'API (Postman) :} Postman a été utilisé pour simuler les interactions entre microservices et valider les contrats d'interface (entrées/sorties) avant la phase d'intégration frontend.
+    \item \textbf{Environnements de Développement (IDE) :}  
+    Pour le développement, nous avons tiré parti de la complémentarité entre deux éditeurs. VS Code a été notre environnement de prédilection pour tout ce qui concerne le Frontend (React, TypeScript) ainsi que la partie IA (Python, FastAPI), grâce à sa légèreté et sa richesse en extensions. IntelliJ IDEA, de son côté, a été réservé au développement des microservices Java, où son support natif de Spring Boot et ses outils de refactoring avancés représentent un vrai gain de productivité.
+    
+    \item \textbf{Gestion de Versions et Dépôts (Git \& GitHub) :}  
+    Git a été au cœur de notre gestion du code source, avec une stratégie de branches par fonctionnalité (Feature Branching) qui nous a permis de travailler en parallèle sans compromettre la stabilité de la base de code principale. Le dépôt est hébergé sur GitHub en mode privé, ce qui nous a assuré une synchronisation fiable et sécurisée tout au long du projet.
+    
+    \item \textbf{Gestionnaires de Dépendances et de Build (Maven \& NPM/Vite) :}  
+    La gestion des dépendances a été traitée différemment selon la couche applicative. Pour le Backend, Maven s'est chargé de la compilation des microservices Spring Boot et de la résolution automatique des dépendances. Pour le Frontend, nous avons combiné NPM pour la gestion des paquets React et Vite comme bundler, ce dernier se distinguant par sa rapidité et son support du rechargement à chaud (Hot Module Replacement), très appréciable en phase de développement actif.
+    
+    \item \textbf{Tests et Validation d'APIs (Postman) :}  
+    Avant toute intégration côté Frontend, chaque route REST exposée par nos microservices a été testée et validée via Postman. Cet outil nous a permis de vérifier la cohérence des requêtes et des réponses JSON de manière isolée, ce qui a grandement réduit les erreurs lors de la phase de connexion entre les couches.
+    
+    \item \textbf{Administration et Visualisation de Bases de données (pgAdmin 4) :}  
+    Pour interagir avec nos bases de données PostgreSQL, nous avons utilisé pgAdmin 4 comme interface graphique principale. Il nous a permis d'exécuter des scripts SQL de débogage, d'inspecter les schémas générés automatiquement par Hibernate et de surveiller l'état général des données tout au long du développement.
+    
+    \item \textbf{Contrôle et Exécution des LLMs (Ollama CLI) :}  
+    La gestion des modèles de langage a été assurée directement depuis le terminal via Ollama CLI. Cet outil nous a permis de télécharger et configurer les modèles Mistral, Llama 3.2 et Qwen, de les lancer en arrière-plan et de tester leurs comportements en réponse à différentes invites (prompts), avant de les intégrer dans le service de génération de quiz.
+    
+    \item \textbf{Modélisation et Conception UML (StarUML, Draw.io \& Lucidchart) :}  
+    La phase de conception a été appuyée par trois outils complémentaires. StarUML a été utilisé pour produire les diagrammes de cas d'utilisation, de séquence et de classes. Draw.io et Lucidchart ont quant à eux servi à élaborer des schémas plus souples et accessibles, facilitant la communication visuelle autour de l'architecture du système. L'ensemble de ces représentations graphiques nous a permis de maintenir une documentation structurée et conforme aux standards UML tout au long du projet.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Architecture de déploiement}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-L'architecture de déploiement de \textbf{Certif-fun} repose sur une stratégie de conteneurisation intégrale, utilisant \textbf{Docker} et \textbf{Docker Compose}. Cette approche répond à la philosophie \textit{"Build once, run anywhere"}, garantissant que l'application se comporte de manière identique sur le serveur de production et sur la machine de développement.
+L'architecture de déploiement de la plateforme \textbf{Certif-fun} a été conçue pour offrir une haute disponibilité, une modularité sans faille et une gestion optimale des ressources système. Pour ce faire, nous avons opté pour une approche moderne articulée autour d'un serveur privé virtuel de production (\textit{VPS}) de haute performance et d'une conteneurisation intégrale de l'écosystème applicatif.
+
+\subsection{Environnement cible et infrastructure d'hébergement}
+Pour héberger l'ensemble de l'écosystème microservices de Certif-fun, nous avons opté pour un serveur privé virtuel (VPS) dont la configuration a été soigneusement dimensionnée pour répondre aux exigences de calcul intensif imposées par l'intelligence artificielle locale et le routage vidéo en temps réel. Voici le détail de notre environnement cible :
 
 \begin{itemize}
-    \item \textbf{Orchestration des Conteneurs (Docker Compose) :}  
-    Le système est composé de plus de dix conteneurs interconnectés. Docker Compose gère le cycle de vie de ces services, leur ordre de démarrage (\textit{depends\_on}) et leur communication interne via un réseau virtuel (\textit{Bridge Network}) isolé du monde extérieur pour plus de sécurité.
-    
-    \item \textbf{Infrastructure de Support et IA :}  
-    \begin{itemize}
-        \item \textbf{Base de données :} Un conteneur PostgreSQL 15-alpine gère la persistance. Nous utilisons des \textbf{Volumes Docker} nommés (\textit{postgres\_data}) pour garantir que les données ne sont pas perdues lors du redémarrage des conteneurs.
-        \item \textbf{Serveur d'IA \& LLM :} Le service \textit{Ollama} héberge le modèle \textbf{Mistral 7B}. Un service d'installation automatique (\textit{ollama-model-installer}) a été conçu pour "pull" le modèle dès le premier démarrage, automatisant ainsi le provisionnement de l'intelligence artificielle.
-        \item \textbf{Serveur de Média :} Le serveur \textbf{LiveKit} est configuré via un fichier YAML spécifique pour gérer les flux WebRTC sur des ports UDP dédiés, essentiels pour la visioconférence.
-    \end{itemize}
-    
-    \item \textbf{Optimisation des Ressources et Sécurité :}  
-    \begin{itemize}
-        \item \textbf{Gestion mémoire :} Nous avons alloué une réservation de \textbf{6 Go de RAM} spécifique au conteneur Ollama pour éviter les plantages système lors des phases de génération de quiz par LLM.
-        \item \textbf{Isolation réseau :} Chaque microservice backend n'écoute que sur son port spécifique (9091, 9092, 9093), tandis que les communications sensibles avec la base de données s'effectuent via le réseau interne Docker.
-    \end{itemize}
+    \item \textbf{Processeur (CPU) :} 4 cœurs vCPU virtuels (architecture x86\_64), garantissant un traitement parallèle efficace des requêtes REST, de l'inférence YOLOv8 et de la génération de texte par les modèles de langage.
+    \item \textbf{Mémoire Vive (RAM) :} 16 Go de RAM DDR4 ECC, une capacité indispensable pour faire tourner simultanément les trois instances Java/Spring Boot, le serveur d'IA Ollama et la base de données PostgreSQL, sans risquer de saturation mémoire (Out of Memory).
+    \item \textbf{Stockage Disque :} 200 Go en NVMe SSD, offrant des vitesses de lecture/écriture élevées, essentielles pour le chargement rapide des modèles YOLOv8, le stockage persistant des cours et quiz, ainsi que la réactivité des index PostgreSQL.
+    \item \textbf{Bande Passante Réseau :} 16 To de trafic mensuel sur un port réseau à 1 Gbps, suffisant pour supporter les flux de visioconférence WebRTC via LiveKit SFU et le téléchargement des médias de cours par plusieurs apprenants en simultané.
+    \item \textbf{Système d'Exploitation (OS) :} Linux Ubuntu Server 24.04 LTS, retenu pour sa stabilité, sa compatibilité avec l'écosystème Docker et son niveau de sécurité éprouvé.
+    \item \textbf{Moteur de Conteneurisation :} Docker version 29.5.0 et Docker Compose v5.1.3, assurant le déploiement unifié et l'orchestration de l'ensemble des services de la plateforme.
 \end{itemize}
+
+\subsection{Stratégie de conteneurisation via Docker et Docker Compose}
+Pour s'affranchir du problème classique de divergence entre les environnements de développement et de production, l'intégralité de la plateforme Certif-fun a été conteneurisée avec Docker. Cette approche de virtualisation légère au niveau du noyau garantit que chaque composant s'exécute dans un environnement rigoureusement identique, quel que soit le système hôte sous-jacent.
+
+L'orchestration de l'ensemble des conteneurs est assurée par Docker Compose v5.1.3, à travers un fichier de configuration central \path{docker-compose.yml} qui structure trois aspects essentiels du déploiement :
+
+\begin{itemize}
+    \item \textbf{Isolation réseau :} Tous les conteneurs communiquent au sein d'un réseau privé virtuel de type Bridge, que nous avons nommé \texttt{certif-net}. Seuls Nginx et LiveKit exposent des ports accessibles depuis l'extérieur, ce qui empêche tout accès direct non autorisé à des services sensibles comme PostgreSQL ou Ollama.
+    \item \textbf{Persistance des données :} Nous avons pris soin de mettre en place des volumes nommés Docker (\texttt{postgres\_data} et \texttt{ollama\_data}) pour dissocier les données du cycle de vie des conteneurs. Ainsi, même lors d'une mise à jour ou d'un redémarrage complet du serveur, les données utilisateurs, les certifications et les modèles d'IA préalablement téléchargés demeurent intacts.
+    \item \textbf{Gestion de l'ordre de démarrage :} La directive \texttt{depends\_on} nous a permis de définir un ordre logique d'initialisation des services, en veillant notamment à ce que PostgreSQL et Ollama soient pleinement opérationnels avant le lancement des microservices Java et Python.
+\end{itemize}
+
+\subsection{Topologie et distribution des conteneurs applicatifs}
+Le déploiement de \textbf{Certif-fun} sur le VPS s'organise en dix conteneurs autonomes travaillant en synergie :
+\begin{enumerate}
+    \item \textbf{Frontends (3 conteneurs) :} Trois instances React optimisées servant respectivement les portails de l'\textit{Administrateur}, du \textit{Formateur} et de l'\textit{Apprenant}.
+    \item \textbf{Backends Spring Boot (3 conteneurs) :} Trois services Java (\textit{Service-Admin}, \textit{Service-Formateur}, \textit{Service-Apprenant}) qui implémentent la logique métier et écoutent sur les ports isolés 9091, 9092 et 9093.
+    \item \textbf{IA Proctoring (1 conteneur) :} Le service Python FastAPI hébergeant le modèle YOLOv8 pour la détection en temps réel des fraudes lors des examens.
+    \item \textbf{Base de données (1 conteneur) : } Le moteur PostgreSQL 15-alpine assurant la persistance sécurisée des données de la plateforme.
+    \item \textbf{Serveur LLM local (1 conteneur) :} L'instance Ollama configurée pour charger et servir localement les modèles Mistral 7B, Llama 3.2 (3B) et Qwen 2.5.
+    \item \textbf{Proxy Inverse et Passerelle (1 conteneur) :} Le serveur Nginx qui intercepte l'ensemble du trafic HTTP/HTTPS, applique les politiques de sécurité CORS, compresse les réponses statiques et distribue les requêtes vers les bons conteneurs internes.
+\end{enumerate}
+
+\subsection{Politique d'allocation et d'optimisation des ressources}
+Compte tenu de la cohabitation des modèles d'IA générative et de l'architecture microservices sur un unique serveur physique de 16 Go de RAM, une gestion fine des ressources a été implémentée dans la configuration Docker Compose :
+\begin{itemize}
+    \item \textbf{Optimisation d'Ollama (LLM) :} Afin d'éviter qu'une requête de génération massive de quiz ne sature la totalité de la mémoire vive et ne provoque un plantage du système, nous avons appliqué des limites strictes de ressources dans Docker Compose. Le conteneur Ollama est limité à un maximum de **8 Go de RAM** et à l'utilisation de **2 cœurs de CPU**. Cela garantit une inférence stable tout en laissant 8 Go de RAM disponibles pour les autres composants.
+    \item \textbf{Optimisation de la JVM (Java/Spring Boot) :} Par défaut, les applications Spring Boot peuvent consommer énormément de RAM. Pour y remédier, nous avons configuré les variables d'environnement de la JVM (\texttt{JAVA\_OPTS}) sur chaque microservice backend pour fixer une allocation minimale et maximale stricte (\texttt{-Xms256m -Xmx768m}). Ainsi, la consommation cumulée des trois backends reste plafonnée à moins de 2,5 Go de RAM.
+    \item \textbf{Échantillonnage intelligent IA (YOLOv8) :} Pour préserver les 4 cœurs vCPU du serveur lors de l'exécution simultanée de plusieurs examens par des apprenants, le traitement vidéo n'est pas effectué en continu à 30 images par seconde (ce qui mettrait le CPU à 100\% instantanément). Au lieu de cela, un algorithme d'échantillonnage asynchrone prend une capture de la webcam toutes les 2 secondes et l'envoie à FastAPI, réduisant la charge CPU moyenne du service d'IA à moins de 12\% par flux connecté.
+\end{itemize}
+
+\subsection{Pipeline d'intégration et de déploiement continus (CI/CD via Jenkins)}
+Pour garantir la qualité logicielle, automatiser le cycle de vie de l'application et éviter toute intervention manuelle sujette aux erreurs lors de la mise en production, nous avons mis en œuvre un pipeline d'intégration et de déploiement continus (\textit{CI/CD}) complet en utilisant le serveur d'automatisation open-source \textbf{Jenkins}.
+
+Le pipeline est entièrement écrit sous forme de code (\textit{Pipeline as Code}) à travers un fichier \texttt{Jenkinsfile} déclaratif stocké à la racine du dépôt. Le flux de travail automatisé s'articule autour de six étapes successives déclenchées automatiquement par un \textit{Webhook} GitHub lors de chaque \texttt{push} ou fusion de branche sur la branche principale \texttt{main} :
+
+\begin{enumerate}
+    \item \textbf{Phase de Récupération (Checkout) :} Jenkins clone la dernière version du code source depuis notre dépôt privé GitHub en utilisant des identifiants SSH sécurisés.
+    \item \textbf{Phase de Build et Test Backend (Maven) :} Pour chacun des trois microservices Spring Boot (Admin, Formateur, Apprenant), Jenkins lance la commande de build Maven \texttt{mvn clean package}. Durant cette phase, tous les tests unitaires et d'intégration développés avec JUnit et Mockito sont exécutés. Le build n'avance à l'étape suivante que si 100\% des tests sont validés avec succès.
+    \item \textbf{Phase de Build Frontend (NPM/Vite) :} Pour les portails React, Jenkins installe les dépendances Node.js (\texttt{npm install}) et génère les fichiers statiques optimisés de production (\texttt{npm run build}) à l'aide du bundler Vite.
+    \item \textbf{Phase de Conteneurisation (Docker Build) :} Jenkins construit des images Docker légères et étiquetées (\textit{tagged}) pour chacun de nos microservices à partir de leurs \texttt{Dockerfile} respectifs.
+    \item \textbf{Phase de Déploiement sur le VPS (CD) :} Une fois les images générées, Jenkins se connecte de manière sécurisée en SSH au serveur de production VPS. Il exécute la commande de mise à jour progressive \texttt{docker compose up -d --build --remove-orphans} pour remplacer à chaud les anciens conteneurs par les nouveaux, assurant un temps d'arrêt (\textit{downtime}) quasi nul.
+    \item \textbf{Phase de Validation (Health Checks) :} Un script automatisé effectue des requêtes curl sur les points d'entrée cruciaux de la plateforme (les backends et Nginx) pour vérifier que tous les services répondent correctement par un code statut \texttt{200 OK}.
+\end{enumerate}
+
+Ce pipeline Jenkins garantit qu'aucune modification de code ne perturbe la stabilité de la plateforme en production, en validant automatiquement chaque incrément logiciel de bout en bout.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Implémentation et interfaces}
@@ -84,7 +154,7 @@ Chaque microservice Spring Boot est organisé selon une architecture en couches 
     \item \textbf{Repository :} Assure l'interface avec PostgreSQL via Spring Data JPA.
     \item \textbf{Model/Entity :} Définit les structures de données mappées en base de données.
     \item \textbf{DTO (Data Transfer Object) :} Sécurise les échanges en ne transmettant que les données nécessaires au frontend.
-    \item \textbf{Security :} Gère l'authentification JWT et la validation du MFA.
+    \item \textbf{Security :} Gère la sécurisation des routes et la validation des jetons JWT.
 \end{itemize}
 
 \subsection{Structure du code Frontend}
@@ -147,7 +217,7 @@ La communication en temps réel est gérée par des \textbf{Tokens d'accès} gé
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 La fiabilité de Certif-fun a été éprouvée par une pyramide de tests rigoureuse :
 \begin{itemize}
-    \item \textbf{Tests Unitaires (JUnit 5 \& Mockito) :} Plus de 80\% de couverture de code sur les services critiques, notamment pour les algorithmes de calcul de scores et la logique de validation des sessions MFA.
+    \item \textbf{Tests Unitaires (JUnit 5 \& Mockito) :} Plus de 80\% de couverture de code sur les services critiques, notamment pour les algorithmes de calcul de scores et la logique de validation des jetons d'authentification.
     \item \textbf{Validation des APIs (Postman) :} Des suites de tests automatisées vérifient que chaque microservice répond correctement aux requêtes et gère les erreurs de manière granulaire (codes 401, 403, 404).
     \item \textbf{Tests de charge IA :} Nous avons mesuré le temps d'inférence moyen de YOLOv8 sur différents processeurs pour nous assurer que la surveillance reste fluide même sur des machines de milieu de gamme.
 \end{itemize}
