@@ -109,6 +109,7 @@ const CoursePreviewPage: React.FC = () => {
     const [pythonDetections, setPythonDetections] = useState<any[]>([]);
     const [isTabActive, setIsTabActive] = useState(true);
     const [timeSpentSummary, setTimeSpentSummary] = useState<Record<string, number>>({});
+    const [zoomedImageSrc, setZoomedImageSrc] = useState<string | null>(null);
 
     // States for randomized/sliced quiz questions
     const [activeQuizQuestions, setActiveQuizQuestions] = useState<Question[]>([]);
@@ -1546,7 +1547,16 @@ const CoursePreviewPage: React.FC = () => {
 
                                     {activeSubSection.content && activeSubSection.content.replace(/<[^>]*>/g, '').trim().length > 0 || activeSubSection.content?.includes('<img') || activeSubSection.content?.includes('<iframe') ? (
                                         <div className="bg-surface border border-glass-border rounded-[2.5rem] shadow-xl overflow-hidden min-h-[100px]">
-                                            <div className="p-8 sm:p-12 text-text rich-content-area" dangerouslySetInnerHTML={{ __html: activeSubSection.content }} />
+                                            <div 
+                                                className="p-8 sm:p-12 text-text rich-content-area" 
+                                                dangerouslySetInnerHTML={{ __html: activeSubSection.content }} 
+                                                onClick={(e) => {
+                                                    const target = e.target as HTMLElement;
+                                                    if (target.tagName === 'IMG') {
+                                                        setZoomedImageSrc((target as HTMLImageElement).src);
+                                                    }
+                                                }}
+                                            />
                                         </div>
                                     ) : null}
 
@@ -2262,6 +2272,28 @@ const CoursePreviewPage: React.FC = () => {
                     )
                 }
 
+                {/* Zoomed Image Modal */}
+                {zoomedImageSrc && createPortal(
+                    <div 
+                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md transition-opacity animate-fade-in"
+                        onClick={() => setZoomedImageSrc(null)}
+                    >
+                        <button 
+                            className="absolute top-6 right-6 text-white hover:text-gray-300 p-3 bg-white/10 rounded-full transition-all hover:scale-110"
+                            onClick={() => setZoomedImageSrc(null)}
+                        >
+                            <X size={28} />
+                        </button>
+                        <img 
+                            src={zoomedImageSrc} 
+                            alt="Zoomed Content" 
+                            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>,
+                    document.body
+                )}
+
                 <style>{`
                 .rich-content-area {
                     font-size: 1.125rem;
@@ -2284,6 +2316,12 @@ const CoursePreviewPage: React.FC = () => {
                     margin: 3rem auto; 
                     display: block;
                     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2); 
+                    cursor: zoom-in;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                }
+                .rich-content-area img:hover {
+                    transform: scale(1.02);
+                    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
                 }
 
                 .rich-content-area .ql-align-center { text-align: center; }
