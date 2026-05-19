@@ -120,4 +120,78 @@ public class EmailService {
                 </html>
                 """.formatted(prenom, code);
     }
+
+    public void sendApprenantWelcomeEmail(String toEmail, String prenom, String password) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject("🎓 ENS Marrakech — Bienvenue sur CertiFlow !");
+            helper.setFrom("ENS Marrakech <noreply@ens-marrakech.ma>");
+
+            String html = buildWelcomeEmailHtml(prenom, toEmail, password);
+            helper.setText(html, true); // true = isHtml
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Erreur lors de l'envoi de l'email de bienvenue", e);
+        }
+    }
+
+    private String buildWelcomeEmailHtml(String prenom, String email, String password) {
+        return """
+                <!DOCTYPE html>
+                <html lang="fr">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Bienvenue sur CertiFlow</title>
+                </head>
+                <body style="margin:0;padding:0;background-color:#0f172a;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+                    <table width="100%%" cellpadding="0" cellspacing="0" style="background-color:#0f172a;padding:40px 20px;">
+                        <tr>
+                            <td align="center">
+                                <table width="560" cellpadding="0" cellspacing="0"
+                                    style="background:linear-gradient(135deg,#1e293b 0%%,#0f172a 100%%);border-radius:20px;
+                                           border:1px solid rgba(99,102,241,0.3);overflow:hidden;max-width:560px;width:100%%;">
+                                    <tr>
+                                        <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:32px 40px;text-align:center;">
+                                            <h1 style="color:#fff;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px;">🎓 ENS Marrakech</h1>
+                                            <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;font-weight:500;">Plateforme de Certification (CertiFlow)</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:40px;">
+                                            <p style="color:#94a3b8;font-size:15px;margin:0 0 8px;">Bonjour, <strong style="color:#e2e8f0;">%s</strong> 👋</p>
+                                            <p style="color:#94a3b8;font-size:15px;margin:0 0 32px;line-height:1.6;">
+                                                Votre compte Apprenant a été créé avec succès sur <strong>CertiFlow</strong>.
+                                            </p>
+                                            <div style="background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.15));
+                                                        border:2px solid rgba(99,102,241,0.4);border-radius:16px;padding:28px;text-align:center;margin-bottom:32px;">
+                                                <p style="color:#e2e8f0;font-size:16px;margin:0 0 12px;"><strong>Email:</strong> %s</p>
+                                                <p style="color:#e2e8f0;font-size:16px;margin:0 0 12px;"><strong>Mot de passe:</strong> %s</p>
+                                            </div>
+                                            <div style="text-align:center;margin-bottom:32px;">
+                                                <a href="http://certif.fun/login" style="background-color:#6366f1;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">Se connecter</a>
+                                            </div>
+                                            <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:16px;margin-bottom:32px;">
+                                                <p style="color:#f87171;font-size:13px;margin:0;line-height:1.6;">
+                                                    ⚠️ <strong>Important :</strong> Nous vous recommandons fortement de changer votre mot de passe dès votre première connexion pour des raisons de sécurité.
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:24px 40px;border-top:1px solid rgba(99,102,241,0.2);text-align:center;">
+                                            <p style="color:#334155;font-size:12px;margin:0;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;">© 2026 ENS Marrakech — Tous droits réservés</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+                """.formatted(prenom, email, password);
+    }
 }

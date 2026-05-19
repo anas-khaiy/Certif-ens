@@ -38,6 +38,7 @@ public class ExcelImportService {
     private final SpecialiteService specialiteService;
     private final CycleService cycleService;
     private final FormationService formationService;
+    private final EmailService emailService;
 
     // ──────────────────────────────────────────────────────────────────────────
     // ENSEIGNANTS
@@ -235,6 +236,22 @@ public class ExcelImportService {
                     if (a != null) {
                         apprenantRepository.save(a);
                         successCount++;
+                        
+                        // Send Welcome Email asynchronously to not block the import
+                        final String userEmail = normalizedEmail;
+                        final String userPrenom = prenom;
+                        final String userCin = normalizedCin;
+                        try {
+                            new Thread(() -> {
+                                try {
+                                    emailService.sendApprenantWelcomeEmail(userEmail, userPrenom, userCin);
+                                } catch (Exception e) {
+                                    System.err.println("Failed to send welcome email to " + userEmail + ": " + e.getMessage());
+                                }
+                            }).start();
+                        } catch (Exception e) {
+                            System.err.println("Failed to start email thread: " + e.getMessage());
+                        }
                     }
                 } catch (Exception ex) {
                     errors.add("Ligne " + rowIdx + ": Erreur lors de l'enregistrement: " + ex.getMessage());
