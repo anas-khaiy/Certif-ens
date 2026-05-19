@@ -24,8 +24,8 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(toEmail);
-            helper.setSubject("🔐 ENS Marrakech — Réinitialisation de votre mot de passe");
-            helper.setFrom("ENS Marrakech <noreply@ens-marrakech.ma>");
+            helper.setSubject("🔐 Certif.fun — Réinitialisation de votre mot de passe");
+            helper.setFrom("Certif.fun <noreply@certif.fun>");
 
             String html = buildEmailHtml(prenom, code);
             helper.setText(html, true); // true = isHtml
@@ -56,7 +56,7 @@ public class EmailService {
                                     <tr>
                                         <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:32px 40px;text-align:center;">
                                             <h1 style="color:#fff;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px;">
-                                                🎓 ENS Marrakech
+                                                🎓 Certif.fun
                                             </h1>
                                             <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;font-weight:500;">
                                                 Plateforme Éducative
@@ -108,7 +108,7 @@ public class EmailService {
                                     <tr>
                                         <td style="padding:24px 40px;border-top:1px solid rgba(99,102,241,0.2);text-align:center;">
                                             <p style="color:#334155;font-size:12px;margin:0;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;">
-                                                © 2026 ENS Marrakech — Tous droits réservés
+                                                © 2026 Certif.fun — Tous droits réservés
                                             </p>
                                         </td>
                                     </tr>

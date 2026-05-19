@@ -24,8 +24,8 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(toEmail);
-            helper.setSubject("🔐 ENS Marrakech — Réinitialisation de votre mot de passe");
-            helper.setFrom("ENS Marrakech <noreply@ens-marrakech.ma>");
+            helper.setSubject("🔐 Certif.fun — Réinitialisation de votre mot de passe");
+            helper.setFrom("Certif.fun <noreply@certif.fun>");
 
             String html = buildEmailHtml(prenom, code);
             helper.setText(html, true); // true = isHtml
@@ -56,7 +56,7 @@ public class EmailService {
                                     <tr>
                                         <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:32px 40px;text-align:center;">
                                             <h1 style="color:#fff;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px;">
-                                                🎓 ENS Marrakech
+                                                🎓 Certif.fun
                                             </h1>
                                             <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;font-weight:500;">
                                                 Plateforme Éducative
@@ -108,7 +108,7 @@ public class EmailService {
                                     <tr>
                                         <td style="padding:24px 40px;border-top:1px solid rgba(99,102,241,0.2);text-align:center;">
                                             <p style="color:#334155;font-size:12px;margin:0;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;">
-                                                © 2026 ENS Marrakech — Tous droits réservés
+                                                © 2026 Certif.fun — Tous droits réservés
                                             </p>
                                         </td>
                                     </tr>
@@ -127,8 +127,8 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(toEmail);
-            helper.setSubject("🎓 ENS Marrakech — Bienvenue sur CertiFlow !");
-            helper.setFrom("ENS Marrakech <noreply@ens-marrakech.ma>");
+            helper.setSubject("🎓 Certif.fun — Bienvenue sur votre plateforme !");
+            helper.setFrom("Certif.fun <noreply@certif.fun>");
 
             String html = buildWelcomeEmailHtml(prenom, toEmail, password);
             helper.setText(html, true); // true = isHtml
@@ -156,15 +156,15 @@ public class EmailService {
                                            border:1px solid rgba(99,102,241,0.3);overflow:hidden;max-width:560px;width:100%%;">
                                     <tr>
                                         <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:32px 40px;text-align:center;">
-                                            <h1 style="color:#fff;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px;">🎓 ENS Marrakech</h1>
-                                            <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;font-weight:500;">Plateforme de Certification (CertiFlow)</p>
+                                            <h1 style="color:#fff;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px;">🎓 Certif.fun</h1>
+                                            <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;font-weight:500;">Plateforme de Certification</p>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td style="padding:40px;">
                                             <p style="color:#94a3b8;font-size:15px;margin:0 0 8px;">Bonjour, <strong style="color:#e2e8f0;">%s</strong> 👋</p>
                                             <p style="color:#94a3b8;font-size:15px;margin:0 0 32px;line-height:1.6;">
-                                                Votre compte Apprenant a été créé avec succès sur <strong>CertiFlow</strong>.
+                                                Votre compte Apprenant a été créé avec succès sur <strong>Certif.fun</strong>.
                                             </p>
                                             <div style="background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.15));
                                                         border:2px solid rgba(99,102,241,0.4);border-radius:16px;padding:28px;text-align:center;margin-bottom:32px;">
@@ -183,7 +183,7 @@ public class EmailService {
                                     </tr>
                                     <tr>
                                         <td style="padding:24px 40px;border-top:1px solid rgba(99,102,241,0.2);text-align:center;">
-                                            <p style="color:#334155;font-size:12px;margin:0;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;">© 2026 ENS Marrakech — Tous droits réservés</p>
+                                            <p style="color:#334155;font-size:12px;margin:0;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;">© 2026 Certif.fun — Tous droits réservés</p>
                                         </td>
                                     </tr>
                                 </table>
