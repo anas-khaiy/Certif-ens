@@ -34,6 +34,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - certif_uploads_data:/app/uploads
 
   # Backend Formateur
   backend-formateur:
@@ -57,6 +59,8 @@ services:
         condition: service_healthy
       ollama:
         condition: service_started
+    volumes:
+      - certif_uploads_data:/app/uploads
 
   # Backend Apprenant
   # ... (backend-apprenant config) ...
@@ -76,6 +80,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - certif_uploads_data:/app/uploads
 
   # Microservice IA (Python)
   ai-detection-service:
@@ -164,5 +170,6 @@ volumes:
   certificate_postgres_data:
     external: true
   ollama_data:
+  certif_uploads_data:
 
 
