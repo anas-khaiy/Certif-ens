@@ -126,37 +126,22 @@ Compte tenu de la cohabitation des modèles d'IA générative et de l'architectu
 \end{itemize}
 
 \subsection{Pipeline d'intégration continue (CI/CD)}
-Pour automatiser le cycle de vie de notre application et écarter tout risque d'erreur humaine, nous avons déployé un pipeline d'intégration et de déploiement continus (CI/CD) robuste, orchestré par \textbf{Jenkins}.
+Pour automatiser le déploiement de la plateforme et réduire les risques d'erreurs manuelles, nous avons mis en place un pipeline CI/CD basé sur \textbf{Jenkins}. Toute la logique du pipeline est décrite dans un fichier \texttt{Jenkinsfile} versionné à la racine du dépôt Git, et son exécution est déclenchée automatiquement à chaque modification sur la branche principale \texttt{main} via un \textit{Webhook} GitHub.
 
-Ce pipeline adopte l'approche \textit{Pipeline as Code} : toute sa logique est rédigée de manière déclarative dans un fichier \texttt{Jenkinsfile} à la racine du dépôt Git. Il est déclenché automatiquement par un \textit{Webhook} GitHub à chaque modification de code source sur la branche principale \texttt{main}.
-
-\subsubsection{Déroulement des étapes du pipeline}
-Comme illustré par la figure~\ref{fig:jenkins_pipeline}, le flux d'automatisation (Build \#32) s'exécute en seulement \textbf{2 minutes et 58 secondes} grâce à une exécution optimisée et parallélisée :
+Le pipeline (Build \#32) s'exécute en moins de 3 minutes (2 minutes et 58 secondes) et se déroule en six étapes clés, comme l'illustre la figure~\ref{fig:jenkins_pipeline} :
 
 \begin{enumerate}
-    \item \textbf{Préparation (Checkout) [Durée : 42s] :} Le pipeline récupère de manière sécurisée le code source via SSH. Il détecte l'architecture matérielle de l'agent (\texttt{uname -m}) et configure automatiquement des versions portables de \textbf{Node.js v20.11.1} et de \textbf{Apache Maven 3.9.6}. Cela garantit l'indépendance et la portabilité totale de l'environnement de build.
+    \item \textbf{Préparation [Durée : 42s] :} Récupération sécurisée du code source depuis le dépôt Git (\url{https://github.com/anas-khaiy/Certificate.git}) via SSH, détection de l'architecture matérielle de la machine (\texttt{uname -m}), et configuration dynamique et autonome de \textbf{Node.js v20.11.1} et \textbf{Apache Maven 3.9.6} pour garantir un environnement de build stable, portable et reproductible.
     
-    \item \textbf{Compilation \& Tests Backend [Durée : 7s] :} Les trois microservices Spring Boot (\path{Backend-Admin}, \path{Backend-Formateur} et \path{Backend-Apprenant}) sont compilés simultanément en parallèle via la commande \texttt{mvn clean package}. Cette parallélisation permet de terminer la construction des trois backends Java en seulement \textbf{7 secondes}.
+    \item \textbf{Compilation Backend [Durée : 7s] :} Les trois microservices Spring Boot (\path{Backend-Admin}, \path{Backend-Formateur} et \path{Backend-Apprenant}) sont compilés simultanément en parallèle via la commande \texttt{mvn clean package}, ce qui réduit considérablement le temps de build global à seulement 7 secondes.
     
-    \item \textbf{Compilation Frontend [Durée : 18s] :} Les trois portails React (\texttt{Admin}, \texttt{Formateur} et \texttt{Apprenant}) sont construits et optimisés en parallèle par le bundler \textbf{Vite} (\texttt{npm install} puis \texttt{npm run build}) en seulement \textbf{18 secondes}.
+    \item \textbf{Compilation Frontend [Durée : 18s] :} Les trois interfaces React (\texttt{Admin}, \texttt{Formateur} et \texttt{Apprenant}) sont construites et optimisées en parallèle avec le bundler \textbf{Vite} (\texttt{npm install} puis \texttt{npm run build}) en 18 secondes.
     
-    \item \textbf{Conteneurisation et Déploiement [Durée : 1m 13s] :} Réalisé directement sur le serveur VPS de production (\texttt{217.65.145.127}) sans registre d'images intermédiaire :
-    \begin{itemize}
-        \item \textbf{Compression \& Transfert :} Les fichiers compilés (JARs et bundles React) sont compressés dans une archive légère \texttt{deploy.tar.gz} puis transférés par \texttt{scp} via clé SSH sécurisée.
-        \item \textbf{Sauvegarde DB :} Connexion SSH sur le VPS pour déclencher une sauvegarde à chaud de la base PostgreSQL (\texttt{pg\_dump}) dans le conteneur actif \texttt{certiflow-db}.
-        \item \textbf{Mise à jour à chaud :} Remplacement progressif et individuel des conteneurs microservices (la base de données est volontairement exclue pour éviter toute interruption de service).
-        \item \textbf{Reconstruction :} Lancement de \texttt{docker compose up --build -d} sur le VPS en réutilisant le cache Docker et en montant le volume persistant \path{certif_uploads_data}.
-        \item \textbf{Nettoyage :} Exécution de \texttt{docker image prune -f} pour libérer l'espace disque en purgeant les images orphelines.
-    \end{itemize}
+    \item \textbf{Déploiement sur le VPS [Durée : 1m 13s] :} Les fichiers compilés sont compressés dans une archive légère \texttt{deploy.tar.gz} et transférés vers le serveur de production (\texttt{217.65.145.127}) via \texttt{scp} en s'authentifiant par clé SSH. Avant toute mise à jour, une sauvegarde à chaud de la base PostgreSQL (\texttt{pg\_dump}) est effectuée automatiquement dans le conteneur \texttt{certiflow-db}. Les conteneurs applicatifs sont mis à jour et reconstruits progressivement via la commande \texttt{docker compose up --build -d} (sans toucher à la base de données pour éviter toute interruption de service de données et en montant le volume persistant \path{certif_uploads_data}). Un nettoyage des images Docker intermédiaires et orphelines (\texttt{docker image prune -f}) libère l'espace disque du VPS en fin d'étape.
     
-    \item \textbf{Vérification de santé (Health Check) [Durée : 37s] :} Après 15 secondes d'attente pour l'initialisation des JVM Java, le pipeline teste automatiquement les services via des requêtes \texttt{curl} :
-    \begin{itemize}
-        \item Accès à la passerelle Nginx (\url{http://217.65.145.127}).
-        \item État de santé du backend d'administration via Spring Boot Actuator (\url{http://217.65.145.127:9091/actuator/health}).
-    \end{itemize}
-    Tout code retour inattendu interrompt le pipeline et marque la build en échec.
+    \item \textbf{Vérification de santé (Health Check) [Durée : 37s] :} Une fois les services redémarrés et après une pause de 15 secondes pour l'initialisation des JVM, le pipeline vérifie automatiquement leur bon fonctionnement via des requêtes \texttt{curl} sur la passerelle Nginx (\url{http://217.65.145.127}) et sur l'endpoint Actuator du backend d'administration (\url{http://217.65.145.127:9091/actuator/health}). En cas d'anomalie, le pipeline s'arrête et la build est marquée en échec.
     
-    \item \textbf{Nettoyage local [Durée : 38ms] :} Nettoyage complet de l'espace de travail temporaire sur l'agent de build Jenkins (\texttt{cleanWs()}).
+    \item \textbf{Nettoyage local [Durée : < 1s] :} L'espace de travail temporaire sur l'agent de build Jenkins est entièrement purgé via la commande \texttt{cleanWs()} afin de libérer les ressources disque.
 \end{enumerate}
 
 \begin{figure}[htbp]
@@ -166,7 +151,7 @@ Comme illustré par la figure~\ref{fig:jenkins_pipeline}, le flux d'automatisati
     \label{fig:jenkins_pipeline}
 \end{figure}
 
-Ce pipeline Jenkins garantit un cycle de développement automatisé, ultra-rapide et parfaitement sécurisé pour l'ensemble de la plateforme \textbf{Certif-fun}.
+Ce pipeline Jenkins garantit la rapidité de nos déploiements, une sécurité totale et l'intégrité absolue de la plateforme \textbf{Certif-fun} en production.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
