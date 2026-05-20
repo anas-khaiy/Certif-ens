@@ -183,26 +183,44 @@ Ce pipeline Jenkins garantit la rapidité de nos déploiements, une sécurité t
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Implémentation et interfaces}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-L'implémentation de Certif-fun suit les standards du développement microservices et du Web moderne, en mettant l'accent sur la clarté du code et l'ergonomie des interfaces.
+L'implémentation de la plateforme \textbf{Certif-fun} est conçue selon un découpage strict des responsabilités en couches isolées, respectant le principe de séparation des préoccupations (\textit{Separation of Concerns}). Cette architecture se divise en trois couches principales : la présentation (Front-end), la logique métier (Back-end) et la persistance des données.
 
-\subsection{Structure du code Backend}
-Chaque microservice Spring Boot est organisé selon une architecture en couches (\textit{Layered Architecture}), garantissant une maintenance aisée :
+\subsection{Découpage architectural global}
+Pour comprendre le fonctionnement global de la plateforme de manière simple, les requêtes transitent à travers les couches suivantes :
 \begin{itemize}
-    \item \textbf{Controller :} Définit les points de terminaison REST et gère les requêtes entrantes.
-    \item \textbf{Service :} Contient la logique métier (calculs de scores, validation de sessions, appels à l'IA).
-    \item \textbf{Repository :} Assure l'interface avec PostgreSQL via Spring Data JPA.
-    \item \textbf{Model/Entity :} Définit les structures de données mappées en base de données.
-    \item \textbf{DTO (Data Transfer Object) :} Sécurise les échanges en ne transmettant que les données nécessaires au frontend.
-    \item \textbf{Security :} Gère la sécurisation des routes et la validation des jetons JWT.
+    \item \textbf{Couche de Présentation (Front-end) :} Développée avec \textbf{React, TypeScript et Vite}. Elle fournit des interfaces fluides, interactives et responsives pour les trois types d'utilisateurs. Elle communique avec le serveur via des requêtes HTTP asynchrones gérées par la bibliothèque \textbf{Axios}.
+    \item \textbf{Couche Logique Métier (Back-end) :} Composée de trois microservices indépendants développés avec \textbf{Spring Boot} (Java 17). Chaque microservice gère un domaine fonctionnel précis de la plateforme. En parallèle, un microservice Python développé avec \textbf{FastAPI} orchestre le modèle de détection visuelle \textbf{YOLOv8} pour la surveillance d'examen (Proctoring).
+    \item \textbf{Couche de Données (Persistance) :} Repose sur le système de gestion de base de données relationnelle \textbf{PostgreSQL}. La couche de persistance Java utilise \textbf{Spring Data JPA} (Hibernate) pour manipuler les données sous forme d'objets (mapping objet-relationnel), évitant d'écrire des requêtes SQL manuelles complexes.
 \end{itemize}
 
-\subsection{Structure du code Frontend}
-Les portails React utilisent une architecture modulaire basée sur les composants :
+\subsection{Structure et organisation du code Backend (Spring Boot)}
+Chacun des microservices Java (Admin, Formateur et Apprenant) est organisé selon une architecture en couches standardisée pour faciliter sa maintenance :
 \begin{itemize}
-    \item \textbf{Components :} Éléments UI réutilisables (boutons, cartes, formulaires).
-    \item \textbf{Pages :} Représentent les différentes vues de l'application (Dashboard, Examen, Paramètres).
-    \item \textbf{Services/API :} Gèrent les appels asynchrones vers les microservices via Axios.
-    \item \textbf{Hooks :} Logique d'état partagée pour la gestion des sessions et des flux média.
+    \item \textbf{\texttt{config} (Configuration) :} Regroupe les classes de paramétrage global de l'application (configurations CORS, initialisation des données par défaut via \texttt{DataInitializer}, et beans système).
+    \item \textbf{\texttt{controller} (Contrôleurs REST) :} Représente le point d'entrée des requêtes HTTP. Il définit les URLs des APIs (points de terminaison comme \path{/api/v1/courses}), intercepte les requêtes envoyées par le frontend React, valide les données reçues et renvoie les réponses au format JSON.
+    \item \textbf{\texttt{service} (Logique Métier) :} C'est le cœur applicatif. Ce package contient les classes implémentant les règles fonctionnelles (calculs de progression, traitement des examens, validation d'éligibilité aux certificats, cryptage de mots de passe, et dialogues avec le serveur de visioconférence LiveKit ou avec l'IA Ollama).
+    \item \textbf{\texttt{repository} (Accès aux Données) :} Contient les interfaces de persistance héritant de \texttt{JpaRepository}. Elles permettent d'exécuter des opérations de lecture et d'écriture (CRUD) dans la base de données PostgreSQL de manière abstraite.
+    \item \textbf{\texttt{model} (Entités) :} Définit les classes Java annotées avec \texttt{@Entity} représentant la structure de nos tables PostgreSQL (ex. \texttt{Course}, \texttt{Quiz}, \texttt{Apprenant}, \texttt{EncadrementPhase}).
+    \item \textbf{\texttt{dto} (Data Transfer Objects) :} Classes simples utilisées pour structurer les données transférées entre le frontend et le backend (ex. \texttt{AuthenticationRequest}, \texttt{QuizStatisticsDTO}), permettant de ne pas exposer directement les entités de la base de données.
+    \item \textbf{\texttt{security} (Sécurité JWT) :} Contient le filtre \texttt{JwtAuthenticationFilter} qui extrait et valide le jeton de connexion des requêtes entrantes pour authentifier l'utilisateur.
+\end{itemize}
+
+\subsection{Structure et organisation du code Frontend (React)}
+Les trois applications frontales (\texttt{Service Admin}, \texttt{Service Formateur} et \texttt{Service Apprenant}) adoptent une structure modulaire, claire et réutilisable :
+\begin{itemize}
+    \item \textbf{\texttt{pages/} (Vues Principales) :} Contient les composants représentant les pages entières de l'application (ex. \path{Dashboard.tsx}, \path{Examen.tsx}, \path{Parametres.tsx}).
+    \item \textbf{\texttt{components/} (Éléments UI Réutilisables) :} Regroupe les blocs visuels génériques et autonomes réutilisés sur plusieurs pages (boutons stylisés, barres de progression, modales d'alertes, cartes d'affichage de cours).
+    \item \textbf{\texttt{api/} (Connexion API) :} Regroupe les configurations d'Axios, les intercepteurs pour ajouter automatiquement le token JWT dans les en-têtes HTTP de chaque requête, et les fonctions d'appel aux microservices backend.
+    \item \textbf{\texttt{context/} (Gestion d'État Global) :} Contient les contextes React (ex. \texttt{AuthContext}) permettant de partager des informations globales (comme l'état de connexion de l'utilisateur ou ses droits d'accès) à l'ensemble des pages.
+    \item \textbf{\texttt{hooks/} (Hooks Personnalisés) : } Fichiers encapsulant de la logique réutilisable (gestion du flux de la caméra web pour le proctoring, sélection de périphériques média).
+    \item \textbf{\texttt{types/} (Typages TypeScript) :} Contient les interfaces TypeScript décrivant la forme des données reçues des API pour sécuriser l'écriture du code (auto-complétion, détection précoce d'erreurs de typage).
+\end{itemize}
+
+\subsection{Structure du service de traitement d'images (IA Proctoring)}
+Le dossier \path{AI-Detection-Service} est structuré de façon minimale pour optimiser la rapidité d'exécution du traitement vidéo :
+\begin{itemize}
+    \item \textbf{\texttt{main.py} (Script principal) :} Initialise le serveur FastAPI, charge le modèle pré-entraîné YOLOv8 en mémoire (\texttt{yolov8n.pt}), et expose un point d'accès POST sécurisé. Il reçoit le flux d'images envoyé par le navigateur de l'apprenant sous format d'archive base64, décompresse l'image, applique les filtres de détection d'objets, et renvoie un dictionnaire JSON détaillant les anomalies identifiées (ex. détection de téléphone, nombre de visages).
+    \item \textbf{\texttt{requirements.txt} (Dépendances Python) :} Liste les bibliothèques minimales nécessaires à l'exécution du service de vision par ordinateur (\texttt{fastapi}, \texttt{uvicorn}, \texttt{opencv-python-headless}, \texttt{ultralytics}).
 \end{itemize}
 
 \subsection{Interfaces utilisateur et scénarios de navigation}
