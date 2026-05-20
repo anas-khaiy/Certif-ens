@@ -107,14 +107,37 @@ L'orchestration de l'ensemble des conteneurs est assurée par Docker Compose v5.
 \end{itemize}
 
 \subsection{Topologie et distribution des conteneurs applicatifs}
-Le déploiement de \textbf{Certif-fun} sur le VPS s'organise en dix conteneurs autonomes travaillant en synergie :
+Le déploiement de la plateforme \textbf{Certif-fun} sur le serveur VPS s'organise autour d'une architecture conteneurisée comprenant dix conteneurs autonomes orchestrés par Docker Compose. Cette répartition permet d'isoler les responsabilités et de garantir la robustesse du système :
+
 \begin{enumerate}
-    \item \textbf{Frontends (3 conteneurs) :} Trois instances React optimisées servant respectivement les portails de l'\textit{Administrateur}, du \textit{Formateur} et de l'\textit{Apprenant}.
-    \item \textbf{Backends Spring Boot (3 conteneurs) :} Trois services Java (\textit{Service-Admin}, \textit{Service-Formateur}, \textit{Service-Apprenant}) qui implémentent la logique métier et écoutent sur les ports isolés 9091, 9092 et 9093.
-    \item \textbf{IA Proctoring (1 conteneur) :} Le service Python FastAPI hébergeant le modèle YOLOv8 pour la détection en temps réel des fraudes lors des examens.
-    \item \textbf{Base de données (1 conteneur) : } Le moteur PostgreSQL 15-alpine assurant la persistance sécurisée des données de la plateforme.
-    \item \textbf{Serveur LLM local (1 conteneur) :} L'instance Ollama configurée pour charger et servir localement les modèles Mistral 7B, Llama 3.2 (3B) et Qwen 2.5.
-    \item \textbf{Proxy Inverse et Passerelle (1 conteneur) :} Le serveur Nginx qui intercepte l'ensemble du trafic HTTP/HTTPS, applique les politiques de sécurité CORS, compresse les réponses statiques et distribue les requêtes vers les bons conteneurs internes.
+    \item \textbf{Portails Frontends (3 conteneurs) :} 
+    Trois conteneurs distincts hébergent les interfaces utilisateur développées avec \textbf{React} et \textbf{Vite} :
+    \begin{itemize}
+        \item \textbf{Espace Administrateur :} Dédié au monitoring global et à la configuration de la plateforme.
+        \item \textbf{Espace Formateur :} Permet la gestion des cours, le suivi des apprenants et la génération de quiz par IA.
+        \item \textbf{Espace Apprenant :} Dédié à l'apprentissage, aux examens surveillés par IA et aux sessions Live.
+    \end{itemize}
+    Ces applications sont transpilées en fichiers statiques hautement optimisés, puis servies efficacement à travers le serveur Web Nginx.
+    
+    \item \textbf{Microservices Backends Spring Boot (3 conteneurs) :} 
+    Trois conteneurs exécutent les microservices Java basés sur \textbf{Spring Boot} qui implémentent la logique métier et communiquent entre eux via des API REST sécurisées par jetons JWT :
+    \begin{itemize}
+        \item \textbf{Service-Admin (Port 9091) :} Gère la configuration globale, la gestion des utilisateurs et le monitoring système.
+        \item \textbf{Service-Formateur (Port 9092) :} Gère la structure des formations, l'intégration du stockage d'images Markdown et l'orchestration des appels LLM.
+        \item \textbf{Service-Apprenant (Port 9093) :} Gère les inscriptions aux cours, le traitement des examens, les alertes de triche et l'interaction avec le serveur de visioconférence LiveKit.
+    \end{itemize}
+    
+    \item \textbf{Module d'IA Proctoring (1 conteneur) :} 
+    Développé en Python avec le framework \textbf{FastAPI}, ce conteneur héberge le modèle de deep learning \textbf{YOLOv8}. Il reçoit asynchronement les captures d'écran de webcam envoyées toutes les 2 secondes par le client web de l'apprenant en plein examen, réalise l'inférence en temps réel pour détecter les anomalies (présence de téléphone, absence ou multiples visages), et renvoie instantanément les scores de confiance au \textit{Service-Apprenant}.
+    
+    \item \textbf{Base de Données PostgreSQL (1 conteneur) :} 
+    Le moteur relationnel \textbf{PostgreSQL 15-alpine} assure la persistance de l'ensemble des données structurées (utilisateurs, cours, questions, logs de surveillance, historiques d'examens). Son accès est strictement cantonné au réseau privé virtuel Docker \texttt{certif-net}, et ses données sont persistées sur le disque hôte du VPS via le volume Docker nommé \texttt{postgres\_data}.
+    
+    \item \textbf{Serveur LLM Ollama local (1 conteneur) :} 
+    Ce conteneur fait tourner une instance locale d'\textbf{Ollama} qui gère le chargement en mémoire vive et l'exécution locale des modèles de langage (\textit{Mistral 7B}, \textit{Llama 3.2 3B} et \textit{Qwen 2.5}). Un volume Docker persistant (\texttt{ollama\_data}) est lié à \path{/root/.ollama} pour éviter de retélécharger les poids des modèles lors des redémarrages.
+    
+    \item \textbf{Passerelle Nginx et Proxy Inverse (1 conteneur) :} 
+    Le conteneur \textbf{Nginx} fait office de point d'entrée unique de la plateforme en interceptant le trafic sur les ports publics 80 (HTTP) et 443 (HTTPS). Il assure la terminaison SSL, la compression des réponses statiques, l'application des politiques CORS et de sécurité, ainsi que le routage dynamique vers les services appropriés en fonction du préfixe des requêtes (ex. les requêtes vers \texttt{/api/admin/} sont redirigées vers \texttt{http://backend-admin:9091/}).
 \end{enumerate}
 
 \subsection{Politique d'allocation et d'optimisation des ressources}
