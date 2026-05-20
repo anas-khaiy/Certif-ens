@@ -114,7 +114,7 @@ Le déploiement de la plateforme \textbf{Certif-fun} sur le serveur VPS s'organi
     Trois conteneurs distincts hébergent les interfaces utilisateur développées avec \textbf{React} et \textbf{Vite} :
     \begin{itemize}
         \item \textbf{Espace Administrateur :} Dédié au monitoring global et à la configuration de la plateforme.
-        \item \textbf{Espace Formateur :} Permet la gestion des cours, le suivi des apprenants et la génération de quiz par IA.
+        \item \textbf{Espace Formateur :} Permet la gestion des cours, le suivi des apprenants et la génération assistée de quiz par IA.
         \item \textbf{Espace Apprenant :} Dédié à l'apprentissage, aux examens surveillés par IA et aux sessions Live.
     \end{itemize}
     Ces applications sont transpilées en fichiers statiques hautement optimisés, puis servies efficacement à travers le serveur Web Nginx.
@@ -123,7 +123,7 @@ Le déploiement de la plateforme \textbf{Certif-fun} sur le serveur VPS s'organi
     Trois conteneurs exécutent les microservices Java basés sur \textbf{Spring Boot} qui implémentent la logique métier et communiquent entre eux via des API REST sécurisées par jetons JWT :
     \begin{itemize}
         \item \textbf{Service-Admin (Port 9091) :} Gère la configuration globale, la gestion des utilisateurs et le monitoring système.
-        \item \textbf{Service-Formateur (Port 9092) :} Gère la structure des formations, l'intégration du stockage d'images Markdown et l'orchestration des appels LLM.
+        \item \textbf{Service-Formateur (Port 9092) :} Gère la structure des formations, le stockage des images importées dans l'éditeur de cours enrichi, et l'orchestration des requêtes de génération de quiz vers Ollama.
         \item \textbf{Service-Apprenant (Port 9093) :} Gère les inscriptions aux cours, le traitement des examens, les alertes de triche et l'interaction avec le serveur de visioconférence LiveKit.
     \end{itemize}
     
@@ -140,7 +140,7 @@ Le déploiement de la plateforme \textbf{Certif-fun} sur le serveur VPS s'organi
     Ce conteneur exécute l'instance de serveur média \textbf{LiveKit} (\textit{SFU - Selective Forwarding Unit}) via l'image \texttt{livekit/livekit-server}. Il écoute sur les ports \texttt{7880} (WebSocket/HTTP), \texttt{7881} (TCP pour TURN) et le port UDP \texttt{7882} (flux média WebRTC). Il utilise la configuration locale \path{livekit.yaml} pour assurer les échanges de flux audio et vidéo en temps réel, à faible latence et de manière hautement sécurisée.
     
     \item \textbf{Passerelle Nginx et Proxy Inverse (1 conteneur) :} 
-    Le conteneur \textbf{Nginx} fait office de point d'entrée unique de la plateforme en interceptant le trafic sur les ports publics 80 (HTTP) et 443 (HTTPS). Il assure la terminaison SSL, la compression des réponses statiques, l'application des politiques CORS et de sécurité, ainsi que le routage dynamique vers les services appropriés en fonction du préfixe des requêtes (ex. les requêtes vers \texttt{/api/admin/} sont redirigées vers \texttt{http://backend-admin:9091/}).
+    Le conteneur \textbf{Nginx} fait office de point d'entrée unique de la plateforme en interceptant le trafic sur les ports publics 80 (HTTP) et 443 (HTTPS). Il assure la terminaison SSL, la compression des réponses statiques, l'application des politiques CORS et de sécurité, ainsi que le routage dynamique vers les différents services en fonction des ports d'écoute (ex. les requêtes envoyées vers le port externe sécurisé \texttt{5443} de certif.fun sont redirigées vers le conteneur \path{backend-admin} sur son port d'écoute interne \texttt{9091}).
 \end{enumerate}
 
 \subsection{Politique d'allocation et d'optimisation des ressources}
