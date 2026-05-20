@@ -107,7 +107,7 @@ L'orchestration de l'ensemble des conteneurs est assurée par Docker Compose v5.
 \end{itemize}
 
 \subsection{Topologie et distribution des conteneurs applicatifs}
-Le déploiement de la plateforme \textbf{Certif-fun} sur le serveur VPS s'organise autour d'une architecture conteneurisée comprenant dix conteneurs autonomes orchestrés par Docker Compose. Cette répartition permet d'isoler les responsabilités et de garantir la robustesse du système :
+Le déploiement de la plateforme \textbf{Certif-fun} sur le serveur VPS s'organise autour d'une architecture conteneurisée comprenant onze conteneurs autonomes orchestrés par Docker Compose. Cette répartition permet d'isoler les responsabilités et de garantir la robustesse du système :
 
 \begin{enumerate}
     \item \textbf{Portails Frontends (3 conteneurs) :} 
@@ -135,6 +135,9 @@ Le déploiement de la plateforme \textbf{Certif-fun} sur le serveur VPS s'organi
     
     \item \textbf{Serveur LLM Ollama local (1 conteneur) :} 
     Ce conteneur fait tourner une instance locale d'\textbf{Ollama} qui gère le chargement en mémoire vive et l'exécution locale des modèles de langage (\textit{Mistral 7B}, \textit{Llama 3.2 3B} et \textit{Qwen 2.5}). Un volume Docker persistant (\texttt{ollama\_data}) est lié à \path{/root/.ollama} pour éviter de retélécharger les poids des modèles lors des redémarrages.
+    
+    \item \textbf{Serveur de visioconférence LiveKit (1 conteneur) :} 
+    Ce conteneur exécute l'instance de serveur média \textbf{LiveKit} (\textit{SFU - Selective Forwarding Unit}) via l'image \texttt{livekit/livekit-server}. Il écoute sur les ports \texttt{7880} (WebSocket/HTTP), \texttt{7881} (TCP pour TURN) et le port UDP \texttt{7882} (flux média WebRTC). Il utilise la configuration locale \path{livekit.yaml} pour assurer les échanges de flux audio et vidéo en temps réel, à faible latence et de manière hautement sécurisée.
     
     \item \textbf{Passerelle Nginx et Proxy Inverse (1 conteneur) :} 
     Le conteneur \textbf{Nginx} fait office de point d'entrée unique de la plateforme en interceptant le trafic sur les ports publics 80 (HTTP) et 443 (HTTPS). Il assure la terminaison SSL, la compression des réponses statiques, l'application des politiques CORS et de sécurité, ainsi que le routage dynamique vers les services appropriés en fonction du préfixe des requêtes (ex. les requêtes vers \texttt{/api/admin/} sont redirigées vers \texttt{http://backend-admin:9091/}).
