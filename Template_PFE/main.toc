@@ -3,100 +3,139 @@
 \contentsline {chapter}{Abstract}{iii}{chapter*.3}%
 \contentsline {chapter}{Résumé}{iv}{chapter*.4}%
 \contentsline {chapter}{Liste des abréviations}{v}{chapter*.5}%
-\contentsline {chapter}{Table des figures}{vi}{chapter*.6}%
-\contentsline {chapter}{Liste des tableaux}{vii}{chapter*.7}%
+\contentsline {chapter}{Table des figures}{vii}{chapter*.6}%
+\contentsline {chapter}{Liste des tableaux}{ix}{chapter*.7}%
 \contentsline {chapter}{Introduction Générale}{1}{chapter*.9}%
 \contentsline {chapter}{\numberline {1}Contexte général du projet}{2}{chapter.1}%
 \contentsline {section}{\numberline {1.1}Introduction}{2}{section.1.1}%
 \contentsline {section}{\numberline {1.2}Présentation du projet}{2}{section.1.2}%
 \contentsline {subsection}{\numberline {1.2.1}Sujet du projet}{2}{subsection.1.2.1}%
-\contentsline {subsection}{\numberline {1.2.2}Intérêt du projet}{2}{subsection.1.2.2}%
+\contentsline {subsection}{\numberline {1.2.2}Intérêt du projet}{3}{subsection.1.2.2}%
 \contentsline {section}{\numberline {1.3}Problématique et état de l’existant}{3}{section.1.3}%
-\contentsline {section}{\numberline {1.4}Objectifs du projet}{3}{section.1.4}%
-\contentsline {subsection}{\numberline {1.4.1}Objectifs Fonctionnels}{3}{subsection.1.4.1}%
-\contentsline {subsection}{\numberline {1.4.2}Objectifs Techniques}{3}{subsection.1.4.2}%
+\contentsline {section}{\numberline {1.4}Objectifs du projet}{4}{section.1.4}%
+\contentsline {subsection}{\numberline {1.4.1}Objectifs Fonctionnels}{4}{subsection.1.4.1}%
+\contentsline {subsection}{\numberline {1.4.2}Objectifs Techniques}{4}{subsection.1.4.2}%
 \contentsline {subsection}{\numberline {1.4.3}Objectifs Pédagogiques}{4}{subsection.1.4.3}%
-\contentsline {section}{\numberline {1.5}Démarche de gestion de projet}{4}{section.1.5}%
-\contentsline {subsection}{\numberline {1.5.1}Choix de la méthode de gestion du projet}{4}{subsection.1.5.1}%
+\contentsline {section}{\numberline {1.5}Démarche de gestion de projet}{5}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1}Choix de la méthode de gestion du projet}{5}{subsection.1.5.1}%
 \contentsline {subsection}{\numberline {1.5.2}Planification du projet}{5}{subsection.1.5.2}%
 \contentsline {subsection}{\numberline {1.5.3}Planification temporelle (Diagramme de Gantt)}{6}{subsection.1.5.3}%
-\contentsline {section}{\numberline {1.6}Conclusion}{6}{section.1.6}%
-\contentsline {chapter}{\numberline {2}Étude préliminaire et fonctionnelle}{7}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Introduction}{7}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Étude des besoins}{7}{section.2.2}%
-\contentsline {subsection}{\numberline {2.2.1}Besoins fonctionnels}{7}{subsection.2.2.1}%
-\contentsline {subsubsection}{Liste des fonctionnalités principales}{7}{section*.14}%
-\contentsline {subsubsection}{Scénarios d'utilisation concrets}{8}{section*.15}%
-\contentsline {subsection}{\numberline {2.2.2}Besoins non fonctionnels}{8}{subsection.2.2.2}%
-\contentsline {subsubsection}{Contraintes de performance, de sécurité et de fiabilité}{8}{section*.16}%
-\contentsline {subsubsection}{Implications sur le choix de l’architecture et de la technologie}{8}{section*.17}%
-\contentsline {section}{\numberline {2.3}Identification des acteurs}{9}{section.2.3}%
-\contentsline {section}{\numberline {2.4}Cas d’utilisation et diagrammes}{9}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1}Présentation des cas d'utilisation}{9}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2}Couverture des besoins fonctionnels}{11}{subsection.2.4.2}%
-\contentsline {section}{\numberline {2.5}Processus métier}{11}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}Workflow global du système}{11}{subsection.2.5.1}%
-\contentsline {subsection}{\numberline {2.5.2}Validations et étapes-clés}{11}{subsection.2.5.2}%
-\contentsline {section}{\numberline {2.6}Conclusion}{12}{section.2.6}%
-\contentsline {chapter}{\numberline {3}État de l'art}{13}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Introduction}{13}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Travaux connexes et solutions existantes}{13}{section.3.2}%
-\contentsline {subsection}{\numberline {3.2.1}Proctoring automatisé (IA de surveillance)}{13}{subsection.3.2.1}%
-\contentsline {subsection}{\numberline {3.2.2}Outils de génération pédagogique par IA}{13}{subsection.3.2.2}%
-\contentsline {subsection}{\numberline {3.2.3}Plateformes existantes}{14}{subsection.3.2.3}%
-\contentsline {subsection}{\numberline {3.2.4}Architectures et technologies}{14}{subsection.3.2.4}%
-\contentsline {section}{\numberline {3.3}Analyse comparative}{14}{section.3.3}%
-\contentsline {subsection}{\numberline {3.3.1}Synthèse comparative}{14}{subsection.3.3.1}%
-\contentsline {subsection}{\numberline {3.3.2}Analyse des aspects stratégiques}{15}{subsection.3.3.2}%
-\contentsline {section}{\numberline {3.4}Conclusion}{15}{section.3.4}%
-\contentsline {chapter}{\numberline {4}Analyse et conception}{16}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Introduction}{16}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Formalisme de modélisation : UML}{16}{section.4.2}%
-\contentsline {subsection}{\numberline {4.2.1}Motivation et choix}{16}{subsection.4.2.1}%
-\contentsline {subsection}{\numberline {4.2.2}Diagrammes retenus}{17}{subsection.4.2.2}%
-\contentsline {section}{\numberline {4.3}Architecture logicielle}{17}{section.4.3}%
-\contentsline {subsection}{\numberline {4.3.1}Approche architecturale}{17}{subsection.4.3.1}%
-\contentsline {subsection}{\numberline {4.3.2}Approche architecturale : Microservices}{17}{subsection.4.3.2}%
-\contentsline {subsection}{\numberline {4.3.3}Schéma de l'architecture et organisation en couches}{17}{subsection.4.3.3}%
-\contentsline {subsection}{\numberline {4.3.4}Discussion}{19}{subsection.4.3.4}%
-\contentsline {section}{\numberline {4.4}Diagrammes de conception}{19}{section.4.4}%
-\contentsline {subsection}{\numberline {4.4.1}Diagramme de classes}{19}{subsection.4.4.1}%
-\contentsline {subsection}{\numberline {4.4.2}Analyse détaillée des entités et de leurs rôles métier}{19}{subsection.4.4.2}%
-\contentsline {paragraph}{A. Gestion des Acteurs et de la Sécurité}{20}{section*.24}%
-\contentsline {paragraph}{B. Structure Pédagogique et Contenu}{20}{section*.25}%
-\contentsline {paragraph}{C. Évaluation Intelligente (IA \& Proctoring)}{20}{section*.26}%
-\contentsline {paragraph}{D. Module d'Encadrement de Projet}{20}{section*.27}%
-\contentsline {paragraph}{E. Certification et Persistance}{21}{section*.28}%
-\contentsline {subsection}{\numberline {4.4.3}Diagrammes de séquence}{21}{subsection.4.4.3}%
-\contentsline {subsubsection}{Passage d'examen avec surveillance IA (Proctoring)}{21}{section*.29}%
-\contentsline {subsubsection}{Processus d'Encadrement et d'Évaluation}{22}{section*.31}%
-\contentsline {subsubsection}{Génération de Quiz assistée par LLM (Ollama)}{23}{section*.33}%
-\contentsline {subsubsection}{Visioconférence et Collaboration via LiveKit}{24}{section*.35}%
-\contentsline {section}{\numberline {4.5}Conclusion}{25}{section.4.5}%
-\contentsline {chapter}{\numberline {5}Technologies et réalisation}{27}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Introduction}{27}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Choix techniques et outils}{27}{section.5.2}%
-\contentsline {subsection}{\numberline {5.2.1}Langages, Frameworks et Bases de données}{27}{subsection.5.2.1}%
-\contentsline {subsection}{\numberline {5.2.2}Outils de développement et collaboration}{29}{subsection.5.2.2}%
-\contentsline {section}{\numberline {5.3}Architecture de déploiement}{30}{section.5.3}%
-\contentsline {subsection}{\numberline {5.3.1}Environnement cible et infrastructure d'hébergement}{30}{subsection.5.3.1}%
-\contentsline {subsection}{\numberline {5.3.2}Stratégie de conteneurisation via Docker et Docker Compose}{31}{subsection.5.3.2}%
-\contentsline {subsection}{\numberline {5.3.3}Topologie et distribution des conteneurs applicatifs}{31}{subsection.5.3.3}%
-\contentsline {subsection}{\numberline {5.3.4}Politique d'allocation et d'optimisation des ressources}{32}{subsection.5.3.4}%
-\contentsline {subsection}{\numberline {5.3.5}Pipeline d'intégration et de déploiement continus (CI/CD via Jenkins)}{32}{subsection.5.3.5}%
-\contentsline {section}{\numberline {5.4}Implémentation et interfaces}{33}{section.5.4}%
-\contentsline {subsection}{\numberline {5.4.1}Structure du code Backend}{33}{subsection.5.4.1}%
-\contentsline {subsection}{\numberline {5.4.2}Structure du code Frontend}{33}{subsection.5.4.2}%
-\contentsline {subsection}{\numberline {5.4.3}Interfaces utilisateur et scénarios de navigation}{34}{subsection.5.4.3}%
-\contentsline {subsection}{\numberline {5.4.4}Présentation des fonctionnalités clés}{35}{subsection.5.4.4}%
-\contentsline {subsubsection}{Surveillance intelligente (Proctoring IA)}{35}{section*.37}%
-\contentsline {subsubsection}{Générateur de Quiz via LLM (Ollama/Mistral)}{35}{section*.38}%
-\contentsline {subsubsection}{Visioconférence et Collaboration via LiveKit}{35}{section*.39}%
-\contentsline {section}{\numberline {5.5}Stratégie de tests et validation}{35}{section.5.5}%
-\contentsline {section}{\numberline {5.6}Difficultés rencontrées et solutions}{36}{section.5.6}%
-\contentsline {section}{\numberline {5.7}Conclusion}{36}{section.5.7}%
-\contentsline {chapter}{Conclusion générale}{37}{chapter*.41}%
-\contentsline {chapter}{Bibliographie}{39}{chapter*.43}%
-\contentsline {chapter}{Appendices}{40}{section*.44}%
-\contentsline {chapter}{\numberline {A}Annexes (Facultatif)}{40}{appendix.1.A}%
-\contentsline {chapter}{\numberline {B}Annexes (Facultatif)}{41}{appendix.1.B}%
+\contentsline {section}{\numberline {1.6}Conclusion}{7}{section.1.6}%
+\contentsline {chapter}{\numberline {2}Étude préliminaire et fonctionnelle}{8}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Introduction}{8}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Étude des besoins}{8}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Besoins fonctionnels}{8}{subsection.2.2.1}%
+\contentsline {subsubsection}{Liste des fonctionnalités principales}{8}{section*.14}%
+\contentsline {subsubsection}{Scénarios d'utilisation concrets}{9}{section*.15}%
+\contentsline {subsection}{\numberline {2.2.2}Besoins non fonctionnels}{9}{subsection.2.2.2}%
+\contentsline {subsubsection}{Contraintes de performance, de sécurité et de fiabilité}{9}{section*.16}%
+\contentsline {subsubsection}{Implications sur le choix de l’architecture et de la technologie}{10}{section*.17}%
+\contentsline {section}{\numberline {2.3}Identification des acteurs}{10}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Cas d’utilisation et diagrammes}{11}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Présentation des cas d'utilisation}{11}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Couverture des besoins fonctionnels}{13}{subsection.2.4.2}%
+\contentsline {section}{\numberline {2.5}Processus métier}{13}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Workflow global du système}{13}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Validations et étapes-clés}{13}{subsection.2.5.2}%
+\contentsline {section}{\numberline {2.6}Conclusion}{14}{section.2.6}%
+\contentsline {chapter}{\numberline {3}État de l'art}{15}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Introduction}{15}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Concepts fondamentaux}{15}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Intelligence Artificielle (IA)}{15}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Vision par ordinateur}{15}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Grand Modèle de Langage (LLM)}{16}{subsection.3.2.3}%
+\contentsline {section}{\numberline {3.3}Travaux connexes et solutions existantes}{16}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Outils ou méthodologies}{16}{subsection.3.3.1}%
+\contentsline {subsubsection}{Proctoring automatisé (IA de surveillance)}{16}{section*.20}%
+\contentsline {subsection}{\numberline {3.3.2}Articles ou études notables}{17}{subsection.3.3.2}%
+\contentsline {paragraph}{Étude 1 : Système de proctoring in-browser avec YOLO et analyse du regard}{17}{section*.22}%
+\contentsline {paragraph}{Étude 2 : Framework de détection de triche en temps réel via Deep Learning}{19}{section*.25}%
+\contentsline {paragraph}{Étude 3 : Analyse comparative des LMS dominants (Moodle vs Canvas)}{21}{section*.28}%
+\contentsline {paragraph}{Étude 4 : Analyse des plateformes MOOC (Moodle vs Coursera)}{21}{section*.29}%
+\contentsline {section}{\numberline {3.4}Analyse comparative}{22}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Conclusion}{24}{section.3.5}%
+\contentsline {chapter}{\numberline {4}Analyse et conception}{25}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Introduction}{25}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Formalisme de modélisation : UML}{25}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Motivation et choix}{25}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}Diagrammes retenus}{26}{subsection.4.2.2}%
+\contentsline {section}{\numberline {4.3}Architecture logicielle}{26}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Approche architecturale}{26}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Schéma de l'architecture et organisation en couches}{27}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}Discussion}{28}{subsection.4.3.3}%
+\contentsline {section}{\numberline {4.4}Diagrammes de conception}{28}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Diagramme de classes}{28}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Analyse détaillée des entités et de leurs rôles métier}{29}{subsection.4.4.2}%
+\contentsline {paragraph}{A. Gestion des Acteurs et de la Sécurité}{29}{section*.36}%
+\contentsline {paragraph}{B. Structure Pédagogique et Contenu}{29}{section*.37}%
+\contentsline {paragraph}{C. Évaluation Intelligente (IA \& Proctoring)}{29}{section*.38}%
+\contentsline {paragraph}{D. Module d'Encadrement de Projet}{30}{section*.39}%
+\contentsline {paragraph}{E. Certification et Persistance}{30}{section*.40}%
+\contentsline {subsection}{\numberline {4.4.3}Diagrammes de séquence}{30}{subsection.4.4.3}%
+\contentsline {subsubsection}{Passage d'examen avec surveillance IA (Proctoring)}{30}{section*.41}%
+\contentsline {subsubsection}{Processus d'Encadrement et d'Évaluation}{31}{section*.43}%
+\contentsline {subsubsection}{Génération de Quiz assistée par LLM (Ollama)}{32}{section*.45}%
+\contentsline {subsubsection}{Visioconférence et Collaboration via LiveKit}{33}{section*.47}%
+\contentsline {subsubsection}{Authentification et Accès à l'Examen}{34}{section*.49}%
+\contentsline {section}{\numberline {4.5}Conclusion}{35}{section.4.5}%
+\contentsline {chapter}{\numberline {5}Technologies et réalisation}{37}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Introduction}{37}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Choix techniques et outils}{37}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}Langages, Frameworks et Bases de données}{38}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}Outils de développement et collaboration}{39}{subsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.2.3}Protocoles et bibliothèques de support}{40}{subsection.5.2.3}%
+\contentsline {subsection}{\numberline {5.2.4}Stratégie de conteneurisation via Docker et Docker Compose}{42}{subsection.5.2.4}%
+\contentsline {subsection}{\numberline {5.2.5}Topologie et distribution des conteneurs applicatifs}{42}{subsection.5.2.5}%
+\contentsline {subsection}{\numberline {5.2.6}Politique d'allocation et d'optimisation des ressources}{44}{subsection.5.2.6}%
+\contentsline {subsection}{\numberline {5.2.7}Pipeline d'intégration continue (CI/CD)}{44}{subsection.5.2.7}%
+\contentsline {section}{\numberline {5.3}Implémentation et interfaces}{46}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Découpage architectural global}{46}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Structure et organisation du code Backend (Spring Boot)}{47}{subsection.5.3.2}%
+\contentsline {subsection}{\numberline {5.3.3}Structure et organisation du code Frontend (React)}{47}{subsection.5.3.3}%
+\contentsline {subsection}{\numberline {5.3.4}Structure du service de traitement d'images (IA Proctoring)}{48}{subsection.5.3.4}%
+\contentsline {subsection}{\numberline {5.3.5}Interfaces utilisateur et scénarios de navigation}{48}{subsection.5.3.5}%
+\contentsline {subsubsection}{Authentification et Accès}{48}{section*.52}%
+\contentsline {subsubsection}{Portail Administrateur}{49}{section*.54}%
+\contentsline {subsubsection}{Portail Formateur}{51}{section*.59}%
+\contentsline {subsubsection}{Portail Apprenant}{57}{section*.71}%
+\contentsline {subsection}{\numberline {5.3.6}Présentation des fonctionnalités clés}{62}{subsection.5.3.6}%
+\contentsline {subsubsection}{Authentification et Sécurité}{62}{section*.81}%
+\contentsline {subsubsection}{Surveillance intelligente et Détection de triche (Proctoring IA)}{63}{section*.82}%
+\contentsline {subsubsection}{Génération automatique de Quiz et de Contenu}{63}{section*.83}%
+\contentsline {subsubsection}{Éditeur de Code en ligne interactif}{63}{section*.84}%
+\contentsline {subsubsection}{Visioconférence et Classes Virtuelles}{64}{section*.85}%
+\contentsline {subsubsection}{Encadrement des Projets}{64}{section*.86}%
+\contentsline {section}{\numberline {5.4}Stratégie de tests et validation}{64}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}Tests Unitaires}{64}{subsection.5.4.1}%
+\contentsline {subsubsection}{Détail des tests unitaires Java (JUnit 5 \& Mockito)}{64}{section*.87}%
+\contentsline {paragraph}{1. Tests d'intégration de fichiers volumineux (\texttt {ExcelImportServiceTest}) :}{65}{section*.88}%
+\contentsline {paragraph}{2. Tests de logique transactionnelle (\texttt {EnrollmentServiceTest}) :}{65}{section*.89}%
+\contentsline {paragraph}{3. Tests de résilience face aux API externes (\texttt {QuizAIServiceTest}) :}{65}{section*.90}%
+\contentsline {subsubsection}{Détail des tests unitaires Python (pytest \& FastAPI)}{65}{section*.91}%
+\contentsline {subsubsection}{Résultats d'exécution des tests unitaires}{65}{section*.92}%
+\contentsline {subsubsection}{Synthèse et couverture de tests}{66}{section*.94}%
+\contentsline {subsection}{\numberline {5.4.2}Tests d'Intégration}{66}{subsection.5.4.2}%
+\contentsline {subsubsection}{Intégration avec la base de données (Testcontainers)}{66}{section*.96}%
+\contentsline {subsubsection}{Flux de communication inter-microservices (REST \& WebRTC)}{67}{section*.98}%
+\contentsline {subsubsection}{Tests de Performances et charge IA}{67}{section*.99}%
+\contentsline {subsubsection}{Résultats d'exécution des tests d'intégration}{68}{section*.101}%
+\contentsline {subsection}{\numberline {5.4.3}Tests Système (End-to-End)}{69}{subsection.5.4.3}%
+\contentsline {subsubsection}{Validation des parcours utilisateurs (UAT) :}{69}{section*.103}%
+\contentsline {subsubsection}{Automatisation des tests de bout en bout avec Newman :}{69}{section*.104}%
+\contentsline {subsubsection}{Outils de test et plan de validation}{70}{section*.106}%
+\contentsline {subsection}{\numberline {5.4.4}Tests Utilisateurs et Retour d'Expérience}{71}{subsection.5.4.4}%
+\contentsline {paragraph}{Public cible et cadre de l'étude :}{71}{section*.107}%
+\contentsline {paragraph}{Déroulement du test :}{71}{section*.108}%
+\contentsline {paragraph}{Résultats et statistiques :}{71}{section*.109}%
+\contentsline {section}{\numberline {5.5}Conclusion}{72}{section.5.5}%
+\contentsline {chapter}{Conclusion générale}{74}{chapter*.111}%
+\contentsline {paragraph}{Récapitulation des objectifs :}{74}{section*.112}%
+\contentsline {paragraph}{Contributions et résultats :}{74}{section*.113}%
+\contentsline {paragraph}{Limites du travail :}{74}{section*.114}%
+\contentsline {paragraph}{Perspectives futures :}{74}{section*.115}%
+\contentsline {chapter}{Apport du projet}{75}{chapter*.116}%
+\contentsline {paragraph}{Une démarche de résolution de problèmes :}{75}{section*.117}%
+\contentsline {paragraph}{Polyvalence technologique et méthodologique :}{75}{section*.118}%
+\contentsline {paragraph}{Défis rencontrés et résilience :}{75}{section*.119}%
+\contentsline {paragraph}{Analyse critique et perspectives :}{75}{section*.120}%
+\contentsline {chapter}{References}{77}{chapter*.121}%

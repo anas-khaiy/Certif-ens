@@ -156,7 +156,7 @@ services:
   livekit:
     image: livekit/livekit-server:latest
     container_name: certiflow-livekit
-    command: ["--config", "/etc/livekit.yaml", "--node-ip=217.65.145.127"]
+    command: ["--config", "/etc/livekit.yaml", "--node-ip=127.0.0.1"]
     volumes:
       - ./livekit.yaml:/etc/livekit.yaml
     ports:

@@ -90,6 +90,7 @@ const LoginPage = () => {
             role: data.role,
             photoProfile: data.photoProfile,
             specialite: data.specialite,
+            cin: data.cin,
         }));
         navigate('/');
     };

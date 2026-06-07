@@ -118,6 +118,21 @@ public class ExcelImportService {
                     if (e != null) {
                         enseignantRepository.save(e);
                         successCount++;
+
+                        // Send Welcome Email asynchronously
+                        final String userEmail = normalizedEmail;
+                        final String userPrenom = prenom;
+                        try {
+                            new Thread(() -> {
+                                try {
+                                    emailService.sendEnseignantWelcomeEmail(userEmail, userPrenom, userEmail);
+                                } catch (Exception ex) {
+                                    System.err.println("Failed to send welcome email to " + userEmail + ": " + ex.getMessage());
+                                }
+                            }).start();
+                        } catch (Exception ex) {
+                            System.err.println("Failed to start email thread: " + ex.getMessage());
+                        }
                     }
                 } catch (Exception ex) {
                     errors.add("Ligne " + rowIdx + ": Erreur lors de l'enregistrement: " + ex.getMessage());

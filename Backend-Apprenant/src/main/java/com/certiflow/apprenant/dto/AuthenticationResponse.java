@@ -18,6 +18,7 @@ public class AuthenticationResponse {
     private String role;
     private String photoProfile;
     private String specialite;
+    private String cin;
     private boolean mfaEnabled;
     private boolean mfaRequired;
 }

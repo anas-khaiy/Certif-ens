@@ -9,6 +9,7 @@ import SettingsPage from './pages/SettingsPage';
 import CoursesPage from './pages/CoursesPage';
 import CourseEditorPage from './pages/CourseEditorPage';
 import CoursePreviewPage from './pages/CoursePreviewPage';
+import CourseStudyPage from './pages/CourseStudyPage';
 import CourseStatisticsPage from './pages/CourseStatisticsPage';
 import LearnerStatisticsPage from './pages/LearnerStatisticsPage';
 import QuizStatisticsPage from './pages/QuizStatisticsPage';
@@ -152,6 +153,15 @@ function App() {
           element={
             <PrivateRoute>
               <CoursePreviewPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/courses/:id/study"
+          element={
+            <PrivateRoute>
+              <CourseStudyPage />
             </PrivateRoute>
           }
         />

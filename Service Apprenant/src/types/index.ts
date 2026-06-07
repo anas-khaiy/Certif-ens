@@ -60,6 +60,8 @@ export interface QuizSettings {
     detectTabSwitch?: boolean;
     detectFullscreenExit?: boolean;
     detectWindowBlur?: boolean;
+    detectSound?: boolean;
+    verificationMode?: 'none' | 'qr_only' | 'face_check';
 }
 
 export interface Course {

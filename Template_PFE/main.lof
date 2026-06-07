@@ -1,19 +1,56 @@
 \babel@toc {french}{}\relax 
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {1.1}{\ignorespaces Schéma du cycle Scrum et de ses principales étapes.}}{4}{figure.caption.10}%
-\contentsline {figure}{\numberline {1.2}{\ignorespaces Diagramme de Gantt du projet Certif-fun.}}{6}{figure.caption.13}%
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Schéma du cycle Scrum et de ses principales étapes.}}{5}{figure.caption.10}%
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Diagramme de Gantt du projet Certif-fun.}}{7}{figure.caption.13}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces Diagramme de cas d'utilisation global de Certif-fun.}}{10}{figure.caption.18}%
-\contentsline {figure}{\numberline {2.2}{\ignorespaces Diagramme de processus métier global (BPMN) de Certif-fun.}}{11}{figure.caption.19}%
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Diagramme de cas d'utilisation global de Certif-fun.}}{12}{figure.caption.18}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Diagramme de processus métier global (BPMN) de Certif-fun.}}{13}{figure.caption.19}%
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Comparaison des fonctionnalités des solutions de proctoring existantes.}}{17}{figure.caption.21}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Flux de travail du système de proctoring proposé par Kaundinya et al.}}{18}{figure.caption.23}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Interface de détection du visage et du regard en situation d'examen.}}{19}{figure.caption.24}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Diagramme de flux de données du système de proctoring (Keerthana et al.).}}{20}{figure.caption.26}%
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Synthèse des avantages et limites des études 1 et 2.}}{20}{figure.caption.27}%
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Comparaison des points forts et points faibles : Moodle, Canvas et Coursera.}}{22}{figure.caption.30}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Logo du formalisme UML utilisé pour la modélisation.}}{16}{figure.caption.21}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Schéma de l'architecture globale du système Certif-fun.}}{18}{figure.caption.22}%
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Diagramme de classes global de la base de données certif\_db.}}{19}{figure.caption.23}%
-\contentsline {figure}{\numberline {4.4}{\ignorespaces Diagramme de séquence du processus de surveillance IA.}}{22}{figure.caption.30}%
-\contentsline {figure}{\numberline {4.5}{\ignorespaces Diagramme de séquence de l'encadrement et de l'évaluation.}}{23}{figure.caption.32}%
-\contentsline {figure}{\numberline {4.6}{\ignorespaces Diagramme de séquence de la génération de quiz par LLM.}}{24}{figure.caption.34}%
-\contentsline {figure}{\numberline {4.7}{\ignorespaces Diagramme de séquence de la visioconférence WebRTC.}}{25}{figure.caption.36}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Logo du formalisme UML utilisé pour la modélisation.}}{25}{figure.caption.33}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Schéma de l'architecture globale du système Certif-fun.}}{27}{figure.caption.34}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Diagramme de classes global de la base de données certif\_db.}}{29}{figure.caption.35}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Diagramme de séquence du processus de surveillance IA.}}{31}{figure.caption.42}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Diagramme de séquence de l'encadrement et de l'évaluation.}}{32}{figure.caption.44}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Diagramme de séquence de la génération de quiz par LLM.}}{33}{figure.caption.46}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Diagramme de séquence de la visioconférence WebRTC.}}{34}{figure.caption.48}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Diagramme de séquence du processus d'authentification et d'accès à l'examen.}}{35}{figure.caption.50}%
 \addvspace {10\p@ }
-\addvspace {10\p@ }
-\addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Interface de suivi visuel Jenkins présentant le succès de la build \#32 et le détail d'exécution séquentiel et parallèle des étapes du pipeline CI/CD.}}{45}{figure.caption.51}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Interface de connexion à la plateforme}}{49}{figure.caption.53}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Tableau de bord de l'Administrateur présentant les statistiques globales}}{50}{figure.caption.55}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Interface de gestion des étudiants}}{50}{figure.caption.56}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Registre des certificats délivrés}}{51}{figure.caption.57}%
+\contentsline {figure}{\numberline {5.6}{\ignorespaces Gestion des demandes d'inscription}}{51}{figure.caption.58}%
+\contentsline {figure}{\numberline {5.7}{\ignorespaces Tableau de bord du Formateur}}{52}{figure.caption.60}%
+\contentsline {figure}{\numberline {5.8}{\ignorespaces Liste des cours du formateur}}{52}{figure.caption.61}%
+\contentsline {figure}{\numberline {5.9}{\ignorespaces Formulaire de création d'un nouveau cours}}{53}{figure.caption.62}%
+\contentsline {figure}{\numberline {5.10}{\ignorespaces Éditeur de contenu du cours}}{53}{figure.caption.63}%
+\contentsline {figure}{\numberline {5.11}{\ignorespaces Suivi des inscriptions aux cours du formateur}}{54}{figure.caption.64}%
+\contentsline {figure}{\numberline {5.12}{\ignorespaces Outil Code Tracker pour les exercices de programmation}}{54}{figure.caption.65}%
+\contentsline {figure}{\numberline {5.13}{\ignorespaces Interface de lancement d'une classe virtuelle}}{55}{figure.caption.66}%
+\contentsline {figure}{\numberline {5.14}{\ignorespaces Tableau de bord de l'encadrement structuré}}{55}{figure.caption.67}%
+\contentsline {figure}{\numberline {5.15}{\ignorespaces Catalogue global des parcours de certification}}{56}{figure.caption.68}%
+\contentsline {figure}{\numberline {5.16}{\ignorespaces Configuration de l'examen final -- Pool du Cours}}{56}{figure.caption.69}%
+\contentsline {figure}{\numberline {5.17}{\ignorespaces Configuration de la surveillance par IA et contrôles anti-triche}}{57}{figure.caption.70}%
+\contentsline {figure}{\numberline {5.18}{\ignorespaces Tableau de bord de l'Apprenant}}{58}{figure.caption.72}%
+\contentsline {figure}{\numberline {5.19}{\ignorespaces Catalogue interactif des cours}}{58}{figure.caption.73}%
+\contentsline {figure}{\numberline {5.20}{\ignorespaces Affichage et impression d'un certificat de réussite}}{59}{figure.caption.74}%
+\contentsline {figure}{\numberline {5.21}{\ignorespaces Connexion à une session d'enseignement en direct}}{59}{figure.caption.75}%
+\contentsline {figure}{\numberline {5.22}{\ignorespaces Éditeur de code en ligne (Espace CODING Expert)}}{60}{figure.caption.76}%
+\contentsline {figure}{\numberline {5.23}{\ignorespaces Suivi personnalisé de l'encadrement des projets}}{60}{figure.caption.77}%
+\contentsline {figure}{\numberline {5.24}{\ignorespaces Interface de l'espace d'apprentissage (Lecteur de cours)}}{61}{figure.caption.78}%
+\contentsline {figure}{\numberline {5.25}{\ignorespaces Interface du mode examen sécurisé avec surveillance IA}}{61}{figure.caption.79}%
+\contentsline {figure}{\numberline {5.26}{\ignorespaces Interface de vérification d'identité (Scan QR Code et Biométrie faciale)}}{62}{figure.caption.80}%
+\contentsline {figure}{\numberline {5.27}{\ignorespaces Capture d'écran réelle de l'exécution des tests unitaires JUnit 5 \& pytest — résultat 100\% succès.}}{65}{figure.caption.93}%
+\contentsline {figure}{\numberline {5.28}{\ignorespaces Exécution des tests d'intégration Testcontainers + PostgreSQL — 12/12 tests réussis.}}{67}{figure.caption.97}%
+\contentsline {figure}{\numberline {5.29}{\ignorespaces Rapport de performance du service de détection IA (YOLOv8n)}}{68}{figure.caption.100}%
+\contentsline {figure}{\numberline {5.30}{\ignorespaces Résultats d'exécution du script de tests d'intégration inter-microservices — 3 tests réussis.}}{68}{figure.caption.102}%
+\contentsline {figure}{\numberline {5.31}{\ignorespaces Validation automatisée des workflows métiers via Newman}}{70}{figure.caption.105}%
+\contentsline {figure}{\numberline {5.32}{\ignorespaces Tableau de bord présentant les statistiques des tests utilisateurs (Master MSDIE).}}{72}{figure.caption.110}%

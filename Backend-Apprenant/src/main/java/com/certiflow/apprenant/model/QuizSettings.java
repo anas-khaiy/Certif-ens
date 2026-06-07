@@ -64,4 +64,11 @@ public class QuizSettings {
 
     @Builder.Default
     private Boolean detectWindowBlur = true;
+
+    @Builder.Default
+    private Boolean detectSound = true;
+
+    // 'none', 'qr_only', 'face_check'
+    @Builder.Default
+    private String verificationMode = "none";
 }

@@ -4,6 +4,7 @@ import {
     Plus,
     Trash2,
     BookOpen,
+    PlayCircle,
     Search,
     ChevronLeft,
     ChevronRight,

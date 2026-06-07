@@ -13,12 +13,14 @@ public class EnseignantService {
     private final EnseignantRepository enseignantRepository;
     private final PasswordEncoder passwordEncoder;
     private final ExcelImportService excelImportService;
+    private final EmailService emailService;
 
     public EnseignantService(EnseignantRepository enseignantRepository, PasswordEncoder passwordEncoder,
-            ExcelImportService excelImportService) {
+            ExcelImportService excelImportService, EmailService emailService) {
         this.enseignantRepository = enseignantRepository;
         this.passwordEncoder = passwordEncoder;
         this.excelImportService = excelImportService;
+        this.emailService = emailService;
     }
 
     public com.certiflow.admin.dto.ImportResponse importEnseignants(
@@ -62,7 +64,24 @@ public class EnseignantService {
         if (enseignant.getPhotoProfile() == null || enseignant.getPhotoProfile().isEmpty()) {
             enseignant.setPhotoProfile("default.png");
         }
-        return enseignantRepository.save(enseignant);
+        
+        Enseignant savedEnseignant = enseignantRepository.save(enseignant);
+
+        // Send Welcome Email asynchronously
+        try {
+            final String finalPassword = password;
+            new Thread(() -> {
+                try {
+                    emailService.sendEnseignantWelcomeEmail(savedEnseignant.getEmail(), savedEnseignant.getPrenom(), finalPassword);
+                } catch (Exception e) {
+                    System.err.println("Failed to send welcome email to " + savedEnseignant.getEmail() + ": " + e.getMessage());
+                }
+            }).start();
+        } catch (Exception e) {
+            System.err.println("Failed to start email thread: " + e.getMessage());
+        }
+
+        return savedEnseignant;
     }
 
     public Enseignant updateEnseignant(Long id, Enseignant enseignantDetails) {

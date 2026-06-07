@@ -1,31 +1,25 @@
-\chapter*{ \center Conclusion générale}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter*{Conclusion générale}
 \addcontentsline{toc}{chapter}{Conclusion générale}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-La conclusion générale met en lumière les principaux enseignements et aboutissements du projet. Elle récapitule les objectifs initiaux, synthétise les contributions et résultats obtenus, identifie les limites du travail réalisé, et propose des pistes pour des développements futurs. 
+Le projet \textbf{Certif-fun} a abouti à la création d'un écosystème innovant alliant architecture web distribuée et intelligence artificielle pour répondre au défi de l'intégrité des certifications à distance.
 
-\begin{itemize}
-    \item \textbf{Récapitulation des objectifs initiaux :}
-    \begin{itemize}
-        \item Les problématiques et questions de recherche abordées dès le départ sont rappelées afin de souligner l'enjeu initial du projet.
-        \item Une évaluation est présentée pour vérifier dans quelle mesure les objectifs techniques et fonctionnels ont été atteints.
-    \end{itemize}
-    
-    \item \textbf{Contributions et résultats obtenus :}
-    \begin{itemize}
-        \item Les réalisations concrètes du projet (fonctionnalités développées, prototypes validés, analyses réalisées, etc.) sont synthétisées.
-        \item Les apports spécifiques du projet sont mis en avant, qu'il s'agisse d'innovations techniques, de gains de temps ou d'améliorations de performance.
-    \end{itemize}
-    
-    \item \textbf{Limites du travail :}
-    \begin{itemize}
-        \item Les points de blocage et contraintes rencontrés (budgétaires, délais, aspects techniques) sont identifiés.
-        \item Une analyse critique montre en quoi ces limites peuvent influencer l'utilisation ou l'évolution du système développé.
-    \end{itemize}
-    
-    \item \textbf{Perspectives et améliorations futures :}
-    \begin{itemize}
-        \item Des pistes d'évolution sont proposées, telles que l'ajout de nouvelles fonctionnalités, l'optimisation des performances, ou la migration vers des technologies plus avancées.
-        \item Pour les projets à dimension scientifique, des axes de recherche complémentaires sont suggérés pour approfondir les résultats obtenus.
-    \end{itemize}
+\paragraph{Récapitulation des objectifs :} 
+Initialement centré sur la sécurisation des évaluations, le projet a relevé le défi de l'automatisation de la surveillance. Les objectifs techniques (microservices, scalabilité) et fonctionnels (proctoring temps réel, génération de quiz) ont été validés, offrant une solution complète et opérationnelle.
+
+\paragraph{Contributions et résultats :} 
+Les réalisations majeures se résument à :
+\begin{itemize}[noitemsep, topsep=1pt]
+    \item \textbf{Surveillance intelligente} : Intégration de \textbf{YOLOv8} et \textbf{MediaPipe} pour un suivi autonome du regard et des objets suspects.
+    \item \textbf{Pédagogie augmentée} : Génération automatique de quiz via \textbf{Ollama}, garantissant la confidentialité des données.
+    \item \textbf{Agilité DevOps} : Mise en œuvre d'un pipeline \textbf{CI/CD} performant assurant des déploiements fluides.
 \end{itemize}
 
+\paragraph{Limites du travail :} 
+Le système rencontre toutefois des contraintes matérielles liées au coût computationnel de l'IA sur un serveur unique. La précision reste également sensible à l'environnement de l'apprenant (éclairage, caméra), et l'authentification mériterait d'être renforcée par un contrôle biométrique continu.
+
+\paragraph{Perspectives futures :} 
+Les pistes d'évolution incluent la migration vers \textbf{Kubernetes} pour une scalabilité élastique, l'intégration de la \textbf{reconnaissance faciale continue} et le déport de l'IA vers le navigateur (\textit{Edge Computing}). L'ajout d'analyses prédictives permettrait également d'anticiper les risques de décrochage.
+
+En conclusion, \textbf{Certif-fun} constitue un socle technologique solide, démontrant que l'IA peut devenir le garant de la crédibilité des diplômes numériques de demain.

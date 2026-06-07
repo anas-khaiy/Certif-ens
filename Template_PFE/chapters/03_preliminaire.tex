@@ -12,6 +12,8 @@ Les besoins fonctionnels représentent les actions spécifiques que le système 
 \subsubsection{Liste des fonctionnalités principales}
 L'application propose les services essentiels suivants :
 \begin{itemize}
+    \item \textbf{Gestion des utilisateurs :} Administration centralisée des comptes (Admin, Formateur, Apprenant) avec contrôle d'accès sécurisé.
+    \item \textbf{Vérification d'identité :} Authentification sécurisée avant l'accès à l'examen combinant scan de carte (QR Code) et biométrie faciale.
     \item \textbf{Gestion des Certifications :} Création et configuration de parcours certifiants avec suivi de progression.
     \item \textbf{Surveillance automatisée (AI Proctoring) :} Détection de fraudes en temps réel via YOLOv8 et analyse du regard avec MediaPipe.
     \item \textbf{Génération de contenu pédagogique par IA :} Création instantanée de quiz et de résumés à l'aide d'Ollama et de modèles LLM locaux.
@@ -55,6 +57,7 @@ Ces contraintes de performance et d'intégrité ont dicté nos choix stratégiqu
         \item \textbf{Ollama :} Pour l'exécution locale des modèles de langage (LLM), garantissant la confidentialité des données pédagogiques.
         \item \textbf{LiveKit :} Pour la gestion des flux vidéo et audio haute performance lors des sessions de visioconférence.
         \item \textbf{YOLOv8 et MediaPipe :} Pour une surveillance visuelle (Proctoring) précise et optimisée.
+        \item \textbf{Web Audio API :} Pour l'analyse fréquentielle et la détection intelligente des bruits suspects et de la parole en temps réel.
     \end{itemize}
     \item \textbf{Infrastructure et Persistance :}
     \begin{itemize}
@@ -75,14 +78,14 @@ L'identification des acteurs consiste à définir les différents profils qui in
 \end{itemize}
 
 \section{Cas d’utilisation et diagrammes}
-Les cas d'utilisation (\textit{Use Cases}) permettent de formaliser les interactions entre les acteurs et le système Certif-fun. Ils offrent une vision claire des fonctionnalités du point de vue de l'utilisateur final.
+Les cas d'utilisation (\textit{Use Cases}) permettent de formaliser les interactions entre les acteurs et le système Certif-fun \cite{benabderrezak2025cas}. Ils offrent une vision claire des fonctionnalités du point de vue de l'utilisateur final.
 
 \subsection{Présentation des cas d'utilisation}
 Chaque acteur interagit avec le système pour atteindre des objectifs spécifiques. Le diagramme de cas d'utilisation global (voir figure \ref{fig:use_case_global}) illustre cette répartition des responsabilités.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\linewidth]{figures/use_case_global.png}
+    \includegraphics[width=0.98\linewidth]{figures/capture_use_case.png}
     \caption{Diagramme de cas d'utilisation global de Certif-fun.}
     \label{fig:use_case_global}
 \end{figure}

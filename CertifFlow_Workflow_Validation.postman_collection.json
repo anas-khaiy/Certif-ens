@@ -1,0 +1,222 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-4a5b-bc6d-7e8f90123456",
+		"name": "CertifFlow Global Workflow Validation",
+		"description": "Validation complète des flux métiers : Admin -> Formateur -> Apprenant",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Administrateur : Création Formateur",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"nom\": \"Dupont\",\n    \"prenom\": \"Jean\",\n    \"email\": \"formateur@certifflow.com\",\n    \"specialite\": \"Cloud Computing\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl_Admin}}/api/v1/admin/formateurs",
+					"host": [
+						"{{baseUrl_Admin}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"admin",
+						"formateurs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Formateur : Authentification (JWT)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"formateur_token\", jsonData.token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"formateur@certifflow.com\",\n    \"password\": \"password123\"\n}"
+				},
+				"url": {
+					"raw": "{{gatewayUrl}}/api/v1/auth/authenticate",
+					"host": [
+						"{{gatewayUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"authenticate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Formateur : Publication d'un cours",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{formateur_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"titre\": \"Introduction à Kubernetes\",\n    \"description\": \"Cours complet sur l'orchestration de conteneurs\",\n    \"duree\": \"10h\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl_Formateur}}/api/v1/courses",
+					"host": [
+						"{{baseUrl_Formateur}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"courses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Formateur : Publication d'un Quiz",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{formateur_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"courseId\": 104,\n    \"questions\": [\n        {\n            \"question\": \"Qu'est-ce qu'un Pod ?\",\n            \"options\": [\"Un conteneur\", \"Un groupe de conteneurs\", \"Un noeud\"],\n            \"reponse\": 1\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl_Formateur}}/api/v1/quizzes",
+					"host": [
+						"{{baseUrl_Formateur}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"quizzes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Apprenant : Inscription au cours",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"apprenantId\": 50,\n    \"courseId\": 104\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl_Apprenant}}/api/v1/enrollments",
+					"host": [
+						"{{baseUrl_Apprenant}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"enrollments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Apprenant : Passage du Quiz (AI Surveillance)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"apprenantId\": 50,\n    \"quizId\": 88,\n    \"answers\": [1],\n    \"ai_metadata\": {\n        \"camera_active\": true,\n        \"gaze_tracking\": \"active\"\n    }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl_Apprenant}}/api/v1/submissions",
+					"host": [
+						"{{baseUrl_Apprenant}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"submissions"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl_Admin",
+			"value": "http://localhost:9091"
+		},
+		{
+			"key": "baseUrl_Formateur",
+			"value": "http://localhost:9092"
+		},
+		{
+			"key": "baseUrl_Apprenant",
+			"value": "http://localhost:9093"
+		},
+		{
+			"key": "gatewayUrl",
+			"value": "http://localhost:9092"
+		}
+	]
+}

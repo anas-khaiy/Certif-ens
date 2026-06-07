@@ -285,7 +285,7 @@ const EnrolledCoursesPage = () => {
                                                 </div>
 
                                                 <button
-                                                    onClick={() => navigate(`/courses/${course.id}/preview`)}
+                                                    onClick={() => navigate(`/courses/${course.id}/study`)}
                                                     className="w-full py-3.5 bg-primary hover:bg-primary-hover text-white rounded-xl font-black shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 active:scale-95"
                                                 >
                                                     <PlayCircle size={18} />

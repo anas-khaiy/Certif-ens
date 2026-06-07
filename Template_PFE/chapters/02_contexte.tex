@@ -26,13 +26,21 @@ Ce projet présente plusieurs avantages stratégiques :
 \end{itemize}
 
 \section{Problématique et état de l’existant}
-La transformation numérique de l'éducation a révélé des lacunes critiques dans les outils de gestion de l'apprentissage (LMS) traditionnels :
+Face à la généralisation des formations à distance, une question centrale se pose : comment concevoir une plateforme unifiée capable de garantir à la fois l'intégrité des examens en ligne, la crédibilité des certifications délivrées, et une expérience fluide pour les formateurs comme pour les apprenants ?
+
+En examinant ce qui existe aujourd'hui, on peut distinguer trois grandes approches pour la gestion et la sécurisation des examens en ligne :
 \begin{itemize}
-    \item \textbf{Fragmentation des outils :} Les institutions doivent souvent jongler entre plusieurs logiciels non compatibles pour la surveillance, les réunions et la gestion des cours.
-    \item \textbf{Absence d'IA native :} La plupart des plateformes actuelles ne tirent pas profit de l'IA générative pour assister le formateur dans la conception pédagogique.
-    \item \textbf{Vulnérabilité des examens :} Les évaluations à distance sont souvent perçues comme moins fiables faute de mécanismes de surveillance performants et intégrés.
+    \item \textbf{Les plateformes pédagogiques classiques} (comme Moodle ou Canvas) : elles assurent correctement la diffusion de contenus et le suivi des apprenants, mais traitent la sécurité des examens comme un problème extérieur, se limitant à des quiz simples sans vraiment contrôler les conditions de passation.
+    \item \textbf{Les logiciels de surveillance spécialisés} (greffés sur ces plateformes) : ils enregistrent la webcam et verrouillent le navigateur, mais restent des ajouts externes qui créent des frictions techniques et dégradent l'expérience utilisateur.
+    \item \textbf{La supervision humaine à distance} (un surveillant observe les étudiants via webcam) : bien que plus fiable en apparence, cette méthode est difficile à tenir à grande échelle en raison de la fatigue, de l'erreur humaine et du coût logistique.
 \end{itemize}
-L'absence d'une solution unifiant sécurité (Proctoring) et assistance (IA Générative) constitue le cœur de notre problématique.
+
+Ces trois approches partagent des failles communes que \textbf{Certif-fun} cherche précisément à combler :
+\begin{itemize}
+    \item \textbf{L'absence de vérification de l'apprenant} : aucune solution ne s'assure réellement que la personne qui passe l'examen est bien celle qui s'est inscrite, laissant la porte ouverte à toute forme de substitution.
+    \item \textbf{La surveillance fragmentée} : limitée à la vidéo, les outils actuels ne croisent pas simultanément plusieurs signaux tels que l'absence prolongée, le bruit ambiant ou le détournement du regard.
+    \item \textbf{La dispersion des outils} : les formateurs et les étudiants doivent jongler entre plusieurs plateformes sans lien entre elles, ce qui nuit à la concentration et alourdit considérablement la gestion administrative.
+\end{itemize}
 
 \section{Objectifs du projet}
 Les objectifs de Certif-fun s'articulent autour de trois dimensions :
@@ -62,7 +70,7 @@ Les objectifs de Certif-fun s'articulent autour de trois dimensions :
 
 \section{Démarche de gestion de projet}
 \subsection{Choix de la méthode de gestion du projet}
-Pour assurer la flexibilité et la réactivité face aux défis techniques de l'IA, nous avons adopté la méthodologie \textbf{Scrum}. Ce cadre agile permet une livraison incrémentale des fonctionnalités et une adaptation continue aux besoins des utilisateurs finaux.
+Pour assurer la flexibilité et la réactivité face aux défis techniques de l'IA, nous avons adopté la méthodologie \textbf{Scrum} \cite{nacih2023scrum}. Ce cadre agile permet une livraison incrémentale des fonctionnalités et une adaptation continue aux besoins des utilisateurs finaux.
 
 La figure \ref{fig:scrum_process} présente le schéma du cycle Scrum et de ses principales étapes.
 
@@ -122,7 +130,7 @@ Sprint 11 & \textbf{Tests et Finalisation :} Validation globale, tests de charge
 \subsection{Planification temporelle (Diagramme de Gantt)}
 La phase de planification est essentielle dans l'élaboration d'un projet. Elle implique la définition et l'organisation minutieuse des diverses tâches constituant le projet, en évaluant le temps et les ressources requis pour leur accomplissement.
 
-J'ai employé le diagramme de \textbf{Gantt}, l'un des outils de planification les plus performants pour illustrer visuellement la progression des diverses tâches qui forment un projet. Dans ce graphique, la colonne de gauche détaille toutes les tâches à réaliser, tandis que la ligne supérieure indique les unités de temps (mois). Chaque tâche est représentée par une barre horizontale dont la position et la longueur représentent la date de début, la durée et la date de fin.
+J'ai employé le diagramme de \textbf{Gantt} \cite{ramdani2020ordonnancement}, l'un des outils de planification les plus performants pour illustrer visuellement la progression des diverses tâches qui forment un projet. Dans ce graphique, la colonne de gauche détaille toutes les tâches à réaliser, tandis que la ligne supérieure indique les unités de temps (mois). Chaque tâche est représentée par une barre horizontale dont la position et la longueur représentent la date de début, la durée et la date de fin.
 
 Le projet s'étend du \textbf{15 février au 30 juin}, couvrant l'intégralité du cycle de développement de Certif-fun, comme illustré dans la figure \ref{fig:gantt_certif-fun}.
 

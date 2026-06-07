@@ -3,33 +3,78 @@
 % DO NOT Change this is the required setting A4 page, 11pt, onside print, book style
 %%----------------------------------------------------------------------------------
 \documentclass[a4paper,11pt,oneside]{book}
-\usepackage{main_report} % DO NOT REMOVE THIS LINE.
 
+% -------------------- Core Packages --------------------
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage{lmodern}
 \usepackage[french]{babel}
-\usepackage{setspace}
-\usepackage{graphicx}
-\usepackage{xcolor}
-\usepackage{array}
+\usepackage{csquotes}
 \usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage[most]{tcolorbox}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{caption}
+\usepackage[titletoc]{appendix}
+\usepackage[nottoc]{tocbibind}
+\usepackage{setspace}
+\usepackage{array}
 \usepackage{etoolbox}
 \usepackage[none]{hyphenat}
-\usepackage{listings}
 \usepackage{microtype}
-\emergencystretch=2em
-
-\usepackage[most]{tcolorbox}
 \usepackage{ragged2e}
 
-\usepackage{caption} % ajouter seulement si \captionsetup n'est pas déjà défini dans main_report
+% -------------------- Links & References --------------------
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink]{cleveref}
 
+\definecolor{DarkBlue}{rgb}{0.00,0.00,0.50}
+\hypersetup{colorlinks=true,
+            linkcolor=blue,
+            filecolor=magenta,
+            urlcolor=blue,
+            citecolor=blue,
+            pdftitle={Certif-fun PFE Report},
+            }
+
+% -------------------- Bibliography --------------------
+\usepackage[backend=biber, style=numeric, sorting=none, isbn=false, doi=false]{biblatex}
+\addbibresource{references.bib}
+
+% Format titles with standard LaTeX quotes
+\DeclareFieldFormat{title}{``#1''}
+\DeclareFieldFormat[article]{title}{``#1''}
+\DeclareFieldFormat[book]{title}{``#1''}
+\DeclareFieldFormat[misc]{title}{``#1''}
+\DeclareFieldFormat[online]{title}{``#1''}
+
+% Author format: S. Nacih
+\DeclareNameAlias{default}{given-family}
+
+% robust line break for URLs
+\newcommand{\robustnewline}{\hfill\break}
+\DeclareFieldFormat{url}{\addcomma\robustnewline url : \url{#1}}
+
+% Year at the end
+\renewbibmacro*{date}{\printfield{year}}
+\renewbibmacro*{issue+date}{\printfield{year}}
+\renewbibmacro{in:}{}
+
+\renewcommand{\bibname}{References}
+
+% -------------------- Layout & Style --------------------
 \geometry{margin=2.5cm}
-
-
-\usepackage[most]{tcolorbox}
-\usepackage{xcolor}
-\usepackage{graphicx}
+\emergencystretch=2em
+\onehalfspacing
 
 \definecolor{coverline}{RGB}{0,0,0}
 \definecolor{covertitle}{RGB}{0,0,0}
@@ -37,7 +82,11 @@
 \definecolor{softgray}{RGB}{248,248,248}
 \definecolor{mainblue}{RGB}{0, 70, 140}
 
-% Redéfinition de \today en français
+\setlist[itemize,1]{label=$\bullet$}
+\setlist[itemize,2]{label=--}
+
+\newenvironment{abbrv}{\begin{itemize}[label=]}{\end{itemize}}
+
 \renewcommand{\today}{%
   \number\day~%
   \ifcase\month\or
@@ -54,17 +103,14 @@
 \captionsetup[table]{margin=1.5cm,font=small,name={Table},labelsep=colon}
 
 \frontmatter
-
 \newgeometry{top=1.5cm, bottom=1.5cm, left=2cm, right=2cm}
 
 %------------------------------------------------
-% Page de garde style institutionnel sobre
+% Page de garde
 %------------------------------------------------
 \begin{titlepage}
 \thispagestyle{empty}
-
 \begin{center}
-
 \begin{tcolorbox}[
   enhanced,
   width=0.96\textwidth,
@@ -78,31 +124,18 @@
   top=12pt,
   bottom=16pt
 ]
-
 \centering
-
 \vspace*{0.2cm}
-
-%-------------------- Logo --------------------
 \includegraphics[width=5cm]{figures/ens-logo.png}\\
-
-%-------------------- Etablissement --------------------
 {\Large\bfseries Université Cadi Ayyad}\\[0.15cm]
 {\large\bfseries École Normale Supérieure de Marrakech}\\[0.35cm]
-
 {\normalsize\bfseries Département d'Informatique}\\[0.15cm]
 {\normalsize\bfseries Master Didactique des Sciences et Ingénierie Éducative}\\[0.15cm]
 {\normalsize\itshape Option : Technologies émergentes en éducation}\\[0.5cm]
-
-%-------------------- Titre principal --------------------
 {\fontsize{20}{24}\selectfont\bfseries Rapport de projet de fin d'études}\\[0.55cm]
-
 {\large Pour l'obtention du}\\[0.2cm]
 {\Large\bfseries Diplôme de Master}\\[0.4cm]
-
 {\large\bfseries Sous thème :}\\[0.45cm]
-
-%-------------------- Encadré du sujet --------------------
 \begin{tcolorbox}[
   enhanced,
   width=0.90\textwidth,
@@ -119,26 +152,15 @@
 {\fontsize{17}{21}\selectfont\bfseries Certif-fun}\\[0.2cm]
 {\large\bfseries Plateforme intelligente de gestion des certifications, de supervision des examens, d'encadrement structuré, de réunions virtuelles et de génération de contenu par IA}
 \end{tcolorbox}
-
 \vspace{0.4cm}
-
-%-------------------- Réalisé par --------------------
 {\Large\bfseries Réalisé par :}\\[0.45cm]
 {\large Anas Khaiy}\\
-% {\large Prénom NOM}\\
-% {\large Prénom NOM}\\[0.8cm]
-
 \vspace{0.4cm}
-
-%-------------------- Encadrement --------------------
 \begin{flushleft}
 \hspace{0.5cm}\textbf{Encadré par :}\\[0.2cm]
 \hspace{1.2cm}Pr. LAANAOUI My Driss
 \end{flushleft}
-
 \vspace{0.3cm}
-
-%-------------------- Soutenance et jury --------------------
 \begin{flushleft}
 \hspace{0.5cm}\textbf{Soutenu le :} 15 juillet 2026\\[0.25cm]
 \hspace{0.5cm}\textbf{Devant le jury composé de :}\\[0.2cm]
@@ -147,75 +169,40 @@
 \hspace{1.2cm}Pr. Nom Prénom, Rapporteur\\
 \hspace{1.2cm}Pr. LAANAOUI My Driss, Encadrant
 \end{flushleft}
-
 \vfill
 \vspace{0.75cm}
-
 {\large Année universitaire : 2025--2026}
-
 \end{tcolorbox}
-
 \end{center}
 \end{titlepage}
 
 \restoregeometry
 \fontsize{12pt}{15pt}\selectfont
-\onehalfspacing
-    
-    % -------------------------------------------------------------------
-    % Declaration
-    % -------------------------------------------------------------------
+
     \newpage
     \thispagestyle{empty}
     \chapter*{Déclaration}
-
 Je soussigné(e), \textbf{Anas Khaiy}, de l’École Normale Supérieure, Université Cadi Ayyad, Département d’Informatique, déclare que le présent rapport, y compris l’ensemble des textes, figures, tableaux, extraits de code et illustrations, constitue le fruit de mon travail personnel. Les sources externes utilisées ont fait l’objet de citations et références explicites. Je reconnais que tout manquement à cet engagement relèverait du plagiat, considéré comme une infraction académique passible de sanctions.
 
 \medskip
-
 \noindent
-J’autorise la mise à disposition d’un exemplaire de ce rapport à des fins pédagogiques, 
-au bénéfice des futurs étudiants et chercheurs, et j’accepte qu’il soit consulté dans 
-l’intérêt général de l’Enseignement Supérieur et de la Recherche.
+J’autorise la mise à disposition d’un exemplaire de ce rapport à des fins pédagogiques, au bénéfice des futurs étudiants et chercheurs, et j’accepte qu’il soit consulté dans l’intérêt général de l’Enseignement Supérieur et de la Recherche.
 
 \vspace{1cm}
-
 \begin{flushright}
 \textbf{Anas Khaiy}\\
 \today
 \end{flushright}
 
-
-    
-    % -------------------------------------------------------------------
-	% Acknowledgement
-	% -------------------------------------------------------------------
-   
     \input{chapters/00_ii_acknowledgments}   
-
-     % -------------------------------------------------------------------
-    % Abstract and Acknowledgement
-    % -------------------------------------------------------------------
-    
     \input{chapters/00_i_abstract}
     \input{chapters/00_i_resume}
-    % -------------------------------------------------------------------
-    % Contents, list of figures, list of tables
-    % -------------------------------------------------------------------
-    \input{glossaries} %  Enter your list of Abbreviation and Symbols in this file
+    \input{glossaries}
     \listoffigures
     \listoftables
     \tableofcontents
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%                                                                    %%  
-    %%  Main chapters and sections of your project                        %%  
-    %%  Everything from here on needs updates in your own words and works %%
-    %%                                                                    %%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     \mainmatter
-    % Read for preparation of document in LaTex 
-    % Lamport, L. (1986), LATEX: A Document Preparation System, Addison-Wesley.
-    
     \input{chapters/01_introduction}
     \input{chapters/02_contexte} 
     \input{chapters/03_preliminaire}
@@ -225,51 +212,33 @@ l’intérêt général de l’Enseignement Supérieur et de la Recherche.
     \input{chapters/07_conclusions}
     \input{chapters/08_apport}
     
-    % -------------------------------------------------------------------
-    % Bibliography/References  -  Harvard Style was used in this report
-    % -------------------------------------------------------------------
-    \bibliography{references}  %  Patashnik, O. (1988), BibTEXing. Documentation for general BibTEX users.
+    \printbibliography[heading=bibintoc, title={References}]
     
-    % -------------------------------------------------------------------
-    % Appendices
-    % -------------------------------------------------------------------
-    
-    \begin{appendices}
-        \input{chapters/appendix_A.tex}
-        \input{chapters/appendix_B.tex}
-    \end{appendices}
-  
 \newpage
 \thispagestyle{empty}
 \begin{center}
 \begin{tcolorbox}[arc=3mm,colframe=mainblue,colback=white,boxrule=0.8pt,left=10pt,right=10pt,top=12pt,bottom=12pt,width=0.93\textwidth]
-
 \centering
-\includegraphics[width=4cm]{figures/moi.jpg}\\[0.5cm]
-
+\includegraphics[width=4cm]{figures/moi.png}\\[0.5cm]
 {\Large\bfseries Anas Khaiy\par}
 \vspace{0.3cm}
 {\large\bfseries\color{mainblue}Résumé du Projet\par}
-
 \vspace{0.5cm}
 {\color{mainblue}\rule{0.55\linewidth}{0.8pt}\par}
 \vspace{0.7cm}
-
 \justifying
-Le projet \textbf{Certif-fun} vise à développer une plateforme intelligente destinée à la gestion des certifications et à la supervision sécurisée des examens en ligne grâce à l'intelligence artificielle. Pour atteindre cet objectif, une approche microservices a été adoptée, combinant une architecture Spring Boot/React et l’implémentation de modèles YOLOv8 pour garantir l'intégrité des évaluations.
+Le projet \textbf{Certif-fun} consiste en la conception d'une plateforme intelligente dédiée à la gestion des certifications et à la supervision sécurisée des examens à distance. L’objectif central est de restaurer la confiance dans les évaluations numériques grâce à une architecture distribuée et des capacités de surveillance automatisée en temps réel.
 
-Les contributions majeures du projet incluent la mise en œuvre d’une interface utilisateur intuitive, l’intégration d’un système performant de gestion des données et la validation de la solution par des tests approfondis. Les résultats obtenus traduisent une amélioration significative en termes de performance, de réactivité, de sécurité et de qualité d’usage par rapport aux solutions existantes.
+Les contributions majeures résident dans la mise en œuvre d’un système ergonomique permettant de détecter les comportements non autorisés tout en fluidifiant le parcours de l'apprenant. La validation du prototype a démontré des gains significatifs en termes de réactivité et de sécurité, surpassant les approches conventionnelles par une automatisation accrue des tâches de contrôle.
 
-Ce projet a permis de renforcer les compétences en développement, en modélisation UML, en architecture logicielle et en gestion de projet dans un environnement technique exigeant. Il ouvre également des perspectives intéressantes pour de futurs développements, notamment l’ajout de nouvelles fonctionnalités, l’optimisation des performances et l’amélioration de l’ergonomie de l’interface utilisateur.
+Ce travail a permis de renforcer des compétences avancées en ingénierie logicielle et en gestion de systèmes complexes dans un environnement exigeant. Il offre des perspectives prometteuses pour l’évolution des standards pédagogiques, notamment par l'optimisation continue de l'analyse comportementale et l'amélioration de l'ergonomie globale.
 
-L’ensemble de ces réalisations témoigne de l’engagement à proposer une solution innovante, cohérente et efficace, répondant aux problématiques identifiées dès le début du projet.
+L'ensemble de ces réalisations témoigne de l'engagement à proposer une solution innovante et structurée, répondant avec précision aux problématiques de crédibilité des diplômes délivrés en ligne.
 
 \vspace{0.8cm}
 {\color{mainblue}\rule{0.65\linewidth}{0.6pt}\par}
 \vspace{0.3cm}
-
-\noindent\textbf{\color{mainblue}Mots-clés :} solution innovante, gestion des données, interface utilisateur, validation, optimisation des performances
-
+\noindent\textbf{\color{mainblue}Mots-clés :} Certification en ligne, Proctoring automatisé, Intégrité des évaluations, Architecture microservices, Innovation pédagogique.
 \end{tcolorbox}
 \end{center}
 \end{document}

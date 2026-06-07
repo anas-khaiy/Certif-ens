@@ -29,7 +29,10 @@ import {
     Github,
     Link as LinkIcon,
     ArrowUpRight,
-    Timer
+    Timer,
+    Scan,
+    Loader2,
+    User
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import * as cocossd from '@tensorflow-models/coco-ssd';
@@ -79,9 +82,16 @@ const CoursePreviewPage: React.FC = () => {
     const [isCameraRequested, setIsCameraRequested] = useState(false);
     const [isCameraReady, setIsCameraReady] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
+    const [verificationFeedback, setVerificationFeedback] = useState<string | null>(null);
     const [detectionEngine, setDetectionEngine] = useState<'tfjs' | 'yolo' | 'python'>('tfjs');
     const [isAgreedToTerms, setIsAgreedToTerms] = useState(false);
-
+    const [isCardVerified, setIsCardVerified] = useState(false);
+    const [cardPreviewUrl, setCardPreviewUrl] = useState<string | null>(null);
+    const [cardVerifyResult, setCardVerifyResult] = useState<any>(null);
+    const [isCardVerifying, setIsCardVerifying] = useState(false);
+    const [isCheckingCard, setIsCheckingCard] = useState(false);
+    const [verificationStep, setVerificationStep] = useState<'QR_SCAN' | 'CARD_FACE_SCAN' | 'LIVE_FACE_SCAN' | 'VERIFIED'>('QR_SCAN');
+    const [cardImageBlob, setCardImageBlob] = useState<Blob | null>(null);
     const closeExamSetup = useCallback(() => {
         setShowExamSetup(false);
         setIsCameraRequested(false);
@@ -91,6 +101,14 @@ const CoursePreviewPage: React.FC = () => {
             setupStreamRef.current = null;
         }
         setIsAgreedToTerms(false);
+        setIsCardVerified(false);
+        setCardPreviewUrl(null);
+        setCardVerifyResult(null);
+        setIsCardVerifying(false);
+        setIsCheckingCard(false);
+        setVerificationStep('QR_SCAN');
+        setCardImageBlob(null);
+        setVerificationFeedback(null);
     }, []);
     const [completedSubSections, setCompletedSubSections] = useState<string[]>([]);
     const [quizResults, setQuizResults] = useState<any[]>([]);
@@ -104,9 +122,77 @@ const CoursePreviewPage: React.FC = () => {
     const hasEnteredFullscreenRef = useRef(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const setupStreamRef = useRef<MediaStream | null>(null);
+    const setupVideoRef = useRef<HTMLVideoElement | null>(null);
     const [isModelLoading, setIsModelLoading] = useState(false);
     const detectionIntervalRef = useRef<any>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const audioIntervalRef = useRef<any>(null);
     const [pythonDetections, setPythonDetections] = useState<any[]>([]);
+
+    const startAudioMonitoring = (stream: MediaStream, triggerCheatingFail: (r: string, imm?: boolean) => void) => {
+        try {
+            // Close previous context if exists
+            if (audioContextRef.current) {
+                audioContextRef.current.close().catch(() => {});
+            }
+            if (audioIntervalRef.current) {
+                clearInterval(audioIntervalRef.current);
+            }
+
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            audioContextRef.current = audioContext;
+            
+            const source = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 512; // Higher resolution
+            source.connect(analyser);
+            
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            
+            let continuousSpeechSeconds = 0;
+            
+            // Resume context in case it was created suspended
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            audioIntervalRef.current = setInterval(() => {
+                if (!examActiveRef.current || examFailedRef.current || examSubmittedRef.current) {
+                    if (audioIntervalRef.current) clearInterval(audioIntervalRef.current);
+                    return;
+                }
+                
+                analyser.getByteFrequencyData(dataArray);
+                
+                // Use peak volume (max value) instead of average for better sensitivity to speech
+                let maxVolume = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    if (dataArray[i] > maxVolume) maxVolume = dataArray[i];
+                }
+                
+                // Average volume threshold for continuous noise/speech
+                // Max volume for speech is usually 80-150. Background noise is < 30.
+                if (maxVolume > 40) {
+                    continuousSpeechSeconds += 1;
+                    if (continuousSpeechSeconds >= 3) {
+                         setViolationWarning(`ATTENTION : Parole ou bruit continu détecté. Restez silencieux ! (${5 - continuousSpeechSeconds}s restants)`);
+                    }
+                    if (continuousSpeechSeconds >= 5) {
+                        setViolationWarning(null);
+                        clearInterval(audioIntervalRef.current);
+                        stopAIDetection();
+                        triggerCheatingFail("DÉTECTION MICROPHONE : Parole ou bruit continu détecté (5s+).", true);
+                    }
+                } else {
+                    if (continuousSpeechSeconds > 0) setViolationWarning(null);
+                    continuousSpeechSeconds = 0;
+                }
+            }, 1000);
+        } catch (err) {
+            console.error("Audio monitoring setup failed:", err);
+        }
+    };
     const [isTabActive, setIsTabActive] = useState(true);
     const [timeSpentSummary, setTimeSpentSummary] = useState<Record<string, number>>({});
     const [zoomedImageSrc, setZoomedImageSrc] = useState<string | null>(null);
@@ -127,6 +213,219 @@ const CoursePreviewPage: React.FC = () => {
     const sections = course?.sections || [];
     const flatSubSections = sections.flatMap(s => s.subSections || []);
     const activeSubSection = flatSubSections.find(ss => String(ss.id) === String(activeSubSectionId));
+
+    // Load jsQR script dynamically
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+        script.async = true;
+        document.body.appendChild(script);
+        return () => {
+            if (document.body.contains(script)) {
+                document.body.removeChild(script);
+            }
+        };
+    }, []);
+
+    // Camera effect for setup/verification phase
+    useEffect(() => {
+        if (!isCameraRequested || !showExamSetup) {
+            if (setupStreamRef.current) {
+                setupStreamRef.current.getTracks().forEach(track => track.stop());
+                setupStreamRef.current = null;
+                setIsCameraReady(false);
+            }
+            return;
+        }
+
+        let active = true;
+        const startCamera = async () => {
+            const needsAudio = (course?.finalExam?.settings?.detectSound !== false) && (course?.finalExam?.settings?.isAiDetectionEnabled);
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: needsAudio
+                });
+                if (active) {
+                    setupStreamRef.current = stream;
+                    if (setupVideoRef.current) {
+                        setupVideoRef.current.srcObject = stream;
+                    }
+                    setIsCameraReady(true);
+                    setCameraError(null);
+                } else {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            } catch (err) {
+                console.error("Camera setup failed:", err);
+                if (active) {
+                    setIsCameraReady(false);
+                    setCameraError("Caméra inaccessible.");
+                }
+            }
+        };
+
+        startCamera();
+
+        return () => {
+            active = false;
+        };
+    }, [isCameraRequested, showExamSetup]);
+
+    // Live webcam verification scanning loop (Unified for QR, Card, and Live Face)
+    useEffect(() => {
+        if (!isCameraReady || isCardVerified || showExamSetup === false) return;
+
+        let active = true;
+        let lastScanTime = 0;
+        const scanInterval = 1500; // 1.5s interval for Python-based scans to avoid overloading
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        
+        const scan = async () => {
+            if (!active || isCardVerified) return;
+            
+            // Check if card verification is even needed
+            const vMode = course?.finalExam?.settings?.verificationMode || 'none';
+            if (vMode === 'none') {
+                if (!isCardVerified) {
+                    setIsCardVerified(true);
+                    setVerificationStep('VERIFIED');
+                }
+                return;
+            }
+
+            const video = setupVideoRef.current;
+            if (!video || video.videoWidth <= 0 || video.videoHeight <= 0 || !context) {
+                requestAnimationFrame(scan);
+                return;
+            }
+
+            const now = Date.now();
+            
+            // Step 1: QR_SCAN (Local, very fast)
+            if (verificationStep === 'QR_SCAN') {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const jsQR = (window as any).jsQR;
+                
+                if (jsQR) {
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+                    if (code && code.data) {
+                        const scannedVal = code.data.trim();
+                        const userString = localStorage.getItem('user');
+                        if (userString) {
+                            const userData = JSON.parse(userString);
+                            const expectedCin = (userData.cin || '').trim();
+                            const normScanned = scannedVal.toLowerCase().replace(/\s+/g, '');
+                            const normExpected = expectedCin.toLowerCase().replace(/\s+/g, '');
+                            
+                            if (normExpected && (normScanned === normExpected || normScanned.includes(normExpected) || normExpected.includes(normScanned))) {
+                                const vMode = course?.finalExam?.settings?.verificationMode || 'none';
+                                if (vMode === 'qr_only') {
+                                    setIsCardVerified(true);
+                                    setVerificationStep('VERIFIED');
+                                    setCardVerifyResult({ success: true, extracted_cin: scannedVal, cin_expected: expectedCin, cin_matched: true, face_matched: true, faces_detected: 1 });
+                                } else {
+                                    setVerificationStep('CARD_FACE_SCAN');
+                                    setCardVerifyResult({ success: false, extracted_cin: scannedVal, cin_expected: expectedCin, cin_matched: true, face_matched: false, faces_detected: 0 });
+                                }
+                                // Step changed, we continue loop
+                            } else {
+                                setCardVerifyResult({ success: false, extracted_cin: scannedVal, cin_expected: expectedCin, cin_matched: false, face_matched: false, faces_detected: 0 });
+                            }
+                        }
+                    }
+                }
+            } 
+            // Step 2: CARD_FACE_SCAN (Remote Python call)
+            else if (verificationStep === 'CARD_FACE_SCAN' && now - lastScanTime > scanInterval) {
+                lastScanTime = now;
+                setIsCheckingCard(true);
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                canvas.toBlob(async (blob) => {
+                    if (blob && active && verificationStep === 'CARD_FACE_SCAN') {
+                        try {
+                            const formData = new FormData();
+                            formData.append('card_image', blob, 'card_capture.jpg');
+                            const response = await fetch(`${AI_DETECT_URL.replace('/detect', '/check-card-face')}`, { method: 'POST', body: formData });
+                            const result = await response.json();
+                            if (result.success && active) {
+                                setCardImageBlob(blob);
+                                setVerificationStep('LIVE_FACE_SCAN');
+                                setVerificationFeedback(null);
+                            } else if (active) {
+                                setVerificationFeedback(result.error || "Image invalide.");
+                            }
+                        } catch (error) {
+                            console.error("Auto card check failed:", error);
+                        } finally {
+                            setIsCheckingCard(false);
+                        }
+                    } else {
+                        setIsCheckingCard(false);
+                    }
+                }, 'image/jpeg', 0.8);
+            }
+            // Step 3: LIVE_FACE_SCAN (Remote Python call)
+            else if (verificationStep === 'LIVE_FACE_SCAN' && cardImageBlob && now - lastScanTime > scanInterval) {
+                lastScanTime = now;
+                setIsCardVerifying(true);
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                canvas.toBlob(async (liveBlob) => {
+                    if (liveBlob && active && verificationStep === 'LIVE_FACE_SCAN' && cardImageBlob) {
+                        try {
+                            const formData = new FormData();
+                            formData.append('card_image', cardImageBlob, 'card_face.jpg');
+                            formData.append('live_image', liveBlob, 'live_face.jpg');
+                            const response = await fetch(`${AI_DETECT_URL.replace('/detect', '/verify-faces')}`, { method: 'POST', body: formData });
+                            const result = await response.json();
+                            if (active) {
+                                setCardVerifyResult((prev: any) => ({ ...prev, ...result, cin_matched: true, faces_detected: 2 }));
+                                if (result.success) {
+                                    setIsCardVerified(true);
+                                    setVerificationStep('VERIFIED');
+                                    setVerificationFeedback(null);
+                                } else {
+                                    setVerificationFeedback("Visage non reconnu. Essayez encore.");
+                                }
+                            }
+                        } catch (err) {
+                            console.error("Auto biometric match failed:", err);
+                        } finally {
+                            setIsCardVerifying(false);
+                        }
+                    } else {
+                        setIsCardVerifying(false);
+                    }
+                }, 'image/jpeg', 0.8);
+            }
+
+            if (active && !isCardVerified) {
+                requestAnimationFrame(scan);
+            }
+        };
+        
+        const timer = setTimeout(scan, 800);
+        return () => {
+            active = false;
+            clearTimeout(timer);
+        };
+    }, [isCameraReady, isCardVerified, verificationStep, course?.finalExam?.settings?.verificationMode, cardImageBlob, showExamSetup]);
+
+    // Capture step 2: Card Face (DEPRECATED - now handled in useEffect above)
+    const captureCardFace = useCallback(async () => {}, []);
+    // Capture step 3: Live Face & Verify (DEPRECATED - now handled in useEffect above)
+    const captureLiveFaceAndVerify = useCallback(() => {}, []);
 
     // Apply theme to document
     useEffect(() => {
@@ -179,6 +478,12 @@ const CoursePreviewPage: React.FC = () => {
                     return;
                 }
                 setCourse(foundCourse);
+                
+                // Pre-verify if no verification is required
+                if ((foundCourse?.finalExam?.settings?.verificationMode || 'none') === 'none') {
+                    setIsCardVerified(true);
+                    setVerificationStep('VERIFIED');
+                }
 
                 // 2. Check Enrollment Access
                 const enrollResponse = await api.get('/enrollments/my');
@@ -553,25 +858,52 @@ const CoursePreviewPage: React.FC = () => {
         setIsModelLoading(true);
 
         try {
+            const settings = course?.finalExam?.settings;
+            const needsAudio = settings?.detectSound !== false;
             // High resolution for better AI accuracy
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: 640, height: 480, facingMode: 'user' }
+                video: { width: 640, height: 480, facingMode: 'user' },
+                audio: needsAudio
             });
             if (videoRef.current) videoRef.current.srcObject = stream;
 
             const model = await cocossd.load();
             setIsModelLoading(false);
 
+            if (needsAudio) {
+                startAudioMonitoring(stream, triggerCheatingFail);
+            }
+
             let phoneDetectionBuffer = 0;
+            let absenceBuffer = 0;
 
             detectionIntervalRef.current = setInterval(async () => {
                 // Use Refs to avoid stale closure issues
                 if (!videoRef.current || examFailedRef.current || examSubmittedRef.current) return;
                 const settings = course?.finalExam?.settings;
-                if (settings?.detectPhone === false) return; // Skip if disabled
-
+                
                 try {
                     const predictions = await model.detect(videoRef.current);
+
+                    // Absence detection (10s threshold)
+                    const personDetected = predictions.some(p => p.class === 'person' && p.score > 0.40);
+                    if (!personDetected) {
+                        absenceBuffer++;
+                        if (absenceBuffer >= 3) {
+                            setViolationWarning(`ATTENTION : Aucun visage détecté. Retournez devant la caméra ! (${10 - absenceBuffer}s restants)`);
+                        }
+                        if (absenceBuffer >= 10) {
+                            setViolationWarning(null);
+                            stopAIDetection();
+                            triggerCheatingFail("DÉTECTION LOCALE : Étudiant absent de la caméra (10s+).", true);
+                            return;
+                        }
+                    } else {
+                        if (absenceBuffer > 0) setViolationWarning(null);
+                        absenceBuffer = 0;
+                    }
+
+                    if (settings?.detectPhone === false) return; // Skip phone check if disabled
 
                     // Lower threshold to 0.50 for better detection of partial/angled phones
                     const phoneDetected = predictions.some(p =>
@@ -604,9 +936,12 @@ const CoursePreviewPage: React.FC = () => {
         setIsModelLoading(true);
 
         try {
+            const settings = course?.finalExam?.settings;
+            const needsAudio = settings?.detectSound !== false;
             // Use standard 640x480 resolution (more compatible)
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: 640, height: 480, facingMode: 'user' }
+                video: { width: 640, height: 480, facingMode: 'user' },
+                audio: needsAudio
             });
             if (videoRef.current) videoRef.current.srcObject = stream;
 
@@ -615,7 +950,12 @@ const CoursePreviewPage: React.FC = () => {
             await detector.loadModel('/models/yolov8n.onnx');
             setIsModelLoading(false);
 
+            if (needsAudio) {
+                startAudioMonitoring(stream, triggerCheatingFail);
+            }
+
             let phoneDetectionBuffer = 0;
+            let absenceBuffer = 0;
 
             const detectFrame = async () => {
                 // Stop loop if exam state changes
@@ -623,19 +963,38 @@ const CoursePreviewPage: React.FC = () => {
                     return;
                 }
                 const settings = course?.finalExam?.settings;
-                if (settings?.detectPhone === false) {
-                  // Schedule next frame to keep loop going if settings change
-                  if (examActiveRef.current && !examFailedRef.current && !examSubmittedRef.current) {
-                      detectionIntervalRef.current = setTimeout(detectFrame, 1000);
-                  }
-                  return;
-                }
 
                 try {
                     const predictions: YoloDetection[] = await detector.detect(videoRef.current);
 
                     if (predictions.length > 0) {
                         console.log("🔍 YOLO Raw Predictions:", predictions.map(p => `${p.class} (${Math.round(p.score * 100)}%)`));
+                    }
+
+                    // Absence detection (10s threshold)
+                    const personDetected = predictions.some((p: YoloDetection) => p.class === 'person' && p.score > 0.40);
+                    if (!personDetected) {
+                        absenceBuffer++;
+                        if (absenceBuffer >= 3) {
+                            setViolationWarning(`ATTENTION : Aucun visage détecté. Retournez devant la caméra ! (${10 - absenceBuffer}s restants)`);
+                        }
+                        if (absenceBuffer >= 10) {
+                            setViolationWarning(null);
+                            stopAIDetection();
+                            triggerCheatingFail("DÉTECTION LOCALE : Étudiant absent de la caméra (10s+).", true);
+                            return;
+                        }
+                    } else {
+                        if (absenceBuffer > 0) setViolationWarning(null);
+                        absenceBuffer = 0;
+                    }
+
+                    if (settings?.detectPhone === false) {
+                        // Schedule next frame to keep loop going if settings change
+                        if (examActiveRef.current && !examFailedRef.current && !examSubmittedRef.current) {
+                            detectionIntervalRef.current = setTimeout(detectFrame, 1000);
+                        }
+                        return;
                     }
 
                     // Sensitivity: 0.25 (match internal 0.20)
@@ -678,18 +1037,27 @@ const CoursePreviewPage: React.FC = () => {
         setIsModelLoading(true);
 
         try {
+            const settings = course?.finalExam?.settings;
+            const needsAudio = settings?.detectSound !== false;
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: 640, height: 480, facingMode: 'user' }
+                video: { width: 640, height: 480, facingMode: 'user' },
+                audio: needsAudio
             });
             if (videoRef.current) videoRef.current.srcObject = stream;
 
             setIsModelLoading(false);
+            
+            if (needsAudio) {
+                startAudioMonitoring(stream, triggerCheatingFail);
+            }
+
             const canvas = document.createElement('canvas');
             canvas.width = 640;
             canvas.height = 480;
             const ctx = canvas.getContext('2d');
 
             let phoneDetectionBuffer = 0;
+            let absenceBuffer = 0;
 
             const detectFrame = async () => {
                 if (!examActiveRef.current || examFailedRef.current || examSubmittedRef.current || !videoRef.current) return;
@@ -710,6 +1078,24 @@ const CoursePreviewPage: React.FC = () => {
                                 });
                                 const data = await response.json();
                                 const settings = course?.finalExam?.settings;
+
+                                // Absence detection: Fail if no person seen for 10 consecutive seconds
+                                // Only active if AI detection is enabled
+                                if (data.person_count === 0) {
+                                    absenceBuffer++;
+                                    if (absenceBuffer >= 3) { // Show warning after 3s of absence
+                                        setViolationWarning(`ATTENTION : Aucun visage détecté. Retournez devant la caméra ! (${10 - absenceBuffer}s restants)`);
+                                    }
+                                    if (absenceBuffer >= 10) {
+                                        setViolationWarning(null);
+                                        stopAIDetection();
+                                        triggerCheatingFail("DÉTECTION SERVEUR : Étudiant absent de la caméra (10s+).", true);
+                                        return;
+                                    }
+                                } else {
+                                    if (absenceBuffer > 0) setViolationWarning(null);
+                                    absenceBuffer = 0;
+                                }
 
                                 // Filter detections based on settings
                                 const isPhoneCheat = data.phone_detected && settings?.detectPhone !== false;
@@ -803,6 +1189,16 @@ const CoursePreviewPage: React.FC = () => {
             clearInterval(detectionIntervalRef.current);
         }
         detectionIntervalRef.current = null;
+
+        if (audioIntervalRef.current) {
+            clearInterval(audioIntervalRef.current);
+            audioIntervalRef.current = null;
+        }
+        if (audioContextRef.current) {
+            audioContextRef.current.close().catch(() => {});
+            audioContextRef.current = null;
+        }
+
         if (videoRef.current && videoRef.current.srcObject) {
             const stream = videoRef.current.srcObject as MediaStream;
             stream.getTracks().forEach(track => track.stop());
@@ -1117,6 +1513,11 @@ const CoursePreviewPage: React.FC = () => {
 
         setShowExamSetup(false);
         setIsCameraRequested(false);
+        setIsCameraReady(false);
+        if (setupStreamRef.current) {
+            setupStreamRef.current.getTracks().forEach(track => track.stop());
+            setupStreamRef.current = null;
+        }
         setExamAnswers({});
         setExamSubmitted(false);
         setExamFailed(null);
@@ -1836,7 +2237,7 @@ const CoursePreviewPage: React.FC = () => {
 
                 {showExamSetup && createPortal(
                     <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-0 sm:p-6 overflow-y-auto">
-                        <div className={`w-full h-full sm:h-auto ${course?.finalExam?.settings?.isAiDetectionEnabled ? 'max-w-5xl' : 'max-w-xl'} bg-surface sm:rounded-[3rem] border-x border-glass-border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-x-hidden animate-slide-up flex flex-col lg:flex-row min-h-screen sm:min-h-[500px] relative`}>
+                        <div className={`w-full h-full sm:h-auto max-w-5xl bg-surface sm:rounded-[3rem] border-x border-glass-border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-x-hidden animate-slide-up flex flex-col lg:flex-row min-h-screen sm:min-h-[500px] relative`}>
                             {/* Close Button */}
                             <button
                                 onClick={closeExamSetup}
@@ -1845,8 +2246,8 @@ const CoursePreviewPage: React.FC = () => {
                                 <X size={20} />
                             </button>
 
-                            {/* Left: Camera Verification Section - Only visible if AI needed */}
-                            {course?.finalExam?.settings?.isAiDetectionEnabled && (
+                            {/* Left: Camera & Identity Verification Section */}
+                            {((course?.finalExam?.settings?.verificationMode || 'none') !== 'none' || course?.finalExam?.settings?.isAiDetectionEnabled) && (
                                 <div className="w-full lg:w-[45%] p-6 sm:p-12 bg-black flex flex-col items-center justify-center relative border-b lg:border-b-0 lg:border-r border-white/10">
                                     <div className="absolute top-6 left-6 flex items-center gap-3">
                                         <div className={`w-2 h-2 rounded-full ${isCameraReady ? 'bg-success animate-pulse' : 'bg-amber-500'}`} />
@@ -1860,7 +2261,7 @@ const CoursePreviewPage: React.FC = () => {
                                             </div>
                                             <h3 className="text-white text-xl sm:text-2xl font-black mb-2 sm:mb-4">Caméra Requise</h3>
                                             <p className="text-white/50 text-xs sm:text-sm font-medium leading-relaxed mb-6 sm:mb-10 max-w-[240px] sm:max-w-[280px] mx-auto">
-                                                L'accès à votre caméra est impératif pour la surveillance IA.
+                                                L'accès à votre caméra est nécessaire pour la vérification d'identité.
                                             </p>
                                             <button
                                                 onClick={() => setIsCameraRequested(true)}
@@ -1872,28 +2273,28 @@ const CoursePreviewPage: React.FC = () => {
                                     ) : (
                                         <div className="w-full flex flex-col justify-center py-4 sm:py-6">
                                             <div className="w-full aspect-[4/3] sm:aspect-video rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-surface/5 flex items-center justify-center relative group mb-4 sm:mb-6">
+                                                <style dangerouslySetInnerHTML={{__html: `
+                                                    @keyframes laser {
+                                                        0%, 100% { top: 10%; }
+                                                        50% { top: 90%; }
+                                                    }
+                                                    .laser-line {
+                                                        animation: laser 2.5s infinite linear;
+                                                    }
+                                                `}} />
                                                 <video
-                                                    ref={(el) => {
-                                                        if (el && !el.srcObject) {
-                                                            navigator.mediaDevices.getUserMedia({ video: true })
-                                                                .then(stream => {
-                                                                    el.srcObject = stream;
-                                                                    setupStreamRef.current = stream;
-                                                                    setIsCameraReady(true);
-                                                                    setCameraError(null);
-                                                                })
-                                                                .catch(err => {
-                                                                    console.error("Camera access error:", err);
-                                                                    setIsCameraReady(false);
-                                                                    setCameraError("Caméra inaccessible.");
-                                                                });
-                                                        }
-                                                    }}
+                                                    ref={setupVideoRef}
                                                     autoPlay
                                                     playsInline
                                                     muted
                                                     className="w-full h-full object-cover"
                                                 />
+                                                {!isCameraReady && !cameraError && (
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md z-30">
+                                                        <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+                                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Initialisation de la caméra...</span>
+                                                    </div>
+                                                )}
                                                 {cameraError && (
                                                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-black/90 backdrop-blur-sm">
                                                         <AlertTriangle size={32} className="text-amber-500 mb-4" />
@@ -1906,10 +2307,78 @@ const CoursePreviewPage: React.FC = () => {
                                                         </button>
                                                     </div>
                                                 )}
-                                                {isCameraReady && (
-                                                    <div className="absolute bottom-3 left-3 right-3 py-2 px-3 bg-success/20 backdrop-blur-md border border-success/30 rounded-xl flex items-center justify-center gap-2">
-                                                        <CheckCircle size={14} className="text-success" />
-                                                        <span className="text-[10px] font-black text-white uppercase">Flux validé</span>
+                                                {isCameraReady && !isCardVerified && (course?.finalExam?.settings?.verificationMode || 'none') !== 'none' && (
+                                                    <div className="absolute inset-0 border border-primary/20 pointer-events-none flex flex-col items-center justify-center bg-black/10">
+                                                        {verificationStep === 'QR_SCAN' ? (
+                                                            <>
+                                                                <div className="absolute left-0 right-0 h-[3px] bg-primary laser-line shadow-[0_0_12px_#3b82f6]"></div>
+                                                                <div className="w-40 h-40 border-2 border-dashed border-primary/60 rounded-2xl flex items-center justify-center animate-pulse">
+                                                                    <span className="text-[8px] font-black text-primary uppercase tracking-widest bg-black/80 px-2.5 py-1.5 rounded-md border border-primary/20 backdrop-blur-sm text-center">Placer le Code QR Ici</span>
+                                                                </div>
+                                                            </>
+                                                        ) : verificationStep === 'CARD_FACE_SCAN' ? (
+                                                            <>
+                                                                <div className="w-[50%] h-[50%] border-2 border-primary/40 rounded-3xl flex flex-col items-center justify-center relative bg-black/40 backdrop-blur-sm">
+                                                                    <div className="absolute inset-0 border-2 border-dashed border-primary/20 rounded-3xl opacity-30"></div>
+                                                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-black/80 px-4 py-2 rounded-xl border border-primary/20 backdrop-blur-md text-center shadow-2xl mb-2">
+                                                                        1. Photo de la Carte
+                                                                    </span>
+                                                                    <span className="text-[8px] text-white/80 text-center px-4">Cachez votre visage réel. Ne montrez que la carte.</span>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <div className="w-[80%] h-[70%] border-2 border-primary/40 rounded-3xl flex flex-col items-center justify-center relative">
+                                                                    <div className="absolute inset-0 border-2 border-dashed border-primary/20 rounded-3xl opacity-30"></div>
+                                                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-black/80 px-4 py-2 rounded-xl border border-primary/20 backdrop-blur-md text-center shadow-2xl mb-2">
+                                                                        2. Votre Visage en Direct
+                                                                    </span>
+                                                                    <span className="text-[8px] text-white/80 text-center px-4">Regardez la caméra sans la carte.</span>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {isCameraReady && isCardVerified && (course?.finalExam?.settings?.verificationMode || 'none') !== 'none' && (
+                                                    <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-sm border-2 border-emerald-500 flex flex-col items-center justify-center pointer-events-none">
+                                                        <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center border border-emerald-500/30 mb-2 animate-bounce">
+                                                            <CheckCircle size={24} className="text-emerald-500" />
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Identité confirmée</span>
+                                                    </div>
+                                                )}
+                                                {isCameraReady && !isCardVerified && verificationFeedback && (
+                                                    <div className="absolute top-12 left-6 right-6 z-20 animate-bounce">
+                                                        <div className="bg-red-500/90 backdrop-blur-md text-white px-4 py-2 rounded-xl border border-red-400/30 flex items-center gap-2 shadow-2xl">
+                                                            <AlertTriangle size={14} className="shrink-0" />
+                                                            <span className="text-[10px] font-black uppercase tracking-wider">{verificationFeedback}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {isCameraReady && !isCardVerified && (course?.finalExam?.settings?.verificationMode || 'none') !== 'none' && (
+                                                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-2">
+                                                        {verificationStep === 'QR_SCAN' ? (
+                                                            <div className="w-full py-2 px-3 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+                                                                <Loader2 size={12} className="text-primary animate-spin" />
+                                                                <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                                                    Détection du Code QR en cours...
+                                                                </span>
+                                                            </div>
+                                                        ) : verificationStep === 'CARD_FACE_SCAN' ? (
+                                                            <div className="w-full py-2 px-3 bg-amber-500/20 backdrop-blur-md border border-amber-500/30 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+                                                                <Loader2 size={12} className="text-amber-500 animate-spin" />
+                                                                <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                                                    {isCheckingCard ? "Analyse de la carte..." : "Présentez la photo de votre carte"}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-full py-2 px-3 bg-indigo-500/20 backdrop-blur-md border border-indigo-500/30 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+                                                                <Loader2 size={12} className="text-indigo-500 animate-spin" />
+                                                                <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                                                    {isCardVerifying ? "Vérification biométrique..." : "Regardez l'objectif (visage seul)"}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -1920,7 +2389,7 @@ const CoursePreviewPage: React.FC = () => {
                             )}
 
                             {/* Right: Rules & Final Action Section */}
-                            <div className={`w-full ${course?.finalExam?.settings?.isAiDetectionEnabled ? 'lg:w-[55%]' : 'w-full'} p-6 sm:p-16 flex flex-col justify-between text-text bg-surface relative`}>
+                            <div className={`w-full ${((course?.finalExam?.settings?.verificationMode || 'none') !== 'none' || course?.finalExam?.settings?.isAiDetectionEnabled) ? 'lg:w-[55%]' : 'lg:w-full'} p-6 sm:p-16 flex flex-col justify-between text-text bg-surface relative`}>
                                 <div>
                                     <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-10">
                                         <div className="p-3 sm:p-4 bg-primary/10 text-primary rounded-2xl shadow-inner border border-primary/10"><Shield size={24} className="sm:w-8 sm:h-8" /></div>
@@ -1938,7 +2407,7 @@ const CoursePreviewPage: React.FC = () => {
                                         </div>
                                         <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2">
                                             <Monitor size={12} className="text-primary sm:w-3.5 sm:h-3.5" />
-                                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">{course?.finalExam?.settings?.isAiDetectionEnabled ? 'Surveillance IA' : 'Sans Caméra'}</span>
+                                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">{course?.finalExam?.settings?.isAiDetectionEnabled ? 'Surveillance IA' : 'Vérification ID'}</span>
                                         </div>
                                         <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2">
                                             <Clock size={12} className="text-primary sm:w-3.5 sm:h-3.5" />
@@ -2053,12 +2522,156 @@ const CoursePreviewPage: React.FC = () => {
                                             <Check size={12} className="sm:w-[14px] sm:h-[14px] absolute left-0.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
                                         </div>
                                         <p className="text-[9px] sm:text-[11px] font-bold leading-normal text-text-muted group-hover/terms:text-text transition-colors">
-                                            {course?.finalExam?.settings?.isAiDetectionEnabled 
-                                                ? <>Je certifie avoir lu les consignes. J'accepte l'utilisation de ma <strong className="text-primary">caméra pour la surveillance</strong> et je valide l'intégrité de cet examen.</>
-                                                : <>Je certifie avoir lu les consignes. J'accepte le règlement de l'épreuve et les mesures <strong className="text-primary">anti-triche</strong>.</>
-                                            }
-                                        </p>
-                                    </label>
+                                           <>Je certifie avoir lu les consignes. {(course?.finalExam?.settings?.verificationMode || 'none') !== 'none' && <>J'accepte la <strong className="text-primary">vérification d'identité</strong>, </>}le règlement de l'épreuve{course?.finalExam?.settings?.isAiDetectionEnabled ? <> et l'utilisation de ma <strong className="text-primary">caméra pour la surveillance IA</strong></> : null} et les mesures anti-triche.</>
+                                        </p>                                    </label>
+
+                                    {/* Student Card QR Code live-scanning Identity Verification panel */}
+                                    {(course?.finalExam?.settings?.verificationMode || 'none') !== 'none' && (                                        <div className="mb-6 rounded-2xl sm:rounded-3xl border border-glass-border bg-surface/30 overflow-hidden">
+                                            {/* Header */}
+                                            <div className="px-5 py-3 bg-primary/5 border-b border-glass-border flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <User size={14} className="text-primary" />
+                                                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-primary">Vérification d'Identité</span>
+                                                </div>
+                                                {isCardVerified && (
+                                                    <span className="flex items-center gap-1 text-[9px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 animate-bounce">
+                                                        <CheckCircle size={10} /> Vérifié
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="p-5">
+                                                {!isCameraReady ? (
+                                                    <div className="flex flex-col items-center justify-center gap-3 p-6 border border-glass-border bg-black/10 rounded-2xl text-center">
+                                                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                                            <Loader2 size={20} className="animate-spin" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs font-black text-text mb-1 uppercase tracking-wider">En attente de la caméra</p>
+                                                            <p className="text-[10px] text-text-muted leading-relaxed">
+                                                                Activez votre caméra à gauche pour pouvoir scanner le Code QR de votre carte.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+                                                        {/* Scanning Mode Active Info */}
+                                                        {!isCardVerified ? (
+                                                            <div className="flex flex-col items-center justify-center gap-3.5 p-6 border-2 border-dashed border-primary/20 bg-primary/5 rounded-2xl text-center animate-pulse">
+                                                                <div className="relative w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary border border-primary/20">
+                                                                    <Scan size={20} className="animate-spin" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-black text-text mb-1 uppercase tracking-widest text-primary">Détection Automatique Active</p>
+                                                                    <p className="text-[10px] text-text-muted max-w-[280px] mx-auto leading-relaxed">
+                                                                        Présentez le code QR de votre carte d'étudiant face à l'objectif de la caméra. La lecture se fait instantanément et localement.
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col items-center justify-center gap-3 p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-center shadow-lg shadow-emerald-500/5">
+                                                                <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 border border-emerald-500/30 animate-bounce">
+                                                                    <CheckCircle size={24} />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-black text-emerald-500 mb-1 uppercase tracking-widest animate-pulse">Vérification Réussie</p>
+                                                                    <p className="text-[10px] text-text-muted leading-relaxed">
+                                                                        Votre code QR a été détecté et validé avec succès.
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Real-time status / table */}
+                                                        {cardVerifyResult && (
+                                                            <div className="space-y-3">
+                                                                <div className={`flex items-center gap-2.5 p-3 rounded-xl border ${cardVerifyResult.success ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                                                                    {cardVerifyResult.success
+                                                                        ? <CheckCircle size={14} className="text-emerald-500 shrink-0" />
+                                                                        : <AlertTriangle size={14} className="text-red-500 shrink-0" />
+                                                                    }
+                                                                    <span className={`text-[10px] font-black uppercase tracking-wider ${cardVerifyResult.success ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                                        {cardVerifyResult.success
+                                                                            ? 'Identité confirmée !'
+                                                                            : cardVerifyResult.cin_matched && !cardVerifyResult.face_matched
+                                                                                ? 'CIN correct mais visage non correspondant.'
+                                                                                : 'Code QR détecté mais CIN incorrect.'
+                                                                        }
+                                                                    </span>
+                                                                </div>
+
+                                                                <div className="rounded-xl border border-glass-border overflow-hidden">
+                                                                    <div className="grid grid-cols-[auto_1fr_1fr_auto] text-[9px] font-black uppercase tracking-wider text-text-muted/60 bg-surface/50 border-b border-glass-border">
+                                                                        <div className="px-3 py-2">Champ</div>
+                                                                        <div className="px-3 py-2">Scanné (Code QR)</div>
+                                                                        <div className="px-3 py-2">Attendu (Plateforme)</div>
+                                                                        <div className="px-3 py-2 text-center">État</div>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-[auto_1fr_1fr_auto] text-[11px] font-bold text-text hover:bg-primary/5 transition-colors">
+                                                                        <div className="px-3 py-2.5 text-text-muted font-black text-[10px] uppercase">CIN</div>
+                                                                        <div className="px-3 py-2.5 truncate font-mono text-primary" title={cardVerifyResult.extracted_cin || '—'}>
+                                                                            {cardVerifyResult.extracted_cin}
+                                                                        </div>
+                                                                        <div className="px-3 py-2.5 truncate font-mono" title={cardVerifyResult.cin_expected}>
+                                                                            {cardVerifyResult.cin_expected || <span className="text-text-muted italic">Non configuré</span>}
+                                                                        </div>
+                                                                        <div className="px-3 py-2.5 flex justify-center">
+                                                                            {cardVerifyResult.cin_matched
+                                                                                ? <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center"><Check size={10} className="text-emerald-500" /></span>
+                                                                                : <span className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center"><X size={10} className="text-red-500" /></span>
+                                                                            }
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-[auto_1fr_1fr_auto] text-[11px] font-bold text-text hover:bg-primary/5 transition-colors border-t border-glass-border/10">
+                                                                        <div className="px-3 py-2.5 text-text-muted font-black text-[10px] uppercase">Visage</div>
+                                                                        <div className="px-3 py-2.5 truncate font-mono text-primary">
+                                                                            {cardVerifyResult.face_similarity_percentage !== undefined 
+                                                                                ? `Similitude: ${Math.round(cardVerifyResult.face_similarity_percentage)}%` 
+                                                                                : (cardVerifyResult.success ? 'Identité confirmée' : 'En attente...')
+                                                                            }
+                                                                        </div>
+                                                                        <div className="px-3 py-2.5 truncate font-mono">
+                                                                            Biométrique {cardVerifyResult.face_similarity_percentage !== undefined ? '(> 70%)' : ''}
+                                                                        </div>
+                                                                        <div className="px-3 py-2.5 flex justify-center">
+                                                                            {cardVerifyResult.face_matched
+                                                                                ? <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center"><Check size={10} className="text-emerald-500" /></span>
+                                                                                : <span className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center"><X size={10} className="text-red-500" /></span>
+                                                                            }
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Retry scan action if mismatch */}
+                                                                {!cardVerifyResult.success && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            // 1. Reset all verification states
+                                                                            setCardVerifyResult(null);
+                                                                            setIsCardVerified(false);
+                                                                            setVerificationStep('QR_SCAN');
+                                                                            setCardImageBlob(null);
+                                                                            setCameraError("");
+                                                                            setVerificationFeedback(null);
+                                                                            
+                                                                            // 2. "Blink" the camera to show a fresh start
+                                                                            setIsCameraReady(false);
+                                                                            setTimeout(() => {
+                                                                                setIsCameraReady(true);
+                                                                            }, 300);
+                                                                        }}
+                                                                        className="w-full py-2.5 rounded-xl border border-glass-border bg-surface/50 text-xs font-black text-text-muted hover:text-primary hover:border-primary/30 transition-all uppercase tracking-wider"
+                                                                    >
+                                                                        Réinitialiser et réessayer
+                                                                    </button>
+                                                                )}                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2 mb-4 sm:mb-0">
                                         <button
                                             onClick={closeExamSetup}
@@ -2068,11 +2681,10 @@ const CoursePreviewPage: React.FC = () => {
                                         </button>
                                         <button
                                             onClick={() => {
-                                                const settings = course?.finalExam?.settings;
-                                                const needsCamera = settings?.isAiDetectionEnabled;
-                                                if ((!needsCamera || isCameraReady) && isAgreedToTerms) startExam();
+                                                const vMode = course?.finalExam?.settings?.verificationMode || 'none';
+                                                if (isAgreedToTerms && (vMode === 'none' || isCardVerified)) startExam();
                                             }}
-                                            disabled={(course?.finalExam?.settings?.isAiDetectionEnabled && !isCameraReady) || !isAgreedToTerms}
+                                            disabled={!isAgreedToTerms || ((course?.finalExam?.settings?.verificationMode || 'none') !== 'none' && !isCardVerified)}
                                             className="flex-[2] btn-primary py-4 sm:py-5 rounded-xl sm:rounded-2xl text-base sm:text-lg font-black shadow-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed group active:scale-95"
                                         >
                                             Lancer <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform sm:w-[22px] sm:h-[22px]" />

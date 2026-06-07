@@ -28,6 +28,7 @@ import {
     ChevronLeft,
     Youtube,
     FileText,
+    PlayCircle,
     HelpCircle,
     Upload,
     X,
@@ -630,7 +631,8 @@ const QuizEditorModal: React.FC<{
             detectLookingAway: true,
             detectTabSwitch: true,
             detectFullscreenExit: true,
-            detectWindowBlur: true
+            detectWindowBlur: true,
+            detectSound: true
         };
         // Ensure mode is set if missing from initial settings
         if (!baseSettings.mode) {
@@ -1808,6 +1810,7 @@ const QuizEditorModal: React.FC<{
                                                         { key: 'detectMultiplePersons' as const, icon: '👥', label: 'Plusieurs personnes', desc: 'Détecter la présence de plus d\'une personne' },
                                                         { key: 'detectForbiddenObjects' as const, icon: '🚫', label: 'Objets interdits', desc: 'Détecter livres, tablettes, écrans, etc.' },
                                                         { key: 'detectLookingAway' as const, icon: '👀', label: 'Regard détourné', desc: 'Détecter quand l\'apprenant ne regarde pas l\'écran' },
+                                                        { key: 'detectSound' as const, icon: '🎙️', label: 'Détection sonore', desc: 'Détecter la parole ou bruit continu' },
                                                     ].map(item => (
                                                         <div key={item.key} className="flex items-center justify-between p-3 bg-surface/50 rounded-xl border border-glass-border/50 hover:border-primary/20 transition-all">
                                                             <div className="flex items-center gap-3">
@@ -1827,6 +1830,33 @@ const QuizEditorModal: React.FC<{
                                                     ))}
                                                 </div>
                                             )}
+
+                                            {/* Identity Verification Settings */}
+                                            <div className="space-y-4 pt-4 border-t border-glass-border/50">
+                                                <p className="text-xs font-black uppercase text-text-muted tracking-widest">Vérification d'identité</p>
+                                                
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                    {[
+                                                        { key: 'none' as const, icon: '🔓', label: 'Aucune', desc: 'Pas de scan' },
+                                                        { key: 'qr_only' as const, icon: '📱', label: 'QR Code', desc: 'Code QR uniquement' },
+                                                        { key: 'face_check' as const, icon: '👤', label: 'QR + Visage', desc: 'QR, Carte et Visage' },
+                                                    ].map(mode => (
+                                                        <button
+                                                            key={mode.key}
+                                                            onClick={() => setSettings({ ...settings, verificationMode: mode.key })}
+                                                            className={`p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all ${
+                                                                (settings.verificationMode || 'none') === mode.key
+                                                                    ? 'bg-primary/10 border-primary text-primary shadow-lg shadow-primary/10'
+                                                                    : 'bg-surface/50 border-glass-border/50 text-text-muted hover:border-primary/30'
+                                                            }`}
+                                                        >
+                                                            <span className="text-2xl">{mode.icon}</span>
+                                                            <span className="font-bold text-[11px]">{mode.label}</span>
+                                                            <span className="text-[9px] opacity-70">{mode.desc}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
 
                                             {/* Browser-level Anti-Cheat Controls (always visible) */}
                                             <div className="space-y-4 pt-4 border-t border-glass-border/50">

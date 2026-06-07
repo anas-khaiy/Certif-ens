@@ -72,6 +72,7 @@ public class AuthenticationService {
                                 .role("APPRENANT")
                                 .photoProfile(apprenant.getPhotoProfile())
                                 .specialite(apprenant.getSpecialite() != null ? apprenant.getSpecialite().getNom() : null)
+                                .cin(apprenant.getCin())
                                 .mfaEnabled(false)
                                 .mfaRequired(false)
                                 .build();
@@ -96,6 +97,7 @@ public class AuthenticationService {
                                 .role("APPRENANT")
                                 .photoProfile(apprenant.getPhotoProfile())
                                 .specialite(apprenant.getSpecialite() != null ? apprenant.getSpecialite().getNom() : null)
+                                .cin(apprenant.getCin())
                                 .mfaEnabled(true)
                                 .mfaRequired(false)
                                 .build();
@@ -145,6 +147,7 @@ public class AuthenticationService {
                                 .role("APPRENANT")
                                 .photoProfile(apprenant.getPhotoProfile())
                                 .specialite(apprenant.getSpecialite() != null ? apprenant.getSpecialite().getNom() : null)
+                                .cin(apprenant.getCin())
                                 .build();
         }
 

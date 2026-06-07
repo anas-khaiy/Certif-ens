@@ -122,6 +122,14 @@ public class EmailService {
     }
 
     public void sendApprenantWelcomeEmail(String toEmail, String prenom, String password) {
+        sendWelcomeEmail(toEmail, prenom, password, "Apprenant");
+    }
+
+    public void sendEnseignantWelcomeEmail(String toEmail, String prenom, String password) {
+        sendWelcomeEmail(toEmail, prenom, password, "Formateur");
+    }
+
+    private void sendWelcomeEmail(String toEmail, String prenom, String password, String roleName) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -130,7 +138,7 @@ public class EmailService {
             helper.setSubject("🎓 Certif.fun — Bienvenue sur votre plateforme !");
             helper.setFrom("Certif.fun <noreply@certif.fun>");
 
-            String html = buildWelcomeEmailHtml(prenom, toEmail, password);
+            String html = buildWelcomeEmailHtml(prenom, toEmail, password, roleName);
             helper.setText(html, true); // true = isHtml
 
             mailSender.send(message);
@@ -139,7 +147,7 @@ public class EmailService {
         }
     }
 
-    private String buildWelcomeEmailHtml(String prenom, String email, String password) {
+    private String buildWelcomeEmailHtml(String prenom, String email, String password, String roleName) {
         return """
                 <!DOCTYPE html>
                 <html lang="fr">
@@ -164,7 +172,7 @@ public class EmailService {
                                         <td style="padding:40px;">
                                             <p style="color:#94a3b8;font-size:15px;margin:0 0 8px;">Bonjour, <strong style="color:#e2e8f0;">%s</strong> 👋</p>
                                             <p style="color:#94a3b8;font-size:15px;margin:0 0 32px;line-height:1.6;">
-                                                Votre compte Apprenant a été créé avec succès sur <strong>Certif.fun</strong>.
+                                                Votre compte <strong>%s</strong> a été créé avec succès sur <strong>Certif.fun</strong>.
                                             </p>
                                             <div style="background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.15));
                                                         border:2px solid rgba(99,102,241,0.4);border-radius:16px;padding:28px;text-align:center;margin-bottom:32px;">
@@ -192,6 +200,6 @@ public class EmailService {
                     </table>
                 </body>
                 </html>
-                """.formatted(prenom, email, password);
+                """.formatted(prenom, roleName, email, password);
     }
 }

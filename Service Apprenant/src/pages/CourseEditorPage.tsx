@@ -418,6 +418,7 @@ interface QuizSettings {
     openCount: number;
     passingScore: number; // Percentage required to pass
     generatedPool?: Question[]; // The hidden bank for this quiz
+    detectSound?: boolean;
 }
 
 interface Quiz {
