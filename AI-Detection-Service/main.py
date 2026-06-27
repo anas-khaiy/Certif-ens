@@ -27,11 +27,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
-        "http://localhost:6173", "http://localhost:6174", "http://localhost:6175",
-        "https://certif.fun",
-        "https://certif.fun:5173",
-        "https://certif.fun:5174",
-        "https://certif.fun:5175"
+        "http://localhost:6173", "http://localhost:6174", "http://localhost:6175"
     ],
     allow_credentials=True,
     allow_methods=["*"],

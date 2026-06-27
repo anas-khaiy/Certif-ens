@@ -15,7 +15,8 @@ import {
     Video,
     Layers,
     Award,
-    ClipboardList
+    ClipboardList,
+    FolderSearch
 } from 'lucide-react';
 import { useReminders } from '../../hooks/useReminders';
 import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../../config';
@@ -153,6 +154,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <SidebarItem to="/live-code" icon={<Code size={20} />} label="Code Tracker" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/live-class" icon={<Video size={20} />} label="Classe Virtuelle" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/encadrement" icon={<ClipboardList size={20} />} label="Encadrement" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/suivi-pfe" icon={<FolderSearch size={20} />} label="Suivi PFE" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/settings" icon={<Settings size={20} />} label="Paramètres" onClick={closeSidebarOnMobile} />
 
                     {/* Section Apprenant */}

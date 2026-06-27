@@ -12,7 +12,8 @@ import {
     BookOpen,
     Code,
     Video,
-    ClipboardList
+    ClipboardList,
+    FolderOpen
 } from 'lucide-react';
 import ReminderOverlay from '../Notifications/ReminderOverlay';
 import { useReminders } from '../../hooks/useReminders';
@@ -148,7 +149,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     })()}
 
                     <SidebarItem to="/settings" icon={<Settings size={20} />} label="Paramètres" onClick={closeSidebarOnMobile} />
-                    <SidebarItem to="/encadrement" icon={<ClipboardList size={20} />} label="Mon Encadrement" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/encadrement" icon={<ClipboardList size={20} />} label="Mes Tâches" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/mon-pfe" icon={<FolderOpen size={20} />} label="Mon PFE" onClick={closeSidebarOnMobile} />
 
                     {/* Spacer to push logout to bottom if space permits */}
                     <div className="flex-1" />

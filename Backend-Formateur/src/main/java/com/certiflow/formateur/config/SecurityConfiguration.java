@@ -92,8 +92,7 @@ public class SecurityConfiguration {
                                 "http://10.10.10.2:*",
                                 "http://217.65.145.127:*",
                                 "https://217.65.145.127:*",
-                                "https://certif.fun",
-                                "https://certif.fun:*"));
+                                "http://localhost:*"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));

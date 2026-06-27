@@ -40,11 +40,13 @@ public class SecurityConfiguration {
                                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                                 .requestMatchers("/api/v1/verify/**").permitAll()
                                                 .requestMatchers("/api/v1/files/**").permitAll()
+                                                .requestMatchers("/api/v1/mon-pfe/download/**").permitAll()
                                                 .requestMatchers("/api/v1/courses/**").permitAll()
                                                 .requestMatchers("/api/v1/specialites/**").permitAll()
                                                 .requestMatchers("/ws/**").permitAll()
                                                 .requestMatchers("/error").permitAll()
                                                 .anyRequest().authenticated())
+                                .headers(headers -> headers.frameOptions(org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig::disable))
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authenticationProvider(authenticationProvider)
@@ -68,8 +70,7 @@ public class SecurityConfiguration {
                                 "http://10.10.10.2:*",
                                 "http://217.65.145.127:*",
                                 "https://217.65.145.127:*",
-                                "https://certif.fun",
-                                "https://certif.fun:*"));
+                                "http://localhost:*"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));

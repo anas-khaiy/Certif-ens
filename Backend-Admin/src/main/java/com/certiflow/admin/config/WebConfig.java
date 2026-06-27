@@ -22,13 +22,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "https://217.65.145.127:5443",
                         "https://217.65.145.127:5444",
                         "https://217.65.145.127:5445",
-                        "https://certif.fun",
-                        "https://certif.fun:5173",
-                        "https://certif.fun:5174",
-                        "https://certif.fun:5175",
-                        "https://certif.fun:5443",
-                        "https://certif.fun:5444",
-                        "https://certif.fun:5445"
+                        "http://localhost:5443",
+                        "http://localhost:5444",
+                        "http://localhost:5445"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")

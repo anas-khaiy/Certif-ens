@@ -36,3 +36,4 @@ htmlcov/
 *.pdf
 # Ignore the large zip and pdf files if they are just backups/extracts
 # *.zip was already there, but let's be explicit if needed
+venv/

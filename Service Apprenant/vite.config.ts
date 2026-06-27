@@ -7,6 +7,6 @@ export default defineConfig({
   server: {
     port: 6175,
     host: true,
-    allowedHosts: ['certif.fun', 'localhost'],
+    allowedHosts: ['localhost'],
   },
 })

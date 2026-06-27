@@ -1,0 +1,32 @@
+package com.certiflow.admin.model;
+
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
+
+@Entity
+@Table(name = "coordinateurs")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Coordinateur {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nom;
+    private String prenom;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Column(nullable = false)
+    private String motDePasse;
+
+    @Builder.Default
+    @Column(columnDefinition = "varchar(255) default 'default.png'")
+    private String photoProfile = "default.png";
+}

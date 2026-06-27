@@ -129,6 +129,10 @@ public class EmailService {
         sendWelcomeEmail(toEmail, prenom, password, "Formateur");
     }
 
+    public void sendCoordinateurWelcomeEmail(String toEmail, String prenom, String password) {
+        sendWelcomeEmail(toEmail, prenom, password, "Coordinateur");
+    }
+
     private void sendWelcomeEmail(String toEmail, String prenom, String password, String roleName) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -180,7 +184,7 @@ public class EmailService {
                                                 <p style="color:#e2e8f0;font-size:16px;margin:0 0 12px;"><strong>Mot de passe:</strong> %s</p>
                                             </div>
                                             <div style="text-align:center;margin-bottom:32px;">
-                                                <a href="http://certif.fun/login" style="background-color:#6366f1;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">Se connecter</a>
+                                                <a href="http://localhost:6173/login" style="background-color:#6366f1;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">Se connecter</a>
                                             </div>
                                             <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:16px;margin-bottom:32px;">
                                                 <p style="color:#f87171;font-size:13px;margin:0;line-height:1.6;">

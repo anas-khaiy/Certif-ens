@@ -54,4 +54,12 @@ public class Apprenant {
     private boolean mfaEnabled = false;
 
     private String mfaSecret;
+
+    @ManyToOne
+    @JoinColumn(name = "encadrant_id")
+    private Enseignant encadrant;
+
+    @ManyToOne
+    @JoinColumn(name = "coordinateur_id")
+    private Coordinateur coordinateur;
 }

@@ -18,6 +18,7 @@ import FormationsPage from './pages/FormationsPage';
 import AdminBundleEnrollmentPage from './pages/AdminBundleEnrollmentPage';
 import AdminBundleManagementPage from './pages/AdminBundleManagementPage';
 import BundleStatsPage from './pages/BundleStatsPage';
+import CoordinateursPage from './pages/CoordinateursPage';
 import api from './api/api-client';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -146,6 +147,16 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <FormationsPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/coordinateurs"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <CoordinateursPage />
               </Layout>
             </PrivateRoute>
           }

@@ -26,6 +26,7 @@ import MyEnrolledBundlesPage from './pages/MyEnrolledBundlesPage';
 import NotificationsPage from './pages/NotificationsPage';
 import EncadrementPage from './pages/EncadrementPage';
 import EncadrementStatisticsPage from './pages/EncadrementStatisticsPage';
+import SuiviPfePage from './pages/SuiviPfePage';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
@@ -300,6 +301,17 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <EncadrementStatisticsPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/suivi-pfe"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <SuiviPfePage />
               </Layout>
             </PrivateRoute>
           }

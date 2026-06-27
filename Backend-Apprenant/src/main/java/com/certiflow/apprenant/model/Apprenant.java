@@ -57,6 +57,35 @@ public class Apprenant implements UserDetails {
     @JsonIgnore
     private String mfaSecret;
 
+    @ManyToOne
+    @JoinColumn(name = "encadrant_id")
+    private Enseignant encadrant;
+
+    @Column(name = "coordinateur_id")
+    private Long coordinateurId;
+
+    private java.time.LocalDateTime dateSoutenance;
+
+    @OneToOne(mappedBy = "apprenant")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("apprenant")
+    private Sujet sujetDetails;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "apprenant_examinateurs",
+        joinColumns = @JoinColumn(name = "apprenant_id"),
+        inverseJoinColumns = @JoinColumn(name = "enseignant_id")
+    )
+    private java.util.Set<Enseignant> examinateurs;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "apprenant_rapporteurs",
+        joinColumns = @JoinColumn(name = "apprenant_id"),
+        inverseJoinColumns = @JoinColumn(name = "enseignant_id")
+    )
+    private java.util.Set<Enseignant> rapporteurs;
+
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {

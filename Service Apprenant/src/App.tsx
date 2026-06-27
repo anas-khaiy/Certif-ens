@@ -21,6 +21,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import CodeEditorPage from './pages/CodeEditorPage';
 import LiveClassPage from './pages/LiveClassPage';
 import EncadrementApprenantPage from './pages/EncadrementApprenantPage';
+import MonPfePage from './pages/MonPfePage';
 
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -240,6 +241,17 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <EncadrementApprenantPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/mon-pfe"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <MonPfePage />
               </Layout>
             </PrivateRoute>
           }

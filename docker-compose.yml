@@ -152,6 +152,34 @@ services:
     ports:
       - "6175:6175"
 
+  # Backend Coordinateur
+  backend-coordinateur:
+    build: 
+      context: ./Backend-Coordinateur
+    container_name: certiflow-backend-coordinateur
+    ports:
+      - "9094:9094"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - certif_uploads_data:/app/uploads
+
+  # Frontend Coordinateur
+  service-coordinateur:
+    build: 
+      context: ./Service Coordinateur
+    container_name: certiflow-frontend-coordinateur
+    ports:
+      - "6176:6176"
+
   # LiveKit Server (Video Conferencing / Google Meet alternative)
   livekit:
     image: livekit/livekit-server:latest
