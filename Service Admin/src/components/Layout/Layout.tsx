@@ -20,7 +20,8 @@ import {
     BookOpen,
     PackageCheck,
     Briefcase,
-    UserCog
+    UserCog,
+    Building2
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -165,6 +166,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <SidebarItem to="/cycles" icon={<RefreshCw size={20} />} label="Cycles" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/formations" icon={<BookOpen size={20} />} label="Formations" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/specialities" icon={<Layers size={20} />} label="Spécialités" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
+                    <SidebarItem to="/departements" icon={<Building2 size={20} />} label="Départements" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/certificates" icon={<Award size={20} />} label="Certificats" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/admin-bundles" icon={<Briefcase size={20} className="text-secondary" />} label="Gestion des Parcours" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/bundle-enrollments" icon={<PackageCheck size={20} />} label="Inscriptions Parcours" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />

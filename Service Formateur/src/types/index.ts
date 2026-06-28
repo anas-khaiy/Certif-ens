@@ -130,3 +130,18 @@ export interface Question {
     options: string[];
     correctAnswers: number[];
 }
+
+export interface Sujet {
+    id: number;
+    titre: string;
+    description: string;
+    objectifs: string[];
+    formateur?: Trainer;
+}
+
+export interface SujetPropositionConfig {
+    id?: number;
+    coordinateurId?: number;
+    nombreSujetsParFormateur: number;
+    formateursConcernes: Trainer[];
+}

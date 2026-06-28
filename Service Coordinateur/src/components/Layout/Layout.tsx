@@ -154,6 +154,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/affectations" icon={<UserCheck size={20} />} label="Affectations" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/sujets" icon={<Target size={20} />} label="Sujets & Objectifs" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
+                    <SidebarItem to="/config-sujets" icon={<Settings size={20} />} label="Config. Sujets" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/deadlines" icon={<Calendar size={20} />} label="Dates Limites" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/depots" icon={<FileText size={20} />} label="Dépôts PFE" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/jury" icon={<Users size={20} />} label="Jury & Soutenances" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />

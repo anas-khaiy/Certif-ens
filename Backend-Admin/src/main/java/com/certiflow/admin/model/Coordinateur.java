@@ -29,4 +29,12 @@ public class Coordinateur {
     @Builder.Default
     @Column(columnDefinition = "varchar(255) default 'default.png'")
     private String photoProfile = "default.png";
+
+    @ManyToOne
+    @JoinColumn(name = "departement_id")
+    private Departement departement;
+
+    @ManyToOne
+    @JoinColumn(name = "specialite_id")
+    private Specialite specialite;
 }

@@ -103,6 +103,9 @@ export default function SujetsPage() {
     const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     
     const [newObjectif, setNewObjectif] = useState('');
+    const [proposedSujets, setProposedSujets] = useState<Sujet[]>([]);
+    const [loadingProposed, setLoadingProposed] = useState(false);
+    const [selectedSujetId, setSelectedSujetId] = useState<number | null>(null);
 
     const showToast = (type: 'success' | 'error', text: string) => {
         setToast({ type, text });
@@ -117,9 +120,16 @@ export default function SujetsPage() {
     useEffect(() => {
         if (selectedApprenant && isModalOpen) {
             fetchSujet(selectedApprenant.id);
+            if (selectedApprenant.encadrant) {
+                fetchProposedSujets(selectedApprenant.encadrant.id);
+            } else {
+                setProposedSujets([]);
+            }
         } else {
             setSujet({ titre: '', description: '', objectifs: [] });
             setNewObjectif('');
+            setProposedSujets([]);
+            setSelectedSujetId(null);
         }
     }, [selectedApprenant, isModalOpen]);
 
@@ -141,6 +151,19 @@ export default function SujetsPage() {
             showToast('error', "Erreur lors du chargement des apprenants");
         } finally {
             setLoadingApprenants(false);
+        }
+    };
+
+    const fetchProposedSujets = async (encadrantId: number) => {
+        setLoadingProposed(true);
+        try {
+            const res = await api.get(`/affectation/formateur/${encadrantId}/sujets-disponibles`);
+            setProposedSujets(res.data || []);
+        } catch (error) {
+            console.error('Erreur chargement des sujets proposés', error);
+            setProposedSujets([]);
+        } finally {
+            setLoadingProposed(false);
         }
     };
 
@@ -174,7 +197,15 @@ export default function SujetsPage() {
 
         setSaving(true);
         try {
-            const res = await api.put(`/affectation/apprenant/${selectedApprenant.id}/sujet`, sujet);
+            let res;
+            if (selectedSujetId) {
+                // Link existing proposed subject
+                res = await api.post(`/affectation/apprenant/${selectedApprenant.id}/affecter-sujet/${selectedSujetId}`);
+            } else {
+                // Manual input or custom update
+                res = await api.put(`/affectation/apprenant/${selectedApprenant.id}/sujet`, sujet);
+            }
+            
             showToast('success', "Sujet et objectifs enregistrés avec succès !");
             
             // Update local state so tags update immediately
@@ -459,12 +490,64 @@ export default function SujetsPage() {
                                                 <h3 className="text-lg font-bold text-text">Sujet du Projet</h3>
                                             </div>
                                             <div className="space-y-4">
+                                                {selectedApprenant?.encadrant ? (
+                                                    <div>
+                                                        <label className="block text-sm font-semibold text-text-muted mb-2">
+                                                            Choisir parmi les suggestions de l'encadrant ({selectedApprenant.encadrant.prenom} {selectedApprenant.encadrant.nom})
+                                                        </label>
+                                                        {loadingProposed ? (
+                                                            <div className="flex items-center gap-2 text-text-muted text-sm py-2">
+                                                                <Loader2 size={16} className="animate-spin" /> Chargement des sujets...
+                                                            </div>
+                                                        ) : proposedSujets.length > 0 ? (
+                                                            <select
+                                                                value={selectedSujetId || ''}
+                                                                onChange={e => {
+                                                                    const val = e.target.value;
+                                                                    if (val) {
+                                                                        const parsedId = parseInt(val);
+                                                                        const pSujet = proposedSujets.find(s => s.id === parsedId);
+                                                                        if (pSujet) {
+                                                                            setSujet({
+                                                                                id: pSujet.id,
+                                                                                titre: pSujet.titre,
+                                                                                description: pSujet.description || '',
+                                                                                objectifs: pSujet.objectifs || []
+                                                                            });
+                                                                            setSelectedSujetId(parsedId);
+                                                                        }
+                                                                    } else {
+                                                                        setSelectedSujetId(null);
+                                                                        setSujet({ titre: '', description: '', objectifs: [] });
+                                                                    }
+                                                                }}
+                                                                className="form-input appearance-none w-full font-bold bg-surface"
+                                                            >
+                                                                <option value="">-- Saisie manuelle --</option>
+                                                                {proposedSujets.map(s => (
+                                                                    <option key={s.id} value={s.id}>{s.titre}</option>
+                                                                ))}
+                                                            </select>
+                                                        ) : (
+                                                            <div className="text-sm text-text-muted italic px-3 py-2 bg-surface-hover/30 rounded-lg border border-glass-border">
+                                                                Aucun sujet proposé par cet encadrant pour le moment. Saisissez manuellement ci-dessous.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-sm text-text-muted italic px-3 py-2 bg-surface-hover/30 rounded-lg border border-glass-border">
+                                                        Cet apprenant n'a pas d'encadrant. Saisissez le sujet manuellement ci-dessous.
+                                                    </div>
+                                                )}
                                                 <div>
                                                     <label className="block text-sm font-semibold text-text-muted mb-2">Titre du sujet</label>
                                                     <input 
                                                         type="text" 
                                                         value={sujet.titre}
-                                                        onChange={e => setSujet({...sujet, titre: e.target.value})}
+                                                        onChange={e => {
+                                                            setSujet({...sujet, titre: e.target.value});
+                                                            if (selectedSujetId) setSelectedSujetId(null);
+                                                        }}
                                                         placeholder="Ex: Mise en place d'une architecture Microservices..."
                                                         className="form-input w-full font-bold"
                                                     />
@@ -473,7 +556,10 @@ export default function SujetsPage() {
                                                     <label className="block text-sm font-semibold text-text-muted mb-2">Description (Optionnel)</label>
                                                     <textarea 
                                                         value={sujet.description}
-                                                        onChange={e => setSujet({...sujet, description: e.target.value})}
+                                                        onChange={e => {
+                                                            setSujet({...sujet, description: e.target.value});
+                                                            if (selectedSujetId) setSelectedSujetId(null);
+                                                        }}
                                                         placeholder="Brève description du projet..."
                                                         className="form-input w-full min-h-[120px] resize-y leading-relaxed"
                                                     />
@@ -498,7 +584,10 @@ export default function SujetsPage() {
                                                     className="form-input flex-1 text-sm"
                                                 />
                                                 <button 
-                                                    onClick={addObjectif}
+                                                    onClick={() => {
+                                                        addObjectif();
+                                                        if (selectedSujetId) setSelectedSujetId(null);
+                                                    }}
                                                     className="px-6 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-md shadow-primary/20 flex items-center gap-2"
                                                 >
                                                     <Plus size={18} />
@@ -523,7 +612,10 @@ export default function SujetsPage() {
                                                                 {obj}
                                                             </p>
                                                             <button 
-                                                                onClick={() => removeObjectif(idx)}
+                                                                onClick={() => {
+                                                                    removeObjectif(idx);
+                                                                    if (selectedSujetId) setSelectedSujetId(null);
+                                                                }}
                                                                 className="opacity-0 group-hover:opacity-100 p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-all"
                                                             >
                                                                 <X size={16} />

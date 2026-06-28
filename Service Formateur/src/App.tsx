@@ -27,6 +27,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import EncadrementPage from './pages/EncadrementPage';
 import EncadrementStatisticsPage from './pages/EncadrementStatisticsPage';
 import SuiviPfePage from './pages/SuiviPfePage';
+import ProposerSujetPage from './pages/ProposerSujetPage';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
@@ -317,7 +318,18 @@ function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route
+          path="/proposer-sujet"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ProposerSujetPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

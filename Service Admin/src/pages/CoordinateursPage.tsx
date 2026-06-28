@@ -13,15 +13,18 @@ import {
     CheckCircle2,
     AlertCircle,
     UserCog,
-    ChevronDown
+    ChevronDown,
+    Building2,
+    Layers
 } from 'lucide-react';
-import type { Coordinateur, Enseignant, Specialite } from '../types';
+import type { Coordinateur, Enseignant, Specialite, Departement } from '../types';
 import api from '../api/api-client';
 
 const CoordinateursPage = () => {
     const [coordinateurs, setCoordinateurs] = useState<Coordinateur[]>([]);
     const [enseignants, setEnseignants] = useState<Enseignant[]>([]);
     const [specialites, setSpecialites] = useState<Specialite[]>([]);
+    const [departements, setDepartements] = useState<Departement[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -31,7 +34,7 @@ const CoordinateursPage = () => {
     
     // For the modal
     const [activeTab, setActiveTab] = useState<'manuel' | 'formateur'>('manuel');
-    const [formData, setFormData] = useState({ nom: '', prenom: '', email: '' });
+    const [formData, setFormData] = useState({ nom: '', prenom: '', email: '', departementId: '', specialiteId: '' });
     const [selectedFormateurId, setSelectedFormateurId] = useState<string>('');
     
     // Formateur List states
@@ -53,6 +56,7 @@ const CoordinateursPage = () => {
         fetchCoordinateurs();
         fetchEnseignants();
         fetchSpecialites();
+        fetchDepartements();
     }, []);
 
     const fetchCoordinateurs = async () => {
@@ -85,18 +89,35 @@ const CoordinateursPage = () => {
         }
     };
 
+    const fetchDepartements = async () => {
+        try {
+            const response = await api.get('/departements');
+            setDepartements(response.data);
+        } catch (error) {
+            console.error("Failed to fetch departements", error);
+        }
+    };
+
     const handleAddOrUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
+            const payload: any = {
+                nom: formData.nom,
+                prenom: formData.prenom,
+                email: formData.email,
+                departement: formData.departementId ? { id: Number(formData.departementId) } : null,
+                specialite: formData.specialiteId ? { id: Number(formData.specialiteId) } : null,
+            };
+
             if (editingCoordinateur) {
                 // UPDATE
-                await api.put(`/coordinateurs/${editingCoordinateur.id}`, formData);
+                await api.put(`/coordinateurs/${editingCoordinateur.id}`, payload);
                 setMessage({ type: 'success', text: 'Coordinateur mis à jour avec succès.' });
             } else {
                 // CREATE
                 if (activeTab === 'manuel') {
-                    await api.post('/coordinateurs', formData);
+                    await api.post('/coordinateurs', payload);
                 } else {
                     if (!selectedFormateurId) {
                         throw new Error("Veuillez sélectionner un formateur.");
@@ -161,11 +182,17 @@ const CoordinateursPage = () => {
     const openModal = (coordinateur?: Coordinateur) => {
         if (coordinateur) {
             setEditingCoordinateur(coordinateur);
-            setFormData({ nom: coordinateur.nom, prenom: coordinateur.prenom, email: coordinateur.email });
+            setFormData({
+                nom: coordinateur.nom,
+                prenom: coordinateur.prenom,
+                email: coordinateur.email,
+                departementId: coordinateur.departement ? String(coordinateur.departement.id) : '',
+                specialiteId: coordinateur.specialite ? String(coordinateur.specialite.id) : '',
+            });
             setActiveTab('manuel');
         } else {
             setEditingCoordinateur(null);
-            setFormData({ nom: '', prenom: '', email: '' });
+            setFormData({ nom: '', prenom: '', email: '', departementId: '', specialiteId: '' });
             setSelectedFormateurId('');
             setActiveTab('manuel');
         }
@@ -351,6 +378,8 @@ const CoordinateursPage = () => {
                                 </th>
                                 <th>Nom & Prénom</th>
                                 <th>Email</th>
+                                <th>Département</th>
+                                <th>Spécialité</th>
                                 <th className="text-center">Actions</th>
                             </tr>
                         </thead>
@@ -368,6 +397,8 @@ const CoordinateursPage = () => {
                                         </td>
                                         <td className="font-bold text-text capitalize">{coord.nom} {coord.prenom}</td>
                                         <td>{coord.email}</td>
+                                        <td className="capitalize">{coord.departement?.nom || <span className="text-text-muted">—</span>}</td>
+                                        <td className="capitalize">{coord.specialite?.nom || <span className="text-text-muted">—</span>}</td>
                                         <td>
                                             <div className="flex justify-center gap-2">
                                                 <button onClick={() => openModal(coord)} className="w-9 h-9 p-0 text-primary hover:bg-primary/10 rounded-xl transition-all icon-container">
@@ -382,7 +413,7 @@ const CoordinateursPage = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4} className="py-20 text-text-muted font-medium text-center">Aucun coordinateur trouvé</td>
+                                    <td colSpan={6} className="py-20 text-text-muted font-medium text-center">Aucun coordinateur trouvé</td>
                                 </tr>
                             )}
                         </tbody>
@@ -487,6 +518,41 @@ const CoordinateursPage = () => {
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="form-group">
+                                            <label className="form-label">Département</label>
+                                            <div className="relative">
+                                                <select
+                                                    className="form-input appearance-none w-full bg-surface"
+                                                    value={formData.departementId}
+                                                    onChange={(e) => setFormData({ ...formData, departementId: e.target.value })}
+                                                >
+                                                    <option value="">— Aucun —</option>
+                                                    {departements.map(d => (
+                                                        <option key={d.id} value={String(d.id)}>{d.nom}</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Spécialité</label>
+                                            <div className="relative">
+                                                <select
+                                                    className="form-input appearance-none w-full bg-surface"
+                                                    value={formData.specialiteId}
+                                                    onChange={(e) => setFormData({ ...formData, specialiteId: e.target.value })}
+                                                >
+                                                    <option value="">— Aucune —</option>
+                                                    {specialites.map(s => (
+                                                        <option key={s.id} value={String(s.id)}>{s.nom}</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                                            </div>
                                         </div>
                                     </div>
                                 </>

@@ -62,3 +62,10 @@ export interface DashboardStats {
     certificationsCount: number;
     successRate: number;
 }
+
+export interface SujetPropositionConfig {
+    id?: number;
+    coordinateurId?: number;
+    nombreSujetsParFormateur: number;
+    formateursConcernes: Enseignant[];
+}

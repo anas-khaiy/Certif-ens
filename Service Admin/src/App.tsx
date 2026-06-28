@@ -19,6 +19,7 @@ import AdminBundleEnrollmentPage from './pages/AdminBundleEnrollmentPage';
 import AdminBundleManagementPage from './pages/AdminBundleManagementPage';
 import BundleStatsPage from './pages/BundleStatsPage';
 import CoordinateursPage from './pages/CoordinateursPage';
+import DepartementsPage from './pages/DepartementsPage';
 import api from './api/api-client';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -157,6 +158,16 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <CoordinateursPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/departements"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <DepartementsPage />
               </Layout>
             </PrivateRoute>
           }

@@ -4,6 +4,7 @@ import Layout from './components/Layout/Layout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
+import ConfigSujetsPage from './pages/ConfigSujetsPage';
 import AffectationPage from './pages/AffectationPage';
 import SujetsPage from './pages/SujetsPage';
 import JuryPage from './pages/JuryPage';
@@ -72,6 +73,17 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <SettingsPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/config-sujets"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ConfigSujetsPage />
               </Layout>
             </PrivateRoute>
           }

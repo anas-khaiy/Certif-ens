@@ -62,6 +62,8 @@ public class CoordinateurService {
             coordinateur.setPhotoProfile("default.png");
         }
 
+        // departement and specialite are set directly from the request body (ManyToOne)
+
         Coordinateur saved = coordinateurRepository.save(coordinateur);
 
         // Send welcome email asynchronously
@@ -95,6 +97,7 @@ public class CoordinateurService {
         coordinateur.setPrenom(enseignant.getPrenom());
         coordinateur.setEmail(enseignant.getEmail());
         coordinateur.setPhotoProfile(enseignant.getPhotoProfile() != null ? enseignant.getPhotoProfile() : "default.png");
+        coordinateur.setSpecialite(enseignant.getSpecialite());
 
         // Default password = email
         String password = enseignant.getEmail().toLowerCase().trim();
@@ -131,6 +134,10 @@ public class CoordinateurService {
         if (details.getPhotoProfile() != null && !details.getPhotoProfile().isEmpty()) {
             coordinateur.setPhotoProfile(details.getPhotoProfile());
         }
+
+        // Update departement and specialite
+        coordinateur.setDepartement(details.getDepartement());
+        coordinateur.setSpecialite(details.getSpecialite());
 
         return coordinateurRepository.save(coordinateur);
     }

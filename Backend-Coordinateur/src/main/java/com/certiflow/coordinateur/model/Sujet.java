@@ -31,6 +31,10 @@ public class Sujet {
     private List<String> objectifs = new ArrayList<>();
 
     @OneToOne
-    @JoinColumn(name = "apprenant_id", unique = true)
+    @JoinColumn(name = "apprenant_id", unique = true, nullable = true)
     private Apprenant apprenant;
+
+    @ManyToOne
+    @JoinColumn(name = "formateur_id", referencedColumnName = "id")
+    private Enseignant formateur;
 }

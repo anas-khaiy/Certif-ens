@@ -31,7 +31,11 @@ public class Sujet {
     private List<String> objectifs = new ArrayList<>();
 
     @OneToOne
-    @JoinColumn(name = "apprenant_id", unique = true)
+    @JoinColumn(name = "apprenant_id", unique = true, nullable = true)
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties("sujetDetails")
     private Apprenant apprenant;
+
+    @ManyToOne
+    @JoinColumn(name = "formateur_id", referencedColumnName = "id")
+    private Enseignant formateur;
 }

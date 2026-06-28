@@ -315,7 +315,7 @@ export default function DepotsPage() {
                                                             <span>Prévisualiser</span>
                                                         </button>
                                                         <a 
-                                                            href={`http://localhost:9093/api/v1/mon-pfe/download/${depot.fichierUrl}`}
+                                                            href={`http://192.168.20.25:9093/api/v1/mon-pfe/download/${depot.fichierUrl}`}
                                                             download
                                                             target="_blank"
                                                             rel="noopener noreferrer"
@@ -377,7 +377,7 @@ export default function DepotsPage() {
                             
                             <div className="flex-1 bg-surface-hover/30 relative">
                                 <iframe 
-                                    src={`http://localhost:9093/api/v1/mon-pfe/download/${selectedFichierUrl}`} 
+                                    src={`http://192.168.20.25:9093/api/v1/mon-pfe/download/${selectedFichierUrl}`} 
                                     className="w-full h-full border-none bg-white"
                                     title="Prévisualisation PDF"
                                 />

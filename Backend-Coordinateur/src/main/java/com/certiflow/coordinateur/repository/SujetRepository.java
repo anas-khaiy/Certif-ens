@@ -12,6 +12,7 @@ import java.util.Optional;
 @Repository
 public interface SujetRepository extends JpaRepository<Sujet, Long> {
     Optional<Sujet> findByApprenantId(Long apprenantId);
+    List<Sujet> findByFormateurIdAndApprenantIsNull(Long formateurId);
 
     @Query("SELECT s FROM Sujet s JOIN s.apprenant a WHERE a.coordinateur.id = :coordinateurId")
     List<Sujet> findByCoordinateurId(@Param("coordinateurId") Long coordinateurId);

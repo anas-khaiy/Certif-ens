@@ -8,6 +8,11 @@ export interface Formation {
     nom: string;
 }
 
+export interface Departement {
+    id: number;
+    nom: string;
+}
+
 export interface Cycle {
     id: number;
     nomCycle: string;
@@ -19,7 +24,10 @@ export interface Coordinateur {
     prenom: string;
     email: string;
     photoProfile?: string;
+    departement?: Departement;
+    specialite?: Specialite;
 }
+
 
 export interface Enseignant {
     id: number;

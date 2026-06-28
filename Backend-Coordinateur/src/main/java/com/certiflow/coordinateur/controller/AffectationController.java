@@ -139,6 +139,44 @@ public class AffectationController {
                 .orElse(ResponseEntity.ok(new Sujet()));
     }
 
+    @GetMapping("/formateur/{id}/sujets-disponibles")
+    public ResponseEntity<List<Sujet>> getSujetsDisponiblesByFormateur(@PathVariable Long id) {
+        return ResponseEntity.ok(sujetRepository.findByFormateurIdAndApprenantIsNull(id));
+    }
+
+    @PostMapping("/apprenant/{id}/affecter-sujet/{sujetId}")
+    public ResponseEntity<Sujet> affecterSujet(
+            @PathVariable Long id,
+            @PathVariable Long sujetId) {
+        Apprenant apprenant = apprenantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Apprenant non trouvé"));
+        Long coordinateurId = getCurrentCoordinateurId();
+        if (apprenant.getCoordinateur() != null && !apprenant.getCoordinateur().getId().equals(coordinateurId)) {
+            throw new RuntimeException("Accès non autorisé à cet apprenant");
+        }
+        if (apprenant.getCoordinateur() == null) {
+            Coordinateur coord = coordinateurRepository.findById(coordinateurId).orElseThrow();
+            apprenant.setCoordinateur(coord);
+        }
+        
+        Sujet sujet = sujetRepository.findById(sujetId)
+                .orElseThrow(() -> new RuntimeException("Sujet non trouvé"));
+                
+        sujetRepository.findByApprenantId(id).ifPresent(oldSujet -> {
+            if (!oldSujet.getId().equals(sujetId)) {
+                if (oldSujet.getFormateur() != null) {
+                    oldSujet.setApprenant(null);
+                    sujetRepository.save(oldSujet);
+                } else {
+                    sujetRepository.delete(oldSujet);
+                }
+            }
+        });
+        
+        sujet.setApprenant(apprenant);
+        return ResponseEntity.ok(sujetRepository.save(sujet));
+    }
+
     @PutMapping("/apprenant/{id}/sujet")
     public ResponseEntity<Sujet> updateSujetApprenant(
             @PathVariable Long id,

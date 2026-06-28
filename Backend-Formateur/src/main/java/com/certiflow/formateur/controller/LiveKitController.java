@@ -25,7 +25,7 @@ public class LiveKitController {
     @Value("${livekit.api.secret}")
     private String apiSecret;
 
-    @Value("${livekit.host:http://localhost:7880}")
+    @Value("${livekit.host:http://192.168.20.25:7880}")
     private String livekitHost;
 
     // ─── Helper ───────────────────────────────────────────────────────────────
