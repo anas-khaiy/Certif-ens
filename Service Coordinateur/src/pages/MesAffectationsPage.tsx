@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     Users, Search, ChevronDown, Loader2, CheckCircle2, AlertCircle, Save, X, BookOpen
 } from 'lucide-react';
@@ -131,6 +131,12 @@ const MesAffectationsPage = () => {
         setEditSujetId(null);
     };
 
+    const availableSujetsForEncadrant = useMemo(() =>
+        sujets.filter(s => !s.apprenant && s.formateur?.id === editEncadrantId),
+        [sujets, editEncadrantId]
+    );
+    const selectedEncadrantHasSujets = editEncadrantId !== null && availableSujetsForEncadrant.length > 0;
+
     const handleEncadrantChange = (apprenantId: number, encadrantId: string) => {
         const id = encadrantId ? parseInt(encadrantId) : null;
         setEditEncadrantId(id);
@@ -171,6 +177,10 @@ const MesAffectationsPage = () => {
     const handleSave = async (apprenant: Apprenant) => {
         if (editEncadrantId === null && editSujetId === null) {
             cancelEditing();
+            return;
+        }
+        if (editEncadrantId !== null && !selectedEncadrantHasSujets && editSujetId === null) {
+            showToast('error', "Cet encadrant n'a aucun sujet disponible");
             return;
         }
         setSavingRow(apprenant.id);
@@ -446,16 +456,24 @@ const MesAffectationsPage = () => {
                                                             value={editSujetId ?? ''}
                                                             onChange={e => handleSujetChange(a, e.target.value)}
                                                             className="form-input appearance-none w-full font-bold bg-surface text-sm py-2"
-                                                            disabled={!editEncadrantId}
+                                                            disabled={!editEncadrantId || !selectedEncadrantHasSujets}
                                                         >
-                                                            <option value="">-- Choisir un sujet --</option>
-                                                            {sujets.filter(s => (!s.apprenant || s.apprenant.id === a.id) && s.formateur?.id === editEncadrantId).map(s => (
-                                                                <option key={s.id} value={s.id}>
-                                                                    {s.titre}
-                                                                </option>
-                                                            ))}
+                                                            {editEncadrantId && !selectedEncadrantHasSujets ? (
+                                                                <option value="">Aucun sujet disponible</option>
+                                                            ) : (
+                                                                <>
+                                                                    <option value="">-- Choisir un sujet --</option>
+                                                                    {sujets.filter(s => (!s.apprenant || s.apprenant.id === a.id) && s.formateur?.id === editEncadrantId).map(s => (
+                                                                        <option key={s.id} value={s.id}>
+                                                                            {s.titre}
+                                                                        </option>
+                                                                    ))}
+                                                                </>
+                                                            )}
                                                         </select>
-                                                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                                                        {editEncadrantId && !selectedEncadrantHasSujets ? null : (
+                                                            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                                                        )}
                                                     </div>
                                                 ) : a.sujetDetails ? (
                                                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold" style={{ background: 'rgba(168, 85, 247, 0.1)', color: 'var(--secondary)' }}>
@@ -472,7 +490,7 @@ const MesAffectationsPage = () => {
                                                     <div className="flex items-center justify-center gap-2">
                                                         <button
                                                             onClick={() => handleSave(a)}
-                                                            disabled={savingRow === a.id}
+                                                            disabled={savingRow === a.id || (editEncadrantId !== null && !selectedEncadrantHasSujets && editSujetId === null)}
                                                             className="primary action-btn text-xs px-3 py-2 flex items-center gap-1"
                                                         >
                                                             {savingRow === a.id ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
