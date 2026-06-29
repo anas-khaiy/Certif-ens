@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
-    Users, Search, ChevronDown, Loader2, CheckCircle2, AlertCircle, Save, X, BookOpen, GraduationCap
+    Users, Search, ChevronDown, Loader2, CheckCircle2, AlertCircle, Save, X, BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api-client';
@@ -17,14 +17,11 @@ interface Sujet {
     modifiePar?: { id: number; nom: string; prenom: string; email: string } | null;
     apprenant?: { id: number } | null;
 }
-interface CoordinateurRef {
-    id: number; email: string; nom: string; prenom: string;
-}
 interface Apprenant {
     id: number; nom: string; prenom: string; email: string; cin?: string;
     specialite?: Specialite; cycle?: Cycle; sexe?: string;
     encadrant?: Enseignant | null;
-    coordinateur?: CoordinateurRef | null;
+    coordinateur?: { id: number; email: string; nom: string; prenom: string } | null;
     sujetDetails?: Sujet | null;
 }
 interface PageResponse<T> {
@@ -49,10 +46,6 @@ const MesAffectationsPage = () => {
     const [encadrantFilter, setEncadrantFilter] = useState('ALL');
     const [sujetFilter, setSujetFilter] = useState('ALL');
 
-    const [coordinateurs, setCoordinateurs] = useState<CoordinateurRef[]>([]);
-
-    const [coordinateurFilter, setCoordinateurFilter] = useState('');
-
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 15;
 
@@ -73,15 +66,10 @@ const MesAffectationsPage = () => {
         fetchSpecialites();
         fetchCycles();
         fetchFormateurs();
-        fetchCoordinateurs();
         fetchSujets();
         fetchCurrentUser();
-    }, []);
-
-    useEffect(() => {
         fetchApprenants();
-        setCurrentPage(1);
-    }, [coordinateurFilter]);
+    }, []);
 
     const fetchCurrentUser = async () => {
         try {
@@ -113,19 +101,10 @@ const MesAffectationsPage = () => {
         setLoadingFormateurs(false);
     };
 
-    const fetchCoordinateurs = async () => {
-        try {
-            const res = await api.get<CoordinateurRef[]>('/affectation/coordinateurs');
-            setCoordinateurs(res.data || []);
-        } catch {}
-    };
-
     const fetchApprenants = async () => {
         setLoadingApprenants(true);
         try {
-            const params: Record<string, string | number> = { size: 1000 };
-            if (coordinateurFilter) params.coordinateurId = coordinateurFilter;
-            const res = await api.get<PageResponse<Apprenant>>('/affectation/all-apprenants', { params });
+            const res = await api.get<PageResponse<Apprenant>>('/affectation/all-apprenants', { params: { size: 1000 } });
             setApprenants(res.data.content);
         } catch {}
         setLoadingApprenants(false);
@@ -353,19 +332,6 @@ const MesAffectationsPage = () => {
                                 <option value="ALL">Tous les sujets</option>
                                 <option value="YES">Avec sujet</option>
                                 <option value="NO">Sans sujet</option>
-                            </select>
-                            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
-                        </div>
-                        <div className="relative min-w-[160px] flex-1">
-                            <select
-                                value={coordinateurFilter}
-                                onChange={e => setCoordinateurFilter(e.target.value)}
-                                className="form-input appearance-none w-full font-bold bg-surface"
-                            >
-                                <option value="">Tous les coordinateurs</option>
-                                {coordinateurs.map(c => (
-                                    <option key={c.id} value={c.id.toString()}>{c.prenom} {c.nom}</option>
-                                ))}
                             </select>
                             <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                         </div>

@@ -43,4 +43,9 @@ public interface EnseignantRepository extends JpaRepository<Enseignant, Long> {
            "(:specialiteId IS NULL OR e.specialite.id = :specialiteId) AND " +
            "(:search = '' OR LOWER(e.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Enseignant> findByFilters(@Param("specialiteId") Long specialiteId, @Param("search") String search, Pageable pageable);
+
+    @Query("SELECT e FROM Enseignant e WHERE e.coordinateur.id = :coordinateurId AND " +
+           "(:specialiteId IS NULL OR e.specialite.id = :specialiteId) AND " +
+           "(:search = '' OR LOWER(e.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Enseignant> findByCoordinateurIdWithFilters(@Param("coordinateurId") Long coordinateurId, @Param("specialiteId") Long specialiteId, @Param("search") String search, Pageable pageable);
 }

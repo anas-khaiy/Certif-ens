@@ -58,6 +58,9 @@ public class AffectationController {
             @RequestParam(required = false) Long coordinateurId) {
         Pageable pageable = PageRequest.of(page, size);
         String nameFilter = (search != null && !search.trim().isEmpty()) ? search.trim() : "";
+        if (coordinateurId == null) {
+            coordinateurId = getCurrentCoordinateurId();
+        }
         return ResponseEntity.ok(apprenantRepository.findAllWithFilters(nameFilter, specialiteId, coordinateurId, pageable));
     }
 
@@ -73,21 +76,9 @@ public class AffectationController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long specialiteId) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Enseignant> result;
-
-        boolean hasSearch = (search != null && !search.trim().isEmpty());
-        boolean hasSpecialite = (specialiteId != null);
-
-        if (hasSearch && hasSpecialite) {
-            result = enseignantRepository.findBySpecialiteIdAndSearch(specialiteId, search.trim(), pageable);
-        } else if (hasSearch) {
-            result = enseignantRepository.findByNomContainingIgnoreCaseOrPrenomContainingIgnoreCase(search.trim(), search.trim(), pageable);
-        } else if (hasSpecialite) {
-            result = enseignantRepository.findBySpecialiteId(specialiteId, pageable);
-        } else {
-            result = enseignantRepository.findByFilters(null, "", pageable);
-        }
-        
+        Long coordinateurId = getCurrentCoordinateurId();
+        String searchValue = (search != null && !search.trim().isEmpty()) ? search.trim() : "";
+        Page<Enseignant> result = enseignantRepository.findByCoordinateurIdWithFilters(coordinateurId, specialiteId, searchValue, pageable);
         return ResponseEntity.ok(result);
     }
 
