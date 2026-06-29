@@ -249,6 +249,28 @@ public class AffectationController {
         return ResponseEntity.ok(apprenantRepository.save(apprenant));
     }
 
+    @DeleteMapping("/apprenant/{id}/reset")
+    public ResponseEntity<Map<String, String>> resetAffectation(@PathVariable Long id) {
+        Apprenant apprenant = apprenantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Apprenant non trouvé"));
+
+        Long coordinateurId = getCurrentCoordinateurId();
+        if (apprenant.getCoordinateur() != null && !apprenant.getCoordinateur().getId().equals(coordinateurId)) {
+            throw new RuntimeException("Accès non autorisé à cet apprenant");
+        }
+
+        apprenant.setEncadrant(null);
+        apprenantRepository.save(apprenant);
+
+        sujetRepository.findByApprenantId(id).ifPresent(sujet -> {
+            sujet.setApprenant(null);
+            sujet.setModifiePar(null);
+            sujetRepository.save(sujet);
+        });
+
+        return ResponseEntity.ok(Map.of("message", "Affectation réinitialisée avec succès"));
+    }
+
     @PostMapping("/random-assign")
     public ResponseEntity<Map<String, Object>> randomAssign() {
         Long coordinateurId = getCurrentCoordinateurId();

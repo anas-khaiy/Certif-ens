@@ -205,6 +205,21 @@ const MesAffectationsPage = () => {
         setSavingRow(null);
     };
 
+    const handleReset = async (apprenant: Apprenant) => {
+        if (!window.confirm(`Réinitialiser l'affectation de ${apprenant.prenom} ${apprenant.nom} ?`)) return;
+        setSavingRow(apprenant.id);
+        try {
+            await api.delete(`/affectation/apprenant/${apprenant.id}/reset`);
+            showToast('success', 'Affectation réinitialisée avec succès');
+            fetchApprenants();
+            fetchSujets();
+        } catch (err: unknown) {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Erreur lors de la réinitialisation";
+            showToast('error', msg);
+        }
+        setSavingRow(null);
+    };
+
     const getInitials = (p: string, n: string) =>
         `${(p?.[0] || '').toUpperCase()}${(n?.[0] || '').toUpperCase()}`;
 
@@ -504,12 +519,24 @@ const MesAffectationsPage = () => {
                                                         </button>
                                                     </div>
                                                 ) : (
-                                                    <button
-                                                        onClick={() => startEditing(a)}
-                                                        className="primary action-btn text-xs px-4 py-2"
-                                                    >
-                                                        Affecter
-                                                    </button>
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <button
+                                                            onClick={() => startEditing(a)}
+                                                            className="primary action-btn text-xs px-4 py-2"
+                                                        >
+                                                            Affecter
+                                                        </button>
+                                                        {(a.encadrant || a.sujetDetails) && (
+                                                            <button
+                                                                onClick={() => handleReset(a)}
+                                                                disabled={savingRow === a.id}
+                                                                className="secondary action-btn text-xs px-3 py-2 flex items-center gap-1"
+                                                            >
+                                                                {savingRow === a.id ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                                                                Réinit.
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </td>
                                         </tr>
