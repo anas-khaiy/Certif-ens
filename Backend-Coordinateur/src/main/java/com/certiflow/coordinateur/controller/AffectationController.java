@@ -344,6 +344,35 @@ public class AffectationController {
         ));
     }
 
+    @GetMapping("/apprenants-selection")
+    public ResponseEntity<List<Map<String, Object>>> getApprenantsSelection() {
+        Long coordinateurId = getCurrentCoordinateurId();
+        List<Apprenant> apprenants = apprenantRepository.findByCoordinateurId(coordinateurId);
+        List<Map<String, Object>> result = apprenants.stream()
+            .map(a -> Map.<String, Object>of(
+                "id", a.getId(),
+                "nom", a.getNom(),
+                "prenom", a.getPrenom(),
+                "email", a.getEmail(),
+                "selectionSujetActive", a.isSelectionSujetActive(),
+                "hasSujet", a.getSujetDetails() != null
+            ))
+            .toList();
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/apprenant/{id}/selection-toggle")
+    public ResponseEntity<Map<String, Object>> toggleSelectionSujet(@PathVariable Long id) {
+        Apprenant apprenant = apprenantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Apprenant non trouvé"));
+        apprenant.setSelectionSujetActive(!apprenant.isSelectionSujetActive());
+        apprenantRepository.save(apprenant);
+        return ResponseEntity.ok(Map.of(
+            "id", apprenant.getId(),
+            "selectionSujetActive", apprenant.isSelectionSujetActive()
+        ));
+    }
+
     private Long getCurrentCoordinateurId() {
         return getCurrentCoordinateur().getId();
     }

@@ -65,6 +65,10 @@ public class Apprenant {
 
     private java.time.LocalDateTime dateSoutenance;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean selectionSujetActive = false;
+
     @OneToOne(mappedBy = "apprenant")
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties("apprenant")
     private Sujet sujetDetails;

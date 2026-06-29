@@ -22,7 +22,7 @@ import CodeEditorPage from './pages/CodeEditorPage';
 import LiveClassPage from './pages/LiveClassPage';
 import EncadrementApprenantPage from './pages/EncadrementApprenantPage';
 import MonPfePage from './pages/MonPfePage';
-
+import ChoixSujetPage from './pages/ChoixSujetPage';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = localStorage.getItem('token') !== null;
@@ -252,6 +252,17 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <MonPfePage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/choix-sujet"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ChoixSujetPage />
               </Layout>
             </PrivateRoute>
           }

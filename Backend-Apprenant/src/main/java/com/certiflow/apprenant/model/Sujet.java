@@ -33,4 +33,8 @@ public class Sujet {
     @OneToOne
     @JoinColumn(name = "apprenant_id", unique = true)
     private Apprenant apprenant;
+
+    @ManyToOne
+    @JoinColumn(name = "formateur_id", referencedColumnName = "id")
+    private Enseignant formateur;
 }

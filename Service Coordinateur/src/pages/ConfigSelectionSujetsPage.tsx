@@ -1,0 +1,131 @@
+import { useState, useEffect } from 'react';
+import { Search, Users, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react';
+import api from '../api/api-client';
+
+interface ApprenantItem {
+    id: number; nom: string; prenom: string; email: string;
+    selectionSujetActive: boolean; hasSujet: boolean;
+}
+
+const ConfigSelectionSujetsPage = () => {
+    const [apprenants, setApprenants] = useState<ApprenantItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+    const [toggling, setToggling] = useState<number | null>(null);
+
+    const fetchApprenants = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get<ApprenantItem[]>('/affectation/apprenants-selection');
+            setApprenants(res.data);
+        } catch {}
+        setLoading(false);
+    };
+
+    useEffect(() => { fetchApprenants(); }, []);
+
+    const handleToggle = async (id: number) => {
+        setToggling(id);
+        try {
+            const res = await api.put<{ id: number; selectionSujetActive: boolean }>(`/affectation/apprenant/${id}/selection-toggle`);
+            setApprenants(prev => prev.map(a => a.id === id ? { ...a, selectionSujetActive: res.data.selectionSujetActive } : a));
+        } catch {}
+        setToggling(null);
+    };
+
+    const filtered = apprenants.filter(a =>
+        `${a.prenom} ${a.nom} ${a.email}`.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+        <div className="space-y-6 animate-fade-in pb-20">
+            <div>
+                <h2 className="text-3xl font-bold">Configuration Sélection Sujets</h2>
+                <p className="text-text-muted">Activer ou désactiver la possibilité pour chaque apprenant de choisir son sujet.</p>
+            </div>
+
+            <div className="glass overflow-hidden">
+                <div className="p-6 border-b border-glass-border">
+                    <div className="search-container max-w-md">
+                        <div className="search-icon"><Search size={18} /></div>
+                        <input
+                            type="text"
+                            placeholder="Rechercher un apprenant..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="search-input"
+                        />
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="py-20 text-center">
+                        <Users size={48} className="mx-auto text-text-muted mb-4 opacity-40" />
+                        <p className="text-text-muted font-medium">Aucun apprenant trouvé</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-surface-hover/50 text-text-muted text-xs uppercase tracking-widest">
+                                    <th className="py-3 px-6 text-left">Apprenant</th>
+                                    <th className="py-3 px-4 text-left">Email</th>
+                                    <th className="py-3 px-4 text-center">Sujet</th>
+                                    <th className="py-3 px-4 text-center">Sélection</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-glass-border">
+                                {filtered.map(a => (
+                                    <tr key={a.id} className="hover:bg-surface-hover/30 transition-colors">
+                                        <td className="py-4 px-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/20 shrink-0">
+                                                    {`${(a.prenom?.[0] || '').toUpperCase()}${(a.nom?.[0] || '').toUpperCase()}`}
+                                                </div>
+                                                <span className="font-bold text-text">{a.prenom} {a.nom}</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-4 text-sm text-text-muted">{a.email}</td>
+                                        <td className="py-4 px-4 text-center">
+                                            {a.hasSujet ? (
+                                                <span className="tag tag-licence text-xs">Assigné</span>
+                                            ) : (
+                                                <span className="text-xs text-text-muted italic">Aucun</span>
+                                            )}
+                                        </td>
+                                        <td className="py-4 px-4 text-center">
+                                            <button
+                                                onClick={() => handleToggle(a.id)}
+                                                disabled={toggling === a.id}
+                                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                                                    a.selectionSujetActive
+                                                        ? 'bg-success/10 text-success hover:bg-success/20'
+                                                        : 'bg-surface-hover text-text-muted hover:bg-surface-hover/80'
+                                                }`}
+                                            >
+                                                {toggling === a.id ? (
+                                                    <Loader2 size={16} className="animate-spin" />
+                                                ) : a.selectionSujetActive ? (
+                                                    <ToggleRight size={20} />
+                                                ) : (
+                                                    <ToggleLeft size={20} />
+                                                )}
+                                                {a.selectionSujetActive ? 'Activé' : 'Désactivé'}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default ConfigSelectionSujetsPage;
