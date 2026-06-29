@@ -289,7 +289,7 @@ public class AffectationController {
         Collections.shuffle(apprenants);
         Collections.shuffle(sujets);
 
-        int assigned = 0;
+        List<Map<String, Object>> details = new ArrayList<>();
         for (int i = 0; i < apprenants.size(); i++) {
             Apprenant apprenant = apprenants.get(i);
             Sujet sujet = sujets.get(i);
@@ -302,13 +302,18 @@ public class AffectationController {
             sujet.setModifiePar(coord);
             sujetRepository.save(sujet);
 
-            assigned++;
+            details.add(Map.of(
+                "apprenant", Map.of("id", apprenant.getId(), "nom", apprenant.getNom(), "prenom", apprenant.getPrenom()),
+                "encadrant", Map.of("id", sujet.getFormateur().getId(), "nom", sujet.getFormateur().getNom(), "prenom", sujet.getFormateur().getPrenom()),
+                "sujet", Map.of("id", sujet.getId(), "titre", sujet.getTitre())
+            ));
         }
 
         return ResponseEntity.ok(Map.of(
             "success", true,
-            "message", assigned + " apprenants ont été assignés aléatoirement",
-            "assigned", assigned
+            "message", apprenants.size() + " apprenants ont été assignés aléatoirement",
+            "assigned", apprenants.size(),
+            "details", details
         ));
     }
 
