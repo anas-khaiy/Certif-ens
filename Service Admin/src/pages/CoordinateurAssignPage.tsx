@@ -28,8 +28,6 @@ interface Enseignant {
     specialite?: Specialite;
 }
 
-const ITEMS_PER_PAGE = 10;
-
 const CoordinateurAssignPage = () => {
     const [coordinateurs, setCoordinateurs] = useState<Coordinateur[]>([]);
     const [selectedCoordId, setSelectedCoordId] = useState('');
@@ -56,6 +54,7 @@ const CoordinateurAssignPage = () => {
     const [pageEnseignant, setPageEnseignant] = useState(1);
 
     const [tab, setTab] = useState<'apprenants' | 'enseignants'>('apprenants');
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     useEffect(() => {
@@ -170,14 +169,14 @@ const CoordinateurAssignPage = () => {
         return matchSearch && matchSpec;
     });
 
-    const totalApprenantPages = Math.ceil(filteredApprenants.length / ITEMS_PER_PAGE);
+    const totalApprenantPages = Math.ceil(filteredApprenants.length / itemsPerPage);
     const paginatedApprenants = filteredApprenants.slice(
-        (pageApprenant - 1) * ITEMS_PER_PAGE, pageApprenant * ITEMS_PER_PAGE
+        (pageApprenant - 1) * itemsPerPage, pageApprenant * itemsPerPage
     );
 
-    const totalEnseignantPages = Math.ceil(filteredEnseignants.length / ITEMS_PER_PAGE);
+    const totalEnseignantPages = Math.ceil(filteredEnseignants.length / itemsPerPage);
     const paginatedEnseignants = filteredEnseignants.slice(
-        (pageEnseignant - 1) * ITEMS_PER_PAGE, pageEnseignant * ITEMS_PER_PAGE
+        (pageEnseignant - 1) * itemsPerPage, pageEnseignant * itemsPerPage
     );
 
     const getPages = (totalPages: number, currentPage: number) => {
@@ -261,18 +260,18 @@ const CoordinateurAssignPage = () => {
 
             {selectedCoordId && (
                 <>
-                    <div className="flex gap-4 border-b border-glass-border pb-1">
+                    <div className="flex gap-3 my-6">
                         <button
-                            className={`pb-2 font-bold transition-colors flex items-center gap-2 ${
-                                tab === 'apprenants' ? 'text-primary border-b-2 border-primary' : 'text-text-muted hover:text-text'
+                            className={`action-btn px-6 py-3 font-bold flex items-center gap-2 text-sm transition-all ${
+                                tab === 'apprenants' ? 'primary shadow-lg shadow-primary/20' : 'bg-background border border-glass-border text-text-muted hover:border-primary hover:text-primary'
                             }`}
                             onClick={() => setTab('apprenants')}
                         >
                             <Users size={18} /> Apprenants
                         </button>
                         <button
-                            className={`pb-2 font-bold transition-colors flex items-center gap-2 ${
-                                tab === 'enseignants' ? 'text-primary border-b-2 border-primary' : 'text-text-muted hover:text-text'
+                            className={`action-btn px-6 py-3 font-bold flex items-center gap-2 text-sm transition-all ${
+                                tab === 'enseignants' ? 'primary shadow-lg shadow-primary/20' : 'bg-background border border-glass-border text-text-muted hover:border-primary hover:text-primary'
                             }`}
                             onClick={() => setTab('enseignants')}
                         >
@@ -342,13 +341,15 @@ const CoordinateurAssignPage = () => {
                             )}
                             <div className="flex items-center gap-2 text-sm text-text-muted">
                                 <span>Afficher</span>
-                                <select
-                                    className="bg-background border border-glass-border rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
-                                    value={ITEMS_PER_PAGE}
-                                    onChange={() => {}}
-                                >
-                                    <option value={10}>10</option>
-                                </select>
+                            <select
+                                className="bg-background border border-glass-border rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
+                                value={itemsPerPage}
+                                onChange={e => { setItemsPerPage(Number(e.target.value)); if (tab === 'apprenants') setPageApprenant(1); else setPageEnseignant(1); }}
+                            >
+                                <option value={10}>10</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                            </select>
                                 <span>par page</span>
                             </div>
                         </div>
@@ -422,7 +423,7 @@ const CoordinateurAssignPage = () => {
                                 {totalApprenantPages > 1 && (
                                     <div className="pagination border-t border-glass-border bg-surface-hover/10 px-6 py-4 flex items-center justify-between">
                                         <div className="pagination-info">
-                                            Affichage <span className="text-text font-bold">{(pageApprenant - 1) * ITEMS_PER_PAGE + 1}</span> à <span className="text-text font-bold">{Math.min(pageApprenant * ITEMS_PER_PAGE, filteredApprenants.length)}</span> sur <span className="text-text font-bold">{filteredApprenants.length}</span> apprenants
+                                            Affichage <span className="text-text font-bold">{(pageApprenant - 1) * itemsPerPage + 1}</span> à <span className="text-text font-bold">{Math.min(pageApprenant * itemsPerPage, filteredApprenants.length)}</span> sur <span className="text-text font-bold">{filteredApprenants.length}</span> apprenants
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button onClick={() => setPageApprenant(p => Math.max(1, p - 1))} disabled={pageApprenant === 1} className="w-10 h-10 p-0 rounded-xl bg-background border border-glass-border text-text-muted hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all icon-container">
@@ -513,7 +514,7 @@ const CoordinateurAssignPage = () => {
                                 {totalEnseignantPages > 1 && (
                                     <div className="pagination border-t border-glass-border bg-surface-hover/10 px-6 py-4 flex items-center justify-between">
                                         <div className="pagination-info">
-                                            Affichage <span className="text-text font-bold">{(pageEnseignant - 1) * ITEMS_PER_PAGE + 1}</span> à <span className="text-text font-bold">{Math.min(pageEnseignant * ITEMS_PER_PAGE, filteredEnseignants.length)}</span> sur <span className="text-text font-bold">{filteredEnseignants.length}</span> formateurs
+                                            Affichage <span className="text-text font-bold">{(pageEnseignant - 1) * itemsPerPage + 1}</span> à <span className="text-text font-bold">{Math.min(pageEnseignant * itemsPerPage, filteredEnseignants.length)}</span> sur <span className="text-text font-bold">{filteredEnseignants.length}</span> formateurs
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button onClick={() => setPageEnseignant(p => Math.max(1, p - 1))} disabled={pageEnseignant === 1} className="w-10 h-10 p-0 rounded-xl bg-background border border-glass-border text-text-muted hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all icon-container">
