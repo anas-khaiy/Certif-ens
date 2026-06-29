@@ -1,26 +1,34 @@
 import { useState, useEffect } from 'react';
-import { UserCog, Users, GraduationCap, Search, ChevronDown, ChevronLeft, ChevronRight, Loader2, CheckCircle2, AlertCircle, Save } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Search,
+    ChevronLeft,
+    ChevronRight,
+    Loader2,
+    CheckCircle2,
+    AlertCircle,
+    UserCog,
+    ChevronDown,
+    Users,
+    GraduationCap,
+    Save
+} from 'lucide-react';
 import api from '../api/api-client';
 
 interface Coordinateur {
     id: number; nom: string; prenom: string; email: string;
 }
-
 interface Specialite { id: number; nom: string; }
 interface Cycle { id: number; nomCycle: string; }
-
 interface Apprenant {
     id: number; nom: string; prenom: string; email: string;
     specialite?: Specialite; cycle?: Cycle;
 }
-
 interface Enseignant {
     id: number; nom: string; prenom: string; email: string;
     specialite?: Specialite;
 }
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 10;
 
 const CoordinateurAssignPage = () => {
     const [coordinateurs, setCoordinateurs] = useState<Coordinateur[]>([]);
@@ -48,13 +56,7 @@ const CoordinateurAssignPage = () => {
     const [pageEnseignant, setPageEnseignant] = useState(1);
 
     const [tab, setTab] = useState<'apprenants' | 'enseignants'>('apprenants');
-
-    const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-    const showToast = (type: 'success' | 'error', text: string) => {
-        setToast({ type, text });
-        setTimeout(() => setToast(null), 4000);
-    };
+    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     useEffect(() => {
         fetchCoordinateurs();
@@ -127,8 +129,7 @@ const CoordinateurAssignPage = () => {
     const toggleApprenant = (id: number) => {
         setSelectedApprenantIds(prev => {
             const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
+            if (next.has(id)) next.delete(id); else next.add(id);
             return next;
         });
     };
@@ -136,8 +137,7 @@ const CoordinateurAssignPage = () => {
     const toggleEnseignant = (id: number) => {
         setSelectedEnseignantIds(prev => {
             const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
+            if (next.has(id)) next.delete(id); else next.add(id);
             return next;
         });
     };
@@ -150,9 +150,9 @@ const CoordinateurAssignPage = () => {
                 api.put(`/coordinateurs/${selectedCoordId}/assign-apprenants`, Array.from(selectedApprenantIds)),
                 api.put(`/coordinateurs/${selectedCoordId}/assign-enseignants`, Array.from(selectedEnseignantIds))
             ]);
-            showToast('success', 'Affectations enregistrées avec succès');
+            setMessage({ type: 'success', text: 'Affectations enregistrées avec succès' });
         } catch {
-            showToast('error', "Erreur lors de l'enregistrement");
+            setMessage({ type: 'error', text: "Erreur lors de l'enregistrement" });
         }
         setSaving(false);
     };
@@ -172,322 +172,377 @@ const CoordinateurAssignPage = () => {
 
     const totalApprenantPages = Math.ceil(filteredApprenants.length / ITEMS_PER_PAGE);
     const paginatedApprenants = filteredApprenants.slice(
-        (pageApprenant - 1) * ITEMS_PER_PAGE,
-        pageApprenant * ITEMS_PER_PAGE
+        (pageApprenant - 1) * ITEMS_PER_PAGE, pageApprenant * ITEMS_PER_PAGE
     );
 
     const totalEnseignantPages = Math.ceil(filteredEnseignants.length / ITEMS_PER_PAGE);
     const paginatedEnseignants = filteredEnseignants.slice(
-        (pageEnseignant - 1) * ITEMS_PER_PAGE,
-        pageEnseignant * ITEMS_PER_PAGE
+        (pageEnseignant - 1) * ITEMS_PER_PAGE, pageEnseignant * ITEMS_PER_PAGE
     );
 
-    const selectedCoord = coordinateurs.find(c => c.id.toString() === selectedCoordId);
-
-    const Pagination = ({ page, totalPages, setPage }: { page: number; totalPages: number; setPage: (p: number) => void }) => {
-        if (totalPages <= 1) return null;
-        return (
-            <div className="flex items-center justify-center gap-1 px-4 py-3 border-t border-glass-border">
-                <button
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                    disabled={page === 1}
-                    className="action-btn text-xs px-2 py-1.5 disabled:opacity-40"
-                >
-                    <ChevronLeft size={14} />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
-                    .map((p, idx, arr) => (
-                        <span key={p} className="flex items-center gap-0">
-                            {idx > 0 && arr[idx - 1] !== p - 1 && <span className="text-text-muted px-1">...</span>}
-                            <button
-                                onClick={() => setPage(p)}
-                                className={`action-btn text-xs px-3 py-1.5 ${p === page ? 'primary' : ''}`}
-                            >
-                                {p}
-                            </button>
-                        </span>
-                    ))}
-                <button
-                    onClick={() => setPage(Math.min(totalPages, page + 1))}
-                    disabled={page === totalPages}
-                    className="action-btn text-xs px-2 py-1.5 disabled:opacity-40"
-                >
-                    <ChevronRight size={14} />
-                </button>
-            </div>
-        );
+    const getPages = (totalPages: number, currentPage: number) => {
+        const pages: (number | string)[] = [];
+        const showMax = 5;
+        if (totalPages <= showMax) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (currentPage > 3) pages.push('...');
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) { if (!pages.includes(i)) pages.push(i); }
+            if (currentPage < totalPages - 2) pages.push('...');
+            pages.push(totalPages);
+        }
+        return pages;
     };
 
     return (
-        <div className="space-y-6 animate-fade-in pb-20">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 className="text-3xl font-bold">Affectation Coordinateur</h2>
-                    <p className="text-text-muted">Sélectionnez un coordinateur, puis assignez-lui des apprenants et formateurs.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="glass px-4 py-2 flex items-center gap-2">
-                        <Users size={16} className="text-primary" />
-                        <span className="text-sm font-bold">{selectedApprenantIds.size}</span>
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold">Affectation Coordinateur</h2>
+                <p className="text-text-muted" style={{ marginBottom: 15 }}>Sélectionnez un coordinateur, puis assignez-lui des apprenants et formateurs.</p>
+            </div>
+
+            {message && (
+                <div
+                    className={`p-4 rounded-xl flex items-center justify-between ${
+                        message.type === 'success'
+                            ? 'bg-primary/10 text-primary border border-primary/20'
+                            : 'bg-error/10 text-error border border-error/20'
+                    }`}
+                >
+                    <div className="flex items-center gap-2 font-bold">
+                        {message.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                        {message.text}
                     </div>
-                    <div className="glass px-4 py-2 flex items-center gap-2">
-                        <GraduationCap size={16} className="text-secondary" />
-                        <span className="text-sm font-bold">{selectedEnseignantIds.size}</span>
-                    </div>
-                    <button
-                        onClick={handleSave}
-                        disabled={!selectedCoordId || saving}
-                        className="primary action-btn px-5 py-2 flex items-center gap-2 font-bold"
-                    >
-                        {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        Enregistrer
+                    <button onClick={() => setMessage(null)} className="hover:opacity-70">
+                        <AlertCircle size={18} className="opacity-0" />
                     </button>
                 </div>
-            </div>
+            )}
 
-            <div className="glass p-5 shadow-xl">
-                <div className="relative min-w-[280px] max-w-md">
-                    <label className="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Coordinateur</label>
-                    <div className="relative">
-                        <select
-                            value={selectedCoordId}
-                            onChange={e => { setSelectedCoordId(e.target.value); }}
-                            className="form-input appearance-none w-full font-bold bg-surface text-base py-3"
-                            disabled={loadingCoord}
+            <div className="glass overflow-hidden shadow-xl">
+                <div className="p-6 border-b border-glass-border flex flex-col lg:flex-row items-start lg:items-center gap-4">
+                    <div className="flex-1 w-full">
+                        <div className="relative max-w-md">
+                            <select
+                                value={selectedCoordId}
+                                onChange={e => setSelectedCoordId(e.target.value)}
+                                className="form-input appearance-none w-full font-bold bg-surface text-base py-3"
+                                disabled={loadingCoord}
+                            >
+                                <option value="">-- Choisir un coordinateur --</option>
+                                {coordinateurs.map(c => (
+                                    <option key={c.id} value={c.id.toString()}>{c.prenom} {c.nom} ({c.email})</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 text-sm bg-primary/10 text-primary px-3 py-2 rounded-xl font-bold">
+                            <Users size={16} /> {selectedApprenantIds.size}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm bg-secondary/10 text-secondary px-3 py-2 rounded-xl font-bold">
+                            <GraduationCap size={16} /> {selectedEnseignantIds.size}
+                        </div>
+                        <button
+                            onClick={handleSave}
+                            disabled={!selectedCoordId || saving}
+                            className="primary action-btn px-5 py-2.5 flex items-center gap-2 font-bold disabled:opacity-50"
                         >
-                            <option value="">-- Choisir un coordinateur --</option>
-                            {coordinateurs.map(c => (
-                                <option key={c.id} value={c.id.toString()}>{c.prenom} {c.nom} ({c.email})</option>
-                            ))}
-                        </select>
-                        <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                            Enregistrer
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {selectedCoord && (
+            {selectedCoordId && (
                 <>
-                    <div className="flex gap-2">
+                    <div className="flex gap-4 border-b border-glass-border pb-1">
                         <button
+                            className={`pb-2 font-bold transition-colors flex items-center gap-2 ${
+                                tab === 'apprenants' ? 'text-primary border-b-2 border-primary' : 'text-text-muted hover:text-text'
+                            }`}
                             onClick={() => setTab('apprenants')}
-                            className={`action-btn px-6 py-3 font-bold flex items-center gap-2 text-base ${tab === 'apprenants' ? 'primary' : ''}`}
                         >
-                            <Users size={18} />
-                            Apprenants
+                            <Users size={18} /> Apprenants
                         </button>
                         <button
+                            className={`pb-2 font-bold transition-colors flex items-center gap-2 ${
+                                tab === 'enseignants' ? 'text-primary border-b-2 border-primary' : 'text-text-muted hover:text-text'
+                            }`}
                             onClick={() => setTab('enseignants')}
-                            className={`action-btn px-6 py-3 font-bold flex items-center gap-2 text-base ${tab === 'enseignants' ? 'primary' : ''}`}
                         >
-                            <GraduationCap size={18} />
-                            Formateurs
+                            <GraduationCap size={18} /> Formateurs
                         </button>
                     </div>
 
-                    <AnimatePresence mode="wait">
-                        {tab === 'apprenants' && (
-                            <motion.div key="apprenants" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass overflow-hidden shadow-xl">
-                                <div className="p-4 border-b border-glass-border flex items-center justify-between">
-                                    <h3 className="text-lg font-bold flex items-center gap-2">
-                                        <Users size={18} className="text-primary" />
-                                        Apprenants
-                                    </h3>
-                                    <span className="text-xs text-text-muted">{filteredApprenants.length} sur {allApprenants.length}</span>
-                                </div>
-
-                                <div className="p-4 border-b border-glass-border">
-                                    <div className="flex flex-wrap gap-3">
-                                        <div className="search-container flex-1 min-w-[180px]">
-                                            <div className="search-icon"><Search size={16} /></div>
-                                            <input
-                                                type="text"
-                                                placeholder="Rechercher..."
-                                                value={searchApprenant}
-                                                onChange={e => setSearchApprenant(e.target.value)}
-                                                className="search-input text-sm"
-                                            />
-                                        </div>
-                                        <div className="relative min-w-[150px]">
-                                            <select
-                                                value={specFilterApprenant}
-                                                onChange={e => setSpecFilterApprenant(e.target.value)}
-                                                className="form-input appearance-none w-full font-bold bg-surface text-sm"
-                                            >
-                                                <option value="">Toutes spécialités</option>
-                                                {specialites.map(s => (
-                                                    <option key={s.id} value={s.id.toString()}>{s.nom}</option>
-                                                ))}
-                                            </select>
-                                            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
-                                        </div>
-                                        <div className="relative min-w-[150px]">
-                                            <select
-                                                value={cycleFilterApprenant}
-                                                onChange={e => setCycleFilterApprenant(e.target.value)}
-                                                className="form-input appearance-none w-full font-bold bg-surface text-sm"
-                                            >
-                                                <option value="">Tous cycles</option>
-                                                {cycles.map(c => (
-                                                    <option key={c.id} value={c.id.toString()}>{c.nomCycle}</option>
-                                                ))}
-                                            </select>
-                                            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
-                                        </div>
-                                        <button
-                                            onClick={() => {
-                                                const all = new Set(filteredApprenants.map(a => a.id));
-                                                setSelectedApprenantIds(prev => prev.size === all.size && [...prev].every(id => all.has(id)) ? new Set() : all);
-                                            }}
-                                            className="secondary action-btn text-sm px-4"
+                    <div className="glass overflow-hidden shadow-xl">
+                        <div className="p-6 border-b border-glass-border flex flex-col lg:flex-row items-start lg:items-center gap-4">
+                            <div className="search-container flex-1">
+                                <div className="search-icon"><Search size={18} /></div>
+                                <input
+                                    type="text"
+                                    placeholder={tab === 'apprenants' ? "Rechercher un apprenant..." : "Rechercher un formateur..."}
+                                    className="search-input"
+                                    value={tab === 'apprenants' ? searchApprenant : searchEnseignant}
+                                    onChange={e => {
+                                        if (tab === 'apprenants') setSearchApprenant(e.target.value);
+                                        else setSearchEnseignant(e.target.value);
+                                    }}
+                                />
+                            </div>
+                            {tab === 'apprenants' && (
+                                <>
+                                    <div className="relative min-w-[160px]">
+                                        <select
+                                            value={specFilterApprenant}
+                                            onChange={e => setSpecFilterApprenant(e.target.value)}
+                                            className="form-input appearance-none w-full font-bold bg-surface text-sm"
                                         >
-                                            {selectedApprenantIds.size === filteredApprenants.length && filteredApprenants.length > 0 ? 'Tout désélect.' : 'Tout sélect.'}
-                                        </button>
+                                            <option value="">Toutes spécialités</option>
+                                            {specialites.map(s => (
+                                                <option key={s.id} value={s.id.toString()}>{s.nom}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                                     </div>
+                                    <div className="relative min-w-[160px]">
+                                        <select
+                                            value={cycleFilterApprenant}
+                                            onChange={e => setCycleFilterApprenant(e.target.value)}
+                                            className="form-input appearance-none w-full font-bold bg-surface text-sm"
+                                        >
+                                            <option value="">Tous cycles</option>
+                                            {cycles.map(c => (
+                                                <option key={c.id} value={c.id.toString()}>{c.nomCycle}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                                    </div>
+                                </>
+                            )}
+                            {tab === 'enseignants' && (
+                                <div className="relative min-w-[160px]">
+                                    <select
+                                        value={specFilterEnseignant}
+                                        onChange={e => setSpecFilterEnseignant(e.target.value)}
+                                        className="form-input appearance-none w-full font-bold bg-surface text-sm"
+                                    >
+                                        <option value="">Toutes spécialités</option>
+                                        {specialites.map(s => (
+                                            <option key={s.id} value={s.id.toString()}>{s.nom}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                                 </div>
+                            )}
+                            <div className="flex items-center gap-2 text-sm text-text-muted">
+                                <span>Afficher</span>
+                                <select
+                                    className="bg-background border border-glass-border rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
+                                    value={ITEMS_PER_PAGE}
+                                    onChange={() => {}}
+                                >
+                                    <option value={10}>10</option>
+                                </select>
+                                <span>par page</span>
+                            </div>
+                        </div>
 
-                                {loadingData ? (
-                                    <div className="flex items-center justify-center py-16">
-                                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                                    </div>
-                                ) : paginatedApprenants.length === 0 ? (
-                                    <div className="py-16 text-center">
-                                        <Users size={40} className="mx-auto text-text-muted mb-3 opacity-40" />
-                                        <p className="text-text-muted font-medium">Aucun apprenant trouvé</p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="divide-y divide-glass-border">
-                                            {paginatedApprenants.map(a => {
+                        {loadingData ? (
+                            <div className="h-[40vh] flex items-center justify-center">
+                                <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                            </div>
+                        ) : tab === 'apprenants' ? (
+                            <>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="bg-surface-hover/50 text-text-muted text-xs uppercase tracking-widest">
+                                                <th className="w-12 text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-4 h-4 rounded border-glass-border bg-background cursor-pointer"
+                                                        checked={paginatedApprenants.length > 0 && paginatedApprenants.every(a => selectedApprenantIds.has(a.id))}
+                                                        onChange={() => {
+                                                            const all = new Set(paginatedApprenants.map(a => a.id));
+                                                            setSelectedApprenantIds(prev => {
+                                                                const allSelected = paginatedApprenants.every(a => prev.has(a.id));
+                                                                if (allSelected) {
+                                                                    const next = new Set(prev);
+                                                                    all.forEach(id => next.delete(id));
+                                                                    return next;
+                                                                }
+                                                                return new Set([...prev, ...all]);
+                                                            });
+                                                        }}
+                                                    />
+                                                </th>
+                                                <th>Nom & Prénom</th>
+                                                <th>Email</th>
+                                                <th>Spécialité</th>
+                                                <th>Cycle</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-glass-border">
+                                            {paginatedApprenants.length > 0 ? paginatedApprenants.map(a => {
                                                 const checked = selectedApprenantIds.has(a.id);
-                                                const wasAssigned = assignedApprenantIds.has(a.id);
                                                 return (
-                                                    <label
+                                                    <tr
                                                         key={a.id}
-                                                        className={`flex items-center gap-4 px-5 py-4 hover:bg-surface-hover/50 cursor-pointer transition-colors ${checked ? 'bg-primary/5' : ''}`}
+                                                        className={`hover:bg-surface-hover/30 transition-colors cursor-pointer ${checked ? 'bg-primary/5' : ''}`}
+                                                        onClick={() => toggleApprenant(a.id)}
                                                     >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={checked}
-                                                            onChange={() => toggleApprenant(a.id)}
-                                                            className="w-4 h-4 rounded accent-primary"
-                                                        />
-                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-primary/20">
-                                                            {(a.prenom?.[0] || '').toUpperCase()}{(a.nom?.[0] || '').toUpperCase()}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="font-bold text-sm">{a.prenom} {a.nom}</p>
-                                                            <p className="text-xs text-text-muted truncate">{a.email}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {a.specialite && <span className="tag tag-licence text-xs">{a.specialite.nom}</span>}
-                                                            {a.cycle && <span className="tag tag-master text-xs">{a.cycle.nomCycle}</span>}
-                                                            {wasAssigned && <CheckCircle2 size={14} className="text-primary shrink-0" />}
-                                                        </div>
-                                                    </label>
+                                                        <td className="text-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="w-4 h-4 rounded border-glass-border bg-background cursor-pointer"
+                                                                checked={checked}
+                                                                onChange={() => toggleApprenant(a.id)}
+                                                            />
+                                                        </td>
+                                                        <td className="font-bold text-text capitalize">{a.prenom} {a.nom}</td>
+                                                        <td className="text-text-muted">{a.email}</td>
+                                                        <td>{a.specialite?.nom || <span className="text-text-muted">—</span>}</td>
+                                                        <td>{a.cycle?.nomCycle || <span className="text-text-muted">—</span>}</td>
+                                                    </tr>
                                                 );
-                                            })}
-                                        </div>
-                                        <Pagination page={pageApprenant} totalPages={totalApprenantPages} setPage={setPageApprenant} />
-                                    </>
-                                )}
-                            </motion.div>
-                        )}
-
-                        {tab === 'enseignants' && (
-                            <motion.div key="enseignants" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass overflow-hidden shadow-xl">
-                                <div className="p-4 border-b border-glass-border flex items-center justify-between">
-                                    <h3 className="text-lg font-bold flex items-center gap-2">
-                                        <GraduationCap size={18} className="text-secondary" />
-                                        Formateurs
-                                    </h3>
-                                    <span className="text-xs text-text-muted">{filteredEnseignants.length} sur {allEnseignants.length}</span>
+                                            }) : (
+                                                <tr>
+                                                    <td colSpan={5} className="py-20 text-text-muted font-medium text-center">Aucun apprenant trouvé</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
                                 </div>
-
-                                <div className="p-4 border-b border-glass-border">
-                                    <div className="flex flex-wrap gap-3">
-                                        <div className="search-container flex-1 min-w-[180px]">
-                                            <div className="search-icon"><Search size={16} /></div>
-                                            <input
-                                                type="text"
-                                                placeholder="Rechercher..."
-                                                value={searchEnseignant}
-                                                onChange={e => setSearchEnseignant(e.target.value)}
-                                                className="search-input text-sm"
-                                            />
+                                {totalApprenantPages > 1 && (
+                                    <div className="pagination border-t border-glass-border bg-surface-hover/10 px-6 py-4 flex items-center justify-between">
+                                        <div className="pagination-info">
+                                            Affichage <span className="text-text font-bold">{(pageApprenant - 1) * ITEMS_PER_PAGE + 1}</span> à <span className="text-text font-bold">{Math.min(pageApprenant * ITEMS_PER_PAGE, filteredApprenants.length)}</span> sur <span className="text-text font-bold">{filteredApprenants.length}</span> apprenants
                                         </div>
-                                        <div className="relative min-w-[150px]">
-                                            <select
-                                                value={specFilterEnseignant}
-                                                onChange={e => setSpecFilterEnseignant(e.target.value)}
-                                                className="form-input appearance-none w-full font-bold bg-surface text-sm"
-                                            >
-                                                <option value="">Toutes spécialités</option>
-                                                {specialites.map(s => (
-                                                    <option key={s.id} value={s.id.toString()}>{s.nom}</option>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => setPageApprenant(p => Math.max(1, p - 1))} disabled={pageApprenant === 1} className="w-10 h-10 p-0 rounded-xl bg-background border border-glass-border text-text-muted hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all icon-container">
+                                                <ChevronLeft size={18} />
+                                            </button>
+                                            <div className="flex gap-1.5">
+                                                {getPages(totalApprenantPages, pageApprenant).map((page, i) => (
+                                                    page === '...' ? (
+                                                        <div key={i} className="w-10 h-10 flex items-center justify-center text-text-muted font-bold select-none cursor-default">...</div>
+                                                    ) : (
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => setPageApprenant(Number(page))}
+                                                            className={`w-10 h-10 p-0 rounded-xl font-bold transition-all ${pageApprenant === page ? 'bg-primary text-white shadow-lg shadow-indigo-500/30' : 'bg-background border border-glass-border text-text-muted hover:border-primary hover:text-primary'}`}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    )
                                                 ))}
-                                            </select>
-                                            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                                            </div>
+                                            <button onClick={() => setPageApprenant(p => Math.min(totalApprenantPages, p + 1))} disabled={pageApprenant === totalApprenantPages} className="w-10 h-10 p-0 rounded-xl bg-background border border-glass-border text-text-muted hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all icon-container">
+                                                <ChevronRight size={18} />
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                const all = new Set(filteredEnseignants.map(e => e.id));
-                                                setSelectedEnseignantIds(prev => prev.size === all.size && [...prev].every(id => all.has(id)) ? new Set() : all);
-                                            }}
-                                            className="secondary action-btn text-sm px-4"
-                                        >
-                                            {selectedEnseignantIds.size === filteredEnseignants.length && filteredEnseignants.length > 0 ? 'Tout désélect.' : 'Tout sélect.'}
-                                        </button>
                                     </div>
-                                </div>
-
-                                {loadingData ? (
-                                    <div className="flex items-center justify-center py-16">
-                                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                                    </div>
-                                ) : paginatedEnseignants.length === 0 ? (
-                                    <div className="py-16 text-center">
-                                        <GraduationCap size={40} className="mx-auto text-text-muted mb-3 opacity-40" />
-                                        <p className="text-text-muted font-medium">Aucun formateur trouvé</p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="divide-y divide-glass-border">
-                                            {paginatedEnseignants.map(e => {
-                                                const checked = selectedEnseignantIds.has(e.id);
-                                                const wasAssigned = assignedEnseignantIds.has(e.id);
-                                                return (
-                                                    <label
-                                                        key={e.id}
-                                                        className={`flex items-center gap-4 px-5 py-4 hover:bg-surface-hover/50 cursor-pointer transition-colors ${checked ? 'bg-secondary/5' : ''}`}
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={checked}
-                                                            onChange={() => toggleEnseignant(e.id)}
-                                                            className="w-4 h-4 rounded accent-secondary"
-                                                        />
-                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary to-primary flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-secondary/20">
-                                                            {(e.prenom?.[0] || '').toUpperCase()}{(e.nom?.[0] || '').toUpperCase()}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="font-bold text-sm">{e.prenom} {e.nom}</p>
-                                                            <p className="text-xs text-text-muted truncate">{e.email}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {e.specialite && <span className="tag tag-licence text-xs">{e.specialite.nom}</span>}
-                                                            {wasAssigned && <CheckCircle2 size={14} className="text-secondary shrink-0" />}
-                                                        </div>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
-                                        <Pagination page={pageEnseignant} totalPages={totalEnseignantPages} setPage={setPageEnseignant} />
-                                    </>
                                 )}
-                            </motion.div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="bg-surface-hover/50 text-text-muted text-xs uppercase tracking-widest">
+                                                <th className="w-12 text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-4 h-4 rounded border-glass-border bg-background cursor-pointer"
+                                                        checked={paginatedEnseignants.length > 0 && paginatedEnseignants.every(e => selectedEnseignantIds.has(e.id))}
+                                                        onChange={() => {
+                                                            const all = new Set(paginatedEnseignants.map(e => e.id));
+                                                            setSelectedEnseignantIds(prev => {
+                                                                const allSelected = paginatedEnseignants.every(e => prev.has(e.id));
+                                                                if (allSelected) {
+                                                                    const next = new Set(prev);
+                                                                    all.forEach(id => next.delete(id));
+                                                                    return next;
+                                                                }
+                                                                return new Set([...prev, ...all]);
+                                                            });
+                                                        }}
+                                                    />
+                                                </th>
+                                                <th>Nom & Prénom</th>
+                                                <th>Email</th>
+                                                <th>Spécialité</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-glass-border">
+                                            {paginatedEnseignants.length > 0 ? paginatedEnseignants.map(e => {
+                                                const checked = selectedEnseignantIds.has(e.id);
+                                                return (
+                                                    <tr
+                                                        key={e.id}
+                                                        className={`hover:bg-surface-hover/30 transition-colors cursor-pointer ${checked ? 'bg-primary/5' : ''}`}
+                                                        onClick={() => toggleEnseignant(e.id)}
+                                                    >
+                                                        <td className="text-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="w-4 h-4 rounded border-glass-border bg-background cursor-pointer"
+                                                                checked={checked}
+                                                                onChange={() => toggleEnseignant(e.id)}
+                                                            />
+                                                        </td>
+                                                        <td className="font-bold text-text capitalize">{e.prenom} {e.nom}</td>
+                                                        <td className="text-text-muted">{e.email}</td>
+                                                        <td>{e.specialite?.nom || <span className="text-text-muted">—</span>}</td>
+                                                    </tr>
+                                                );
+                                            }) : (
+                                                <tr>
+                                                    <td colSpan={4} className="py-20 text-text-muted font-medium text-center">Aucun formateur trouvé</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {totalEnseignantPages > 1 && (
+                                    <div className="pagination border-t border-glass-border bg-surface-hover/10 px-6 py-4 flex items-center justify-between">
+                                        <div className="pagination-info">
+                                            Affichage <span className="text-text font-bold">{(pageEnseignant - 1) * ITEMS_PER_PAGE + 1}</span> à <span className="text-text font-bold">{Math.min(pageEnseignant * ITEMS_PER_PAGE, filteredEnseignants.length)}</span> sur <span className="text-text font-bold">{filteredEnseignants.length}</span> formateurs
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => setPageEnseignant(p => Math.max(1, p - 1))} disabled={pageEnseignant === 1} className="w-10 h-10 p-0 rounded-xl bg-background border border-glass-border text-text-muted hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all icon-container">
+                                                <ChevronLeft size={18} />
+                                            </button>
+                                            <div className="flex gap-1.5">
+                                                {getPages(totalEnseignantPages, pageEnseignant).map((page, i) => (
+                                                    page === '...' ? (
+                                                        <div key={i} className="w-10 h-10 flex items-center justify-center text-text-muted font-bold select-none cursor-default">...</div>
+                                                    ) : (
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => setPageEnseignant(Number(page))}
+                                                            className={`w-10 h-10 p-0 rounded-xl font-bold transition-all ${pageEnseignant === page ? 'bg-primary text-white shadow-lg shadow-indigo-500/30' : 'bg-background border border-glass-border text-text-muted hover:border-primary hover:text-primary'}`}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    )
+                                                ))}
+                                            </div>
+                                            <button onClick={() => setPageEnseignant(p => Math.min(totalEnseignantPages, p + 1))} disabled={pageEnseignant === totalEnseignantPages} className="w-10 h-10 p-0 rounded-xl bg-background border border-glass-border text-text-muted hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all icon-container">
+                                                <ChevronRight size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
-                    </AnimatePresence>
+                    </div>
                 </>
             )}
 
@@ -497,25 +552,6 @@ const CoordinateurAssignPage = () => {
                     <p className="text-text-muted font-medium text-lg">Sélectionnez un coordinateur pour commencer</p>
                 </div>
             )}
-
-            <AnimatePresence>
-                {toast && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
-                        className={`fixed bottom-6 right-6 z-[60] px-5 py-3 rounded-xl border shadow-xl flex items-center gap-3 ${
-                            toast.type === 'success'
-                                ? 'bg-success/10 border-success/20 text-success'
-                                : 'bg-error/10 border-error/20 text-error'
-                        }`}
-                        style={{ backdropFilter: 'blur(12px)' }}
-                    >
-                        {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-                        <span className="text-sm font-semibold">{toast.text}</span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };
