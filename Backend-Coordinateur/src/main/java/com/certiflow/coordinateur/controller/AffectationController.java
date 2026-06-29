@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/v1/coord/affectation")
@@ -245,6 +247,58 @@ public class AffectationController {
         apprenant.setDateSoutenance(request.getDateSoutenance());
 
         return ResponseEntity.ok(apprenantRepository.save(apprenant));
+    }
+
+    @PostMapping("/random-assign")
+    public ResponseEntity<Map<String, Object>> randomAssign() {
+        Long coordinateurId = getCurrentCoordinateurId();
+        Coordinateur coord = getCurrentCoordinateur();
+
+        List<Apprenant> apprenants = apprenantRepository.findWithoutSujetByCoordinateurId(coordinateurId);
+        List<Sujet> sujets = sujetRepository.findAvailableByCoordinateurId(coordinateurId);
+
+        if (sujets.size() < apprenants.size()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Pas assez de sujets disponibles (" + sujets.size() + ") pour " + apprenants.size() + " apprenants"
+            ));
+        }
+
+        Collections.shuffle(apprenants);
+        Collections.shuffle(sujets);
+
+        int assigned = 0;
+        for (int i = 0; i < apprenants.size(); i++) {
+            Apprenant apprenant = apprenants.get(i);
+            Sujet sujet = sujets.get(i);
+
+            apprenant.setEncadrant(sujet.getFormateur());
+            apprenant.setCoordinateur(coord);
+            apprenantRepository.save(apprenant);
+
+            sujet.setApprenant(apprenant);
+            sujet.setModifiePar(coord);
+            sujetRepository.save(sujet);
+
+            assigned++;
+        }
+
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", assigned + " apprenants ont été assignés aléatoirement",
+            "assigned", assigned
+        ));
+    }
+
+    @GetMapping("/random-assign-stats")
+    public ResponseEntity<Map<String, Object>> getRandomAssignStats() {
+        Long coordinateurId = getCurrentCoordinateurId();
+        long apprenantsSansSujet = apprenantRepository.countWithoutSujetByCoordinateurId(coordinateurId);
+        long sujetsDisponibles = sujetRepository.countAvailableByCoordinateurId(coordinateurId);
+        return ResponseEntity.ok(Map.of(
+            "apprenantsSansSujet", apprenantsSansSujet,
+            "sujetsDisponibles", sujetsDisponibles
+        ));
     }
 
     private Long getCurrentCoordinateurId() {

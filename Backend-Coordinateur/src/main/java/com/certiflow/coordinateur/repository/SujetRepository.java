@@ -18,4 +18,10 @@ public interface SujetRepository extends JpaRepository<Sujet, Long> {
            "a.coordinateur.id = :coordinateurId OR " +
            "(s.apprenant IS NULL AND s.formateur.coordinateur.id = :coordinateurId)")
     List<Sujet> findByCoordinateurId(@Param("coordinateurId") Long coordinateurId);
+
+    @Query("SELECT s FROM Sujet s WHERE s.apprenant IS NULL AND s.formateur.coordinateur.id = :coordinateurId")
+    List<Sujet> findAvailableByCoordinateurId(@Param("coordinateurId") Long coordinateurId);
+
+    @Query("SELECT COUNT(s) FROM Sujet s WHERE s.apprenant IS NULL AND s.formateur.coordinateur.id = :coordinateurId")
+    long countAvailableByCoordinateurId(@Param("coordinateurId") Long coordinateurId);
 }

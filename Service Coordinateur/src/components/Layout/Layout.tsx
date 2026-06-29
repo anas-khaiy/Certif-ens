@@ -15,7 +15,8 @@ import {
     Users,
     Calendar,
     FileText,
-    ListChecks
+    ListChecks,
+    Shuffle
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -160,6 +161,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <SidebarItem to="/deadlines" icon={<Calendar size={20} />} label="Dates Limites" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/depots" icon={<FileText size={20} />} label="Dépôts PFE" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/jury" icon={<Users size={20} />} label="Jury & Soutenances" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
+                    <SidebarItem to="/tirage" icon={<Shuffle size={20} />} label="Tirage Aléatoire" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/settings" icon={<Settings size={20} />} label="Paramètres" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     
                     {/* Spacer to push logout to bottom if space permits */}
