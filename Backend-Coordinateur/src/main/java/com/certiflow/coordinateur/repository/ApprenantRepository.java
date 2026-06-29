@@ -72,6 +72,17 @@ public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
 
     List<Apprenant> findByCoordinateurId(Long coordinateurId);
 
+    @Query("SELECT a FROM Apprenant a WHERE a.coordinateur.id = :coordinateurId AND " +
+           "(:search = '' OR LOWER(a.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(a.prenom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(a.email) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND (:specialiteId IS NULL OR a.specialite.id = :specialiteId) " +
+           "AND (:cycleId IS NULL OR a.cycle.id = :cycleId)")
+    Page<Apprenant> findByCoordinateurIdWithFilters(
+        @Param("coordinateurId") Long coordinateurId,
+        @Param("search") String search,
+        @Param("specialiteId") Long specialiteId,
+        @Param("cycleId") Long cycleId,
+        Pageable pageable);
+
     @Query("SELECT COUNT(DISTINCT e) FROM Apprenant a JOIN a.examinateurs e WHERE a.coordinateur.id = :coordinateurId")
     long countDistinctExaminateursByCoordinateurId(@Param("coordinateurId") Long coordinateurId);
 

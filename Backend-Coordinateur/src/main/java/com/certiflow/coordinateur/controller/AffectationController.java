@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/v1/coord/affectation")
@@ -359,6 +360,41 @@ public class AffectationController {
             ))
             .toList();
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/apprenants-selection/page")
+    public ResponseEntity<Map<String, Object>> getApprenantsSelectionPage(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long specialiteId,
+            @RequestParam(required = false) Long cycleId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Long coordinateurId = getCurrentCoordinateurId();
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Apprenant> pageResult = apprenantRepository.findByCoordinateurIdWithFilters(
+                coordinateurId, search, specialiteId, cycleId, pageable);
+        List<Map<String, Object>> content = pageResult.getContent().stream()
+            .map(a -> {
+                Map<String, Object> map = new java.util.HashMap<>();
+                map.put("id", a.getId());
+                map.put("nom", a.getNom());
+                map.put("prenom", a.getPrenom());
+                map.put("email", a.getEmail());
+                map.put("selectionSujetActive", a.isSelectionSujetActive());
+                map.put("hasSujet", a.getSujetDetails() != null);
+                map.put("specialiteId", a.getSpecialite() != null ? a.getSpecialite().getId() : null);
+                map.put("specialiteNom", a.getSpecialite() != null ? a.getSpecialite().getNom() : null);
+                map.put("cycleId", a.getCycle() != null ? a.getCycle().getId() : null);
+                map.put("cycleNom", a.getCycle() != null ? a.getCycle().getNomCycle() : null);
+                return map;
+            })
+            .toList();
+        return ResponseEntity.ok(Map.of(
+            "content", content,
+            "totalPages", pageResult.getTotalPages(),
+            "totalElements", pageResult.getTotalElements(),
+            "currentPage", pageResult.getNumber()
+        ));
     }
 
     @PutMapping("/apprenant/{id}/selection-toggle")

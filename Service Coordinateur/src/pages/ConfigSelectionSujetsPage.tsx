@@ -1,28 +1,75 @@
 import { useState, useEffect } from 'react';
-import { Search, Users, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react';
+import { Search, Users, ToggleLeft, ToggleRight, Loader2, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import api from '../api/api-client';
+
+interface Specialite { id: number; nom: string }
+interface Cycle { id: number; nomCycle: string }
 
 interface ApprenantItem {
     id: number; nom: string; prenom: string; email: string;
     selectionSujetActive: boolean; hasSujet: boolean;
+    specialiteId?: number; specialiteNom?: string;
+    cycleId?: number; cycleNom?: string;
+}
+
+interface PageResponse {
+    content: ApprenantItem[];
+    totalPages: number;
+    totalElements: number;
+    currentPage: number;
 }
 
 const ConfigSelectionSujetsPage = () => {
     const [apprenants, setApprenants] = useState<ApprenantItem[]>([]);
+    const [specialites, setSpecialites] = useState<Specialite[]>([]);
+    const [cycles, setCycles] = useState<Cycle[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [specialiteId, setSpecialiteId] = useState<number | undefined>(undefined);
+    const [cycleId, setCycleId] = useState<number | undefined>(undefined);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
     const [toggling, setToggling] = useState<number | null>(null);
+    const size = 10;
+
+    const fetchFilters = async () => {
+        try {
+            const [specRes, cycleRes] = await Promise.all([
+                api.get<Specialite[]>('/affectation/specialites'),
+                api.get<Cycle[]>('/affectation/cycles')
+            ]);
+            setSpecialites(specRes.data);
+            setCycles(cycleRes.data);
+        } catch {}
+    };
 
     const fetchApprenants = async () => {
         setLoading(true);
         try {
-            const res = await api.get<ApprenantItem[]>('/affectation/apprenants-selection');
-            setApprenants(res.data);
+            const params = new URLSearchParams();
+            if (search) params.set('search', search);
+            if (specialiteId !== undefined) params.set('specialiteId', String(specialiteId));
+            if (cycleId !== undefined) params.set('cycleId', String(cycleId));
+            params.set('page', String(page));
+            params.set('size', String(size));
+            const res = await api.get<PageResponse>(`/affectation/apprenants-selection/page?${params}`);
+            setApprenants(res.data.content);
+            setTotalPages(res.data.totalPages);
+            setTotalElements(res.data.totalElements);
         } catch {}
         setLoading(false);
     };
 
-    useEffect(() => { fetchApprenants(); }, []);
+    useEffect(() => { fetchFilters(); }, []);
+
+    useEffect(() => {
+        fetchApprenants();
+    }, [page, search, specialiteId, cycleId]);
+
+    const handleSearchChange = (val: string) => { setSearch(val); setPage(0); };
+    const handleSpecialiteChange = (val: string) => { setSpecialiteId(val ? Number(val) : undefined); setPage(0); };
+    const handleCycleChange = (val: string) => { setCycleId(val ? Number(val) : undefined); setPage(0); };
 
     const handleToggle = async (id: number) => {
         setToggling(id);
@@ -33,9 +80,8 @@ const ConfigSelectionSujetsPage = () => {
         setToggling(null);
     };
 
-    const filtered = apprenants.filter(a =>
-        `${a.prenom} ${a.nom} ${a.email}`.toLowerCase().includes(search.toLowerCase())
-    );
+    const getInitials = (p?: string, n?: string) =>
+        `${(p?.[0] || '').toUpperCase()}${(n?.[0] || '').toUpperCase()}`;
 
     return (
         <div className="space-y-6 animate-fade-in pb-20">
@@ -45,16 +91,42 @@ const ConfigSelectionSujetsPage = () => {
             </div>
 
             <div className="glass overflow-hidden">
-                <div className="p-6 border-b border-glass-border">
-                    <div className="search-container max-w-md">
-                        <div className="search-icon"><Search size={18} /></div>
-                        <input
-                            type="text"
-                            placeholder="Rechercher un apprenant..."
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            className="search-input"
-                        />
+                <div className="p-6 border-b border-glass-border space-y-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="search-container max-w-xs flex-1 min-w-[200px]">
+                            <div className="search-icon"><Search size={18} /></div>
+                            <input
+                                type="text"
+                                placeholder="Rechercher un apprenant..."
+                                value={search}
+                                onChange={e => handleSearchChange(e.target.value)}
+                                className="search-input"
+                            />
+                        </div>
+                        <select
+                            value={specialiteId ?? ''}
+                            onChange={e => handleSpecialiteChange(e.target.value)}
+                            className="px-4 py-2.5 rounded-xl bg-surface border border-glass-border text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 min-w-[160px]"
+                        >
+                            <option value="">Toutes spécialités</option>
+                            {specialites.map(s => (
+                                <option key={s.id} value={s.id}>{s.nom}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={cycleId ?? ''}
+                            onChange={e => handleCycleChange(e.target.value)}
+                            className="px-4 py-2.5 rounded-xl bg-surface border border-glass-border text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 min-w-[160px]"
+                        >
+                            <option value="">Tous cycles</option>
+                            {cycles.map(c => (
+                                <option key={c.id} value={c.id}>{c.nomCycle}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="text-xs text-text-muted">
+                        <Filter size={14} className="inline mr-1" />
+                        {totalElements} apprenant{totalElements > 1 ? 's' : ''} trouvé{totalElements > 1 ? 's' : ''}
                     </div>
                 </div>
 
@@ -62,7 +134,7 @@ const ConfigSelectionSujetsPage = () => {
                     <div className="flex items-center justify-center py-20">
                         <Loader2 className="w-8 h-8 text-primary animate-spin" />
                     </div>
-                ) : filtered.length === 0 ? (
+                ) : apprenants.length === 0 ? (
                     <div className="py-20 text-center">
                         <Users size={48} className="mx-auto text-text-muted mb-4 opacity-40" />
                         <p className="text-text-muted font-medium">Aucun apprenant trouvé</p>
@@ -74,22 +146,26 @@ const ConfigSelectionSujetsPage = () => {
                                 <tr className="bg-surface-hover/50 text-text-muted text-xs uppercase tracking-widest">
                                     <th className="py-3 px-6 text-left">Apprenant</th>
                                     <th className="py-3 px-4 text-left">Email</th>
+                                    <th className="py-3 px-4 text-left">Spécialité</th>
+                                    <th className="py-3 px-4 text-left">Cycle</th>
                                     <th className="py-3 px-4 text-center">Sujet</th>
                                     <th className="py-3 px-4 text-center">Sélection</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-glass-border">
-                                {filtered.map(a => (
+                                {apprenants.map(a => (
                                     <tr key={a.id} className="hover:bg-surface-hover/30 transition-colors">
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/20 shrink-0">
-                                                    {`${(a.prenom?.[0] || '').toUpperCase()}${(a.nom?.[0] || '').toUpperCase()}`}
+                                                    {getInitials(a.prenom, a.nom)}
                                                 </div>
                                                 <span className="font-bold text-text">{a.prenom} {a.nom}</span>
                                             </div>
                                         </td>
                                         <td className="py-4 px-4 text-sm text-text-muted">{a.email}</td>
+                                        <td className="py-4 px-4 text-sm text-text-muted">{a.specialiteNom ?? '-'}</td>
+                                        <td className="py-4 px-4 text-sm text-text-muted">{a.cycleNom ?? '-'}</td>
                                         <td className="py-4 px-4 text-center">
                                             {a.hasSujet ? (
                                                 <span className="tag tag-licence text-xs">Assigné</span>
@@ -121,6 +197,43 @@ const ConfigSelectionSujetsPage = () => {
                                 ))}
                             </tbody>
                         </table>
+
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between px-6 py-4 border-t border-glass-border">
+                                <span className="text-sm text-text-muted">
+                                    Page {page + 1} sur {totalPages}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                                        disabled={page === 0}
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all bg-surface-hover text-text-muted hover:bg-surface-hover/80 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronLeft size={16} /> Précédent
+                                    </button>
+                                    {Array.from({ length: totalPages }, (_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPage(i)}
+                                            className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${
+                                                i === page
+                                                    ? 'bg-primary text-white shadow-md shadow-primary/30'
+                                                    : 'bg-surface-hover text-text-muted hover:bg-surface-hover/80'
+                                            }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                    <button
+                                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                        disabled={page >= totalPages - 1}
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all bg-surface-hover text-text-muted hover:bg-surface-hover/80 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    >
+                                        Suivant <ChevronRight size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
