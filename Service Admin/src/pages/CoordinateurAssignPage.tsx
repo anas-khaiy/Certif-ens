@@ -13,6 +13,7 @@ import {
     Save,
     Ban
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api-client';
 
 interface Coordinateur {
@@ -59,6 +60,12 @@ const CoordinateurAssignPage = () => {
     const [tab, setTab] = useState<'apprenants' | 'enseignants'>('apprenants');
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+    const showToast = (type: 'success' | 'error', text: string) => {
+        setToast({ type, text });
+        setTimeout(() => setToast(null), 4000);
+    };
 
     useEffect(() => {
         fetchCoordinateurs();
@@ -152,9 +159,12 @@ const CoordinateurAssignPage = () => {
                 api.put(`/coordinateurs/${selectedCoordId}/assign-apprenants`, Array.from(selectedApprenantIds)),
                 api.put(`/coordinateurs/${selectedCoordId}/assign-enseignants`, Array.from(selectedEnseignantIds))
             ]);
-            setMessage({ type: 'success', text: 'Affectations enregistrées avec succès' });
+            showToast('success', 'Affectations enregistrées avec succès');
+            fetchAllApprenants();
+            fetchAllEnseignants();
+            fetchAssignedData();
         } catch {
-            setMessage({ type: 'error', text: "Erreur lors de l'enregistrement" });
+            showToast('error', "Erreur lors de l'enregistrement");
         }
         setSaving(false);
     };
@@ -223,7 +233,6 @@ const CoordinateurAssignPage = () => {
                     </button>
                 </div>
             )}
-
             <div className="glass overflow-hidden shadow-xl">
                 <div className="p-6 border-b border-glass-border flex flex-col lg:flex-row items-start lg:items-center gap-4">
                     <div className="flex-1 w-full">
@@ -399,7 +408,7 @@ const CoordinateurAssignPage = () => {
                                                 return (
                                                     <tr
                                                         key={a.id}
-                                                        className={`transition-colors ${otherCoord ? 'bg-warning/5 opacity-60' : 'hover:bg-surface-hover/30 cursor-pointer'} ${checked && !otherCoord ? 'bg-primary/5' : ''}`}
+                                                        className={`transition-colors ${otherCoord ? 'bg-warning/5 opacity-60 cursor-not-allowed' : 'hover:bg-surface-hover/30 cursor-pointer'} ${checked && !otherCoord ? 'bg-primary/5' : ''}`}
                                                         onClick={() => { if (!otherCoord) toggleApprenant(a.id); }}
                                                     >
                                                         <td className="text-center">
@@ -499,7 +508,7 @@ const CoordinateurAssignPage = () => {
                                                 return (
                                                     <tr
                                                         key={e.id}
-                                                        className={`transition-colors ${otherCoord ? 'bg-warning/5 opacity-60' : 'hover:bg-surface-hover/30 cursor-pointer'} ${checked && !otherCoord ? 'bg-primary/5' : ''}`}
+                                                        className={`transition-colors ${otherCoord ? 'bg-warning/5 opacity-60 cursor-not-allowed' : 'hover:bg-surface-hover/30 cursor-pointer'} ${checked && !otherCoord ? 'bg-primary/5' : ''}`}
                                                         onClick={() => { if (!otherCoord) toggleEnseignant(e.id); }}
                                                     >
                                                         <td className="text-center">
@@ -572,6 +581,25 @@ const CoordinateurAssignPage = () => {
                     <p className="text-text-muted font-medium text-lg">Sélectionnez un coordinateur pour commencer</p>
                 </div>
             )}
+
+            <AnimatePresence>
+                {toast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        className={`fixed bottom-6 right-6 z-[60] px-5 py-3 rounded-xl border shadow-xl flex items-center gap-3 ${
+                            toast.type === 'success'
+                                ? 'bg-success/10 border-success/20 text-success'
+                                : 'bg-error/10 border-error/20 text-error'
+                        }`}
+                        style={{ backdropFilter: 'blur(12px)' }}
+                    >
+                        {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                        <span className="text-sm font-semibold">{toast.text}</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
