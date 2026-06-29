@@ -38,24 +38,24 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Native WebSocket endpoint (used by @stomp/stompjs with brokerURL: ws://...)
                 registry.addEndpoint("/ws")
                 .setAllowedOrigins(
-                    "http://192.168.20.25:5173", "http://192.168.20.25:5174", "http://192.168.20.25:5175",
+                    "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
                     "http://127.0.0.1:5173", "http://127.0.0.1:5174", "http://127.0.0.1:5175",
                     "http://217.65.145.127", "http://217.65.145.127:5173", "http://217.65.145.127:5174", "http://217.65.145.127:5175",
                     "https://217.65.145.127", "https://217.65.145.127:5443", "https://217.65.145.127:5444", "https://217.65.145.127:5445",
-                    "http://192.168.20.25:6173", "http://192.168.20.25:6174", "http://192.168.20.25:6175", "http://192.168.20.25:6176",
-                    "http://192.168.20.25:9091", "http://192.168.20.25:9092", "http://192.168.20.25:9093", "http://192.168.20.25:9094"
+                    "http://localhost:6173", "http://localhost:6174", "http://localhost:6175", "http://localhost:6176",
+                    "http://localhost:9091", "http://localhost:9092", "http://localhost:9093", "http://localhost:9094"
                 )
                 .setAllowedOriginPatterns("*");
         
         // SockJS fallback endpoint (if the browser falls back to HTTP)
         registry.addEndpoint("/ws-sockjs")
                 .setAllowedOrigins(
-                    "http://192.168.20.25:5173", "http://192.168.20.25:5174", "http://192.168.20.25:5175",
+                    "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
                     "http://127.0.0.1:5173", "http://127.0.0.1:5174", "http://127.0.0.1:5175",
                     "http://217.65.145.127", "http://217.65.145.127:5173", "http://217.65.145.127:5174", "http://217.65.145.127:5175",
                     "https://217.65.145.127", "https://217.65.145.127:5443", "https://217.65.145.127:5444", "https://217.65.145.127:5445",
-                    "http://192.168.20.25:6173", "http://192.168.20.25:6174", "http://192.168.20.25:6175", "http://192.168.20.25:6176",
-                    "http://192.168.20.25:9091", "http://192.168.20.25:9092", "http://192.168.20.25:9093", "http://192.168.20.25:9094"
+                    "http://localhost:6173", "http://localhost:6174", "http://localhost:6175", "http://localhost:6176",
+                    "http://localhost:9091", "http://localhost:9092", "http://localhost:9093", "http://localhost:9094"
                 )
                 .setAllowedOriginPatterns("*")
                 .withSockJS();

@@ -1,7 +1,7 @@
 // ─── Central Server Configuration ────────────────────────────────────────────
-// Change SERVER_HOST to switch between environments (192.168.20.25, IP, domain…)
+// Change SERVER_HOST to switch between environments (localhost, IP, domain…)
 
-export const SERVER_HOST = '192.168.20.25';
+export const SERVER_HOST = 'localhost';
 
 // ── API base URLs (Direct to Spring Boot backends, no Nginx proxy) ─────────
 export const API_FORMATEUR = `http://${SERVER_HOST}:9092/api/v1`;

@@ -26,7 +26,7 @@ spec:
       initContainers:
       - name: install-model
         image: curlimages/curl:latest
-        command: ["sh", "-c", "until curl -X POST http://192.168.20.25:11434/api/pull -d '{\"name\": \"mistral\"}'; do sleep 5; done"]
+        command: ["sh", "-c", "until curl -X POST http://localhost:11434/api/pull -d '{\"name\": \"mistral\"}'; do sleep 5; done"]
         # In K8s, InitContainers share the network namespace with the main container IF they are in the same Pod,
         # but InitContainers run BEFORE the main container. This is a bit tricky for sidecars/init.
         # Instead, I'll use a separate Job or just let the main container handle it if they have a startup script.

@@ -226,7 +226,7 @@ const ConfigSujetsPage = () => {
                                         <div className="flex items-center gap-3 overflow-hidden">
                                             <div className="w-10 h-10 rounded-full bg-surface-hover flex items-center justify-center overflow-hidden border border-glass-border shrink-0">
                                                 {f.photoProfile && f.photoProfile !== 'default.png' ? (
-                                                    <img src={`http://192.168.20.25:9094/api/v1/files/profiles/${f.photoProfile}`} alt="Avatar" className="w-full h-full object-cover" />
+                                                    <img src={`http://localhost:9094/api/v1/files/profiles/${f.photoProfile}`} alt="Avatar" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <span className="font-semibold text-sm">{f.prenom?.[0]}{f.nom?.[0]}</span>
                                                 )}

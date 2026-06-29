@@ -31,7 +31,7 @@ public class QuizAIService {
     public String generateQuestions(String topic, int count) {
         String ollamaBase = System.getenv("OLLAMA_URL") != null
                 ? System.getenv("OLLAMA_URL")
-                : "http://192.168.20.25:11434";
+                : "http://localhost:11434";
         String url = ollamaBase + "/api/generate";
 
         String prompt = String.format(
@@ -100,7 +100,7 @@ public class QuizAIService {
     public String generateContent(String query) {
         String ollamaBase = System.getenv("OLLAMA_URL") != null
                 ? System.getenv("OLLAMA_URL")
-                : "http://192.168.20.25:11434";
+                : "http://localhost:11434";
         String url = ollamaBase + "/api/generate";
 
         String prompt = String.format(

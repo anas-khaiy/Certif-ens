@@ -7,6 +7,6 @@ export default defineConfig({
   server: {
     port: 6175,
     host: true,
-    allowedHosts: ['192.168.20.25', '192.168.20.25'],
+    allowedHosts: ['localhost', 'localhost'],
   },
 })

@@ -66,10 +66,10 @@ public class SecurityConfiguration {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                // Use allowedOriginPatterns for more flexibility with 192.168.20.25, internal IPs and server IPs
+                // Use allowedOriginPatterns for more flexibility with localhost, internal IPs and server IPs
                 configuration.setAllowedOriginPatterns(List.of(
-                                "http://192.168.20.25:*",
-                                "https://192.168.20.25:*",
+                                "http://localhost:*",
+                                "https://localhost:*",
                                 "http://127.0.0.1:*",
                                 "https://127.0.0.1:*",
                                 "http://192.168.22.*:*",
@@ -79,8 +79,8 @@ public class SecurityConfiguration {
                                 "http://10.10.10.2:*",
                                 "http://217.65.145.127:*",
                                 "https://217.65.145.127:*",
-                                "http://192.168.20.25:*",
-                                "https://192.168.20.25:*"));
+                                "http://localhost:*",
+                                "https://localhost:*"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));
