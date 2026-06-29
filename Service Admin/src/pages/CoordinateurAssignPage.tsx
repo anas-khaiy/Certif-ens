@@ -540,11 +540,6 @@ const CoordinateurAssignPage = () => {
                                             }) : (
                                                 <tr>
                                                     <td colSpan={5} className="py-20 text-text-muted font-medium text-center">Aucun formateur trouvé</td>
-                                                    </tr>
-                                                );
-                                            }) : (
-                                                <tr>
-                                                    <td colSpan={4} className="py-20 text-text-muted font-medium text-center">Aucun formateur trouvé</td>
                                                 </tr>
                                             )}
                                         </tbody>
