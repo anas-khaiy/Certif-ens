@@ -399,6 +399,7 @@ const CoordinateurAssignPage = () => {
                                                 <th>Email</th>
                                                 <th>Spécialité</th>
                                                 <th>Cycle</th>
+                                                <th>Coordinateur</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-glass-border">
@@ -423,18 +424,20 @@ const CoordinateurAssignPage = () => {
                                                         <td className="font-bold text-text capitalize">{a.prenom} {a.nom}</td>
                                                         <td className="text-text-muted">{a.email}</td>
                                                         <td>{a.specialite?.nom || <span className="text-text-muted">—</span>}</td>
+                                                        <td>{a.cycle?.nomCycle || <span className="text-text-muted">—</span>}</td>
                                                         <td>
-                                                            {otherCoord ? (
-                                                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-warning">
-                                                                    <Ban size={12} /> {a.coordinateur?.prenom} {a.coordinateur?.nom}
+                                                            {a.coordinateur ? (
+                                                                <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${otherCoord ? 'text-warning' : 'text-text-muted'}`}>
+                                                                    {otherCoord && <Ban size={12} />}
+                                                                    {a.coordinateur.prenom} {a.coordinateur.nom}
                                                                 </span>
-                                                            ) : a.cycle?.nomCycle || <span className="text-text-muted">—</span>}
+                                                            ) : <span className="text-text-muted">—</span>}
                                                         </td>
                                                     </tr>
                                                 );
                                             }) : (
                                                 <tr>
-                                                    <td colSpan={5} className="py-20 text-text-muted font-medium text-center">Aucun apprenant trouvé</td>
+                                                    <td colSpan={6} className="py-20 text-text-muted font-medium text-center">Aucun apprenant trouvé</td>
                                                 </tr>
                                             )}
                                         </tbody>
@@ -499,6 +502,7 @@ const CoordinateurAssignPage = () => {
                                                 <th>Nom & Prénom</th>
                                                 <th>Email</th>
                                                 <th>Spécialité</th>
+                                                <th>Coordinateur</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-glass-border">
@@ -522,13 +526,20 @@ const CoordinateurAssignPage = () => {
                                                         </td>
                                                         <td className="font-bold text-text capitalize">{e.prenom} {e.nom}</td>
                                                         <td className="text-text-muted">{e.email}</td>
+                                                        <td>{e.specialite?.nom || <span className="text-text-muted">—</span>}</td>
                                                         <td>
-                                                            {otherCoord ? (
-                                                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-warning">
-                                                                    <Ban size={12} /> {e.coordinateur?.prenom} {e.coordinateur?.nom}
+                                                            {e.coordinateur ? (
+                                                                <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${otherCoord ? 'text-warning' : 'text-text-muted'}`}>
+                                                                    {otherCoord && <Ban size={12} />}
+                                                                    {e.coordinateur.prenom} {e.coordinateur.nom}
                                                                 </span>
-                                                            ) : e.specialite?.nom || <span className="text-text-muted">—</span>}
+                                                            ) : <span className="text-text-muted">—</span>}
                                                         </td>
+                                                    </tr>
+                                                );
+                                            }) : (
+                                                <tr>
+                                                    <td colSpan={5} className="py-20 text-text-muted font-medium text-center">Aucun formateur trouvé</td>
                                                     </tr>
                                                 );
                                             }) : (
