@@ -325,10 +325,22 @@ public class AffectationController {
             .map(a -> Map.<String, Object>of("id", a.getId(), "nom", a.getNom(), "prenom", a.getPrenom()))
             .toList();
         long sujetsDisponibles = sujetRepository.countAvailableByCoordinateurId(coordinateurId);
+        List<Map<String, Object>> assignedList = apprenantRepository.findAssignedByCoordinateurId(coordinateurId)
+            .stream()
+            .map(a -> {
+                String sujetTitre = a.getSujetDetails() != null ? a.getSujetDetails().getTitre() : "";
+                return Map.<String, Object>of(
+                    "apprenant", Map.of("id", a.getId(), "nom", a.getNom(), "prenom", a.getPrenom()),
+                    "encadrant", Map.of("id", a.getEncadrant().getId(), "nom", a.getEncadrant().getNom(), "prenom", a.getEncadrant().getPrenom()),
+                    "sujet", Map.of("id", a.getSujetDetails().getId(), "titre", sujetTitre)
+                );
+            })
+            .toList();
         return ResponseEntity.ok(Map.of(
             "apprenantsSansSujet", (long) apprenantsList.size(),
             "sujetsDisponibles", sujetsDisponibles,
-            "apprenants", apprenantsList
+            "apprenants", apprenantsList,
+            "assigned", assignedList
         ));
     }
 

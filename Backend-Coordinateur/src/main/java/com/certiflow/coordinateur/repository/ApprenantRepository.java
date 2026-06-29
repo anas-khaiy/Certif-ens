@@ -89,4 +89,10 @@ public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
 
     @Query("SELECT COUNT(a) FROM Apprenant a WHERE a.coordinateur.id = :coordinateurId AND a.sujetDetails IS NULL")
     long countWithoutSujetByCoordinateurId(@Param("coordinateurId") Long coordinateurId);
+
+    @Query("SELECT a FROM Apprenant a WHERE a.coordinateur.id = :coordinateurId AND a.encadrant IS NOT NULL AND a.sujetDetails IS NOT NULL")
+    List<Apprenant> findAssignedByCoordinateurId(@Param("coordinateurId") Long coordinateurId);
+
+    @Query("SELECT COUNT(a) FROM Apprenant a WHERE a.coordinateur.id = :coordinateurId AND a.encadrant IS NOT NULL AND a.sujetDetails IS NOT NULL")
+    long countAssignedByCoordinateurId(@Param("coordinateurId") Long coordinateurId);
 }
