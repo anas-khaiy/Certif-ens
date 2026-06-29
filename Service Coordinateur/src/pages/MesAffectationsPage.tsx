@@ -137,15 +137,34 @@ const MesAffectationsPage = () => {
         setEditSujetId(null);
     };
 
-    const handleSujetChange = (sujetId: string) => {
-        const id = sujetId ? parseInt(sujetId) : null;
-        setEditSujetId(id);
-        if (id) {
-            const sujet = sujets.find(s => s.id === id);
-            if (sujet?.formateur?.id) {
-                setEditEncadrantId(sujet.formateur.id);
+    const handleSujetChange = async (apprenant: Apprenant, sujetId: string) => {
+        const sujetIdNum = sujetId ? parseInt(sujetId) : null;
+        setEditSujetId(sujetIdNum);
+        if (!sujetIdNum) return;
+
+        const sujet = sujets.find(s => s.id === sujetIdNum);
+        const formateurId = sujet?.formateur?.id;
+        if (formateurId) setEditEncadrantId(formateurId);
+
+        setSavingRow(apprenant.id);
+        try {
+            if (formateurId !== null && formateurId !== (apprenant.encadrant?.id ?? null)) {
+                await api.post('/affectation/assign', {
+                    enseignantId: formateurId,
+                    apprenantIds: [apprenant.id]
+                });
             }
+            if (sujetIdNum !== (apprenant.sujetDetails?.id ?? null)) {
+                await api.post(`/affectation/apprenant/${apprenant.id}/affecter-sujet/${sujetIdNum}`);
+            }
+            showToast('success', 'Affectation mise à jour avec succès');
+            cancelEditing();
+            fetchApprenants();
+            fetchSujets();
+        } catch {
+            showToast('error', "Erreur lors de l'affectation");
         }
+        setSavingRow(null);
     };
 
     const handleSave = async (apprenant: Apprenant) => {
@@ -423,7 +442,7 @@ const MesAffectationsPage = () => {
                                                     <div className="relative">
                                                         <select
                                                             value={editSujetId ?? ''}
-                                                            onChange={e => handleSujetChange(e.target.value)}
+                                                            onChange={e => handleSujetChange(a, e.target.value)}
                                                             className="form-input appearance-none w-full font-bold bg-surface text-sm py-2"
                                                             disabled={!editEncadrantId}
                                                         >
