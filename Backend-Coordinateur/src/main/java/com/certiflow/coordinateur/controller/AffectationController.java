@@ -132,14 +132,7 @@ public class AffectationController {
 
         Long coordinateurId = getCurrentCoordinateurId();
 
-        // First, unassign all previously assigned to this formateur for this coordinator
-        List<Apprenant> previouslyAssigned = apprenantRepository.findByCoordinateurIdAndEncadrantId(coordinateurId, enseignant.getId());
-        for (Apprenant a : previouslyAssigned) {
-            a.setEncadrant(null);
-        }
-        apprenantRepository.saveAll(previouslyAssigned);
-
-        // Then assign selected ones (only those belonging to this coordinator or unassigned)
+        // Assign selected apprenants to this formateur
         if (request.getApprenantIds() != null && !request.getApprenantIds().isEmpty()) {
             Coordinateur coord = coordinateurRepository.findById(coordinateurId).orElseThrow();
             List<Apprenant> toAssign = apprenantRepository.findAllById(request.getApprenantIds());
