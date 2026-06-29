@@ -16,10 +16,19 @@ public class SujetPropositionConfigController {
 
     private final SujetPropositionConfigService configService;
     private final CoordinateurRepository coordinateurRepository;
+    private final com.certiflow.coordinateur.repository.SujetPropositionConfigRepository configRepository;
 
-    public SujetPropositionConfigController(SujetPropositionConfigService configService, CoordinateurRepository coordinateurRepository) {
+    public SujetPropositionConfigController(SujetPropositionConfigService configService, CoordinateurRepository coordinateurRepository, com.certiflow.coordinateur.repository.SujetPropositionConfigRepository configRepository) {
         this.configService = configService;
         this.coordinateurRepository = coordinateurRepository;
+        this.configRepository = configRepository;
+    }
+
+    @GetMapping("/formateurs-occupes")
+    public ResponseEntity<List<Long>> getFormateursOccupes(Authentication authentication) {
+        Coordinateur coordinateur = coordinateurRepository.findByEmail(authentication.getName())
+            .orElseThrow(() -> new RuntimeException("Coordinateur non trouvé"));
+        return ResponseEntity.ok(configRepository.findFormateurIdsInOtherConfigs(coordinateur.getId()));
     }
 
     @GetMapping

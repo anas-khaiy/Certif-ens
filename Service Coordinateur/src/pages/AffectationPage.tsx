@@ -21,13 +21,14 @@ import api from '../api/api-client';
 
 /* ──────────────────── Types ──────────────────── */
 interface Specialite { id: number; nom: string; }
+interface Cycle { id: number; nomCycle: string; }
 interface Enseignant {
     id: number; nom: string; prenom: string; email: string;
     specialite?: Specialite; photoProfile?: string;
 }
 interface Apprenant {
     id: number; nom: string; prenom: string; email: string; cin?: string;
-    specialite?: Specialite; sexe?: string;
+    specialite?: Specialite; cycle?: Cycle; sexe?: string;
     encadrant?: Enseignant | null;
 }
 interface PageResponse<T> {
@@ -103,12 +104,14 @@ const AffectationPage = () => {
     const [apprenantTotal, setApprenantTotal] = useState(0);
     const [apprenantSearch, setApprenantSearch] = useState('');
     const [specialiteFilter, setSpecialiteFilter] = useState<string>('');
+    const [cycleFilter, setCycleFilter] = useState<string>('');
     const [selectedApprenants, setSelectedApprenants] = useState<Set<number>>(new Set());
     const [loadingApprenants, setLoadingApprenants] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // ── Specialites ──
+    // ── Specialites / Cycles ──
     const [specialites, setSpecialites] = useState<Specialite[]>([]);
+    const [cycles, setCycles] = useState<Cycle[]>([]);
 
     // ── Toast ──
     const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -121,11 +124,15 @@ const AffectationPage = () => {
         setTimeout(() => setToast(null), 4000);
     };
 
-    /* ── Fetch specialites ── */
+    /* ── Fetch specialites / cycles ── */
     useEffect(() => {
-        api.get('/affectation/specialites')
-            .then(res => setSpecialites(res.data || []))
-            .catch(() => {});
+        Promise.all([
+            api.get('/affectation/specialites'),
+            api.get('/affectation/cycles')
+        ]).then(([specRes, cycleRes]) => {
+            setSpecialites(specRes.data || []);
+            setCycles(cycleRes.data || []);
+        }).catch(() => {});
     }, []);
 
     /* ── Fetch formateurs ── */
@@ -163,7 +170,7 @@ const AffectationPage = () => {
     }, [selectedFormateur, apprenantPage, apprenantSearch, specialiteFilter]);
 
     useEffect(() => { fetchApprenants(); }, [fetchApprenants]);
-    useEffect(() => { setApprenantPage(0); }, [apprenantSearch, specialiteFilter]);
+    useEffect(() => { setApprenantPage(0); }, [apprenantSearch, specialiteFilter, cycleFilter]);
 
     /* ── Open modal & pre-select assigned ── */
     const openModal = async (f: Enseignant) => {
@@ -171,6 +178,7 @@ const AffectationPage = () => {
         setApprenantPage(0);
         setApprenantSearch('');
         setSpecialiteFilter('');
+        setCycleFilter('');
         // Fetch already-assigned apprenants for this formateur
         try {
             const res = await api.get<number[]>(`/affectation/formateur/${f.id}/apprenants`);
@@ -380,6 +388,19 @@ const AffectationPage = () => {
                                         </select>
                                         <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                                     </div>
+                                    <div className="relative max-w-xs flex-1">
+                                        <select
+                                            value={cycleFilter}
+                                            onChange={e => setCycleFilter(e.target.value)}
+                                            className="form-input appearance-none w-full font-bold bg-surface"
+                                        >
+                                            <option value="">Tous les cycles</option>
+                                            {cycles.map(c => (
+                                                <option key={c.id} value={c.id}>{c.nomCycle}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                                    </div>
                                 </div>
 
                                 {/* Counter */}
@@ -419,11 +440,12 @@ const AffectationPage = () => {
                                                     <th className="py-3 px-4">Apprenant</th>
                                                     <th className="py-3 px-4">Email</th>
                                                     <th className="py-3 px-4">Spécialité</th>
+                                                    <th className="py-3 px-4">Cycle</th>
                                                     <th className="py-3 px-4">Encadrant actuel</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-glass-border">
-                                                {apprenants.map((a) => {
+                                                {apprenants.filter(a => !cycleFilter || a.cycle?.id?.toString() === cycleFilter).map((a) => {
                                                     const isSelected = selectedApprenants.has(a.id);
                                                     const isAssignedToOther = Boolean(a.encadrant && a.encadrant.id !== selectedFormateur!.id);
                                                     return (
@@ -459,6 +481,11 @@ const AffectationPage = () => {
                                                             <td className="py-3 px-4">
                                                                 <span className={`tag font-bold text-xs ${isAssignedToOther ? 'bg-surface-hover text-text-muted' : 'tag-licence'}`}>
                                                                     {a.specialite?.nom || 'N/A'}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-3 px-4">
+                                                                <span className={`tag font-bold text-xs ${isAssignedToOther ? 'bg-surface-hover text-text-muted' : 'tag-master'}`}>
+                                                                    {a.cycle?.nomCycle || 'N/A'}
                                                                 </span>
                                                             </td>
                                                             <td className="py-3 px-4">

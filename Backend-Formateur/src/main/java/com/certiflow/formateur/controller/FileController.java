@@ -43,7 +43,7 @@ public class FileController {
     /**
      * Upload an image from the rich-text lesson editor.
      * Returns JSON: { "url":
-     * "http://localhost:8081/api/v1/files/content-images/{filename}" }
+     * "http://192.168.20.25:8081/api/v1/files/content-images/{filename}" }
      */
     @PostMapping("/content-images/upload")
     public ResponseEntity<java.util.Map<String, String>> uploadContentImage(

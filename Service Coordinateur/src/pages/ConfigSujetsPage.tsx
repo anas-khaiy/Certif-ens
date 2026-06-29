@@ -9,6 +9,7 @@ const ConfigSujetsPage = () => {
     const [config, setConfig] = useState<SujetPropositionConfig | null>(null);
     const [nombreSujets, setNombreSujets] = useState<number>(1);
     const [selectedFormateurIds, setSelectedFormateurIds] = useState<number[]>([]);
+    const [occupiedFormateurIds, setOccupiedFormateurIds] = useState<number[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -47,15 +48,17 @@ const ConfigSujetsPage = () => {
     const fetchInitialData = async () => {
         try {
             setIsLoading(true);
-            const [configRes, specRes] = await Promise.all([
+            const [configRes, specRes, occRes] = await Promise.all([
                 api.get('/sujet-config').catch(err => {
                     if (err.response?.status === 404) return { data: null };
                     throw err;
                 }),
-                api.get('/affectation/specialites').catch(() => ({ data: [] }))
+                api.get('/affectation/specialites').catch(() => ({ data: [] })),
+                api.get('/sujet-config/formateurs-occupes').catch(() => ({ data: [] }))
             ]);
 
             setSpecialites(specRes.data || []);
+            setOccupiedFormateurIds(occRes.data || []);
             const conf = configRes.data;
             if (conf) {
                 setConfig(conf);
@@ -207,14 +210,18 @@ const ConfigSujetsPage = () => {
 
                         <div className="p-6 flex-1 bg-surface-hover/30">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                {formateurs.map(f => (
+                                {formateurs.map(f => {
+                                    const isSelected = selectedFormateurIds.includes(f.id);
+                                    const isOccupied = occupiedFormateurIds.includes(f.id) && !isSelected;
+                                    return (
                                     <div 
                                         key={f.id} 
-                                        onClick={() => toggleFormateur(f.id)}
-                                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedFormateurIds.includes(f.id) ? 'border-primary bg-primary/10' : 'border-glass-border bg-surface hover:bg-surface-hover'}`}
+                                        onClick={() => { if (!isOccupied) toggleFormateur(f.id); }}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${isSelected ? 'border-primary bg-primary/10' : isOccupied ? 'border-warning/40 bg-warning/5 cursor-not-allowed opacity-70' : 'border-glass-border bg-surface cursor-pointer hover:bg-surface-hover'}`}
+                                        title={isOccupied ? 'Déjà configuré par un autre coordinateur' : ''}
                                     >
-                                        <div className={`w-5 h-5 rounded flex items-center justify-center border shrink-0 ${selectedFormateurIds.includes(f.id) ? 'bg-primary border-primary text-white' : 'border-text-muted'}`}>
-                                            {selectedFormateurIds.includes(f.id) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                                        <div className={`w-5 h-5 rounded flex items-center justify-center border shrink-0 ${isSelected ? 'bg-primary border-primary text-white' : isOccupied ? 'bg-warning border-warning text-white' : 'border-text-muted'}`}>
+                                            {(isSelected || isOccupied) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                                         </div>
                                         <div className="flex items-center gap-3 overflow-hidden">
                                             <div className="w-10 h-10 rounded-full bg-surface-hover flex items-center justify-center overflow-hidden border border-glass-border shrink-0">
@@ -226,11 +233,15 @@ const ConfigSujetsPage = () => {
                                             </div>
                                             <div className="truncate flex-1">
                                                 <p className="font-semibold text-text text-sm truncate">{f.prenom} {f.nom}</p>
-                                                <p className="text-xs text-text-muted truncate">{f.specialite?.nom || 'Sans spécialité'}</p>
+                                                <p className="text-xs text-text-muted truncate">
+                                                    {f.specialite?.nom || 'Sans spécialité'}
+                                                    {isOccupied && <span className="ml-2 text-warning font-bold">(Occupé)</span>}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                                 {formateurs.length === 0 && (
                                     <div className="col-span-full py-8 text-center text-text-muted flex flex-col items-center gap-2">
                                         <Users size={32} className="opacity-20" />

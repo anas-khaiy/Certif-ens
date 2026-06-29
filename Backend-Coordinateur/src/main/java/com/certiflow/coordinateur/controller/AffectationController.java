@@ -7,6 +7,7 @@ import com.certiflow.coordinateur.model.Enseignant;
 import com.certiflow.coordinateur.model.Specialite;
 import com.certiflow.coordinateur.repository.ApprenantRepository;
 import com.certiflow.coordinateur.repository.CoordinateurRepository;
+import com.certiflow.coordinateur.repository.CycleRepository;
 import com.certiflow.coordinateur.repository.EnseignantRepository;
 import com.certiflow.coordinateur.repository.SpecialiteRepository;
 import com.certiflow.coordinateur.repository.SujetRepository;
@@ -30,19 +31,39 @@ public class AffectationController {
     private final EnseignantRepository enseignantRepository;
     private final ApprenantRepository apprenantRepository;
     private final SpecialiteRepository specialiteRepository;
+    private final CycleRepository cycleRepository;
     private final SujetRepository sujetRepository;
     private final CoordinateurRepository coordinateurRepository;
 
     public AffectationController(EnseignantRepository enseignantRepository,
                                   ApprenantRepository apprenantRepository,
                                   SpecialiteRepository specialiteRepository,
+                                  CycleRepository cycleRepository,
                                   SujetRepository sujetRepository,
                                   CoordinateurRepository coordinateurRepository) {
         this.enseignantRepository = enseignantRepository;
         this.apprenantRepository = apprenantRepository;
         this.specialiteRepository = specialiteRepository;
+        this.cycleRepository = cycleRepository;
         this.sujetRepository = sujetRepository;
         this.coordinateurRepository = coordinateurRepository;
+    }
+
+    @GetMapping("/all-apprenants")
+    public ResponseEntity<Page<Apprenant>> getAllApprenants(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false, defaultValue = "") String search,
+            @RequestParam(required = false) Long specialiteId,
+            @RequestParam(required = false) Long coordinateurId) {
+        Pageable pageable = PageRequest.of(page, size);
+        String nameFilter = (search != null && !search.trim().isEmpty()) ? search.trim() : "";
+        return ResponseEntity.ok(apprenantRepository.findAllWithFilters(nameFilter, specialiteId, coordinateurId, pageable));
+    }
+
+    @GetMapping("/coordinateurs")
+    public ResponseEntity<List<Coordinateur>> getCoordinateurs() {
+        return ResponseEntity.ok(coordinateurRepository.findAll());
     }
 
     @GetMapping("/formateurs")
@@ -92,6 +113,17 @@ public class AffectationController {
     @GetMapping("/specialites")
     public ResponseEntity<List<Specialite>> getSpecialites() {
         return ResponseEntity.ok(specialiteRepository.findAll());
+    }
+
+    @GetMapping("/cycles")
+    public ResponseEntity<List<com.certiflow.coordinateur.model.Cycle>> getCycles() {
+        return ResponseEntity.ok(cycleRepository.findAll());
+    }
+
+    @GetMapping("/sujets")
+    public ResponseEntity<List<Sujet>> getSujets() {
+        Long coordinateurId = getCurrentCoordinateurId();
+        return ResponseEntity.ok(sujetRepository.findByCoordinateurId(coordinateurId));
     }
 
     @GetMapping("/formateur/{id}/apprenants")
@@ -150,12 +182,8 @@ public class AffectationController {
             @PathVariable Long sujetId) {
         Apprenant apprenant = apprenantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Apprenant non trouvé"));
-        Long coordinateurId = getCurrentCoordinateurId();
-        if (apprenant.getCoordinateur() != null && !apprenant.getCoordinateur().getId().equals(coordinateurId)) {
-            throw new RuntimeException("Accès non autorisé à cet apprenant");
-        }
+        Coordinateur coord = getCurrentCoordinateur();
         if (apprenant.getCoordinateur() == null) {
-            Coordinateur coord = coordinateurRepository.findById(coordinateurId).orElseThrow();
             apprenant.setCoordinateur(coord);
         }
         
@@ -174,6 +202,7 @@ public class AffectationController {
         });
         
         sujet.setApprenant(apprenant);
+        sujet.setModifiePar(coord);
         return ResponseEntity.ok(sujetRepository.save(sujet));
     }
 
@@ -185,12 +214,8 @@ public class AffectationController {
         Apprenant apprenant = apprenantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Apprenant non trouvé"));
 
-        Long coordinateurId = getCurrentCoordinateurId();
-        if (apprenant.getCoordinateur() != null && !apprenant.getCoordinateur().getId().equals(coordinateurId)) {
-            throw new RuntimeException("Accès non autorisé à cet apprenant");
-        }
+        Coordinateur coord = getCurrentCoordinateur();
         if (apprenant.getCoordinateur() == null) {
-            Coordinateur coord = coordinateurRepository.findById(coordinateurId).orElseThrow();
             apprenant.setCoordinateur(coord);
         }
                 
@@ -199,6 +224,7 @@ public class AffectationController {
         sujet.setTitre(request.getTitre());
         sujet.setDescription(request.getDescription());
         sujet.setObjectifs(request.getObjectifs() != null ? request.getObjectifs() : List.of());
+        sujet.setModifiePar(coord);
         
         return ResponseEntity.ok(sujetRepository.save(sujet));
     }
@@ -234,10 +260,13 @@ public class AffectationController {
     }
 
     private Long getCurrentCoordinateurId() {
+        return getCurrentCoordinateur().getId();
+    }
+
+    private Coordinateur getCurrentCoordinateur() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        Coordinateur coordinateur = coordinateurRepository.findByEmail(email)
+        return coordinateurRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Coordinateur non trouvé"));
-        return coordinateur.getId();
     }
 }

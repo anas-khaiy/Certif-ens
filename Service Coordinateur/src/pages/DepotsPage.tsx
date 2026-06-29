@@ -59,6 +59,7 @@ interface Depot {
     nomApprenant: string;
     prenomApprenant: string;
     specialiteApprenant: string;
+    cycleApprenant: string;
     sujetTitre: string;
     typeDepot: string;
     fichierUrl: string;
@@ -70,14 +71,21 @@ interface Specialite {
     nom: string;
 }
 
+interface Cycle {
+    id: number;
+    nomCycle: string;
+}
+
 export default function DepotsPage() {
     const [depots, setDepots] = useState<Depot[]>([]);
     const [specialites, setSpecialites] = useState<Specialite[]>([]);
+    const [cycles, setCycles] = useState<Cycle[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
     const [specialiteFilter, setSpecialiteFilter] = useState('');
+    const [cycleFilter, setCycleFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState('ALL');
     const [yearFilter, setYearFilter] = useState('ALL');
 
@@ -90,6 +98,7 @@ export default function DepotsPage() {
 
     useEffect(() => {
         fetchSpecialites();
+        fetchCycles();
         fetchDepots();
     }, []);
 
@@ -100,6 +109,13 @@ export default function DepotsPage() {
         } catch (error) {
             console.error("Erreur chargement spécialités", error);
         }
+    };
+
+    const fetchCycles = async () => {
+        try {
+            const res = await api.get('/affectation/cycles');
+            setCycles(res.data || []);
+        } catch {}
     };
 
     const fetchDepots = async () => {
@@ -123,9 +139,10 @@ export default function DepotsPage() {
         return depots.filter(depot => {
             const matchSearch = `${depot.prenomApprenant} ${depot.nomApprenant} ${depot.sujetTitre}`.toLowerCase().includes(searchQuery.toLowerCase());
             const matchSpec = specialiteFilter ? depot.specialiteApprenant === specialiteFilter : true;
+            const matchCycle = cycleFilter ? depot.cycleApprenant === cycleFilter : true;
             const matchType = typeFilter !== 'ALL' ? depot.typeDepot === typeFilter : true;
             const matchYear = yearFilter !== 'ALL' ? new Date(depot.dateDepot).getFullYear().toString() === yearFilter : true;
-            return matchSearch && matchSpec && matchType && matchYear;
+            return matchSearch && matchSpec && matchCycle && matchType && matchYear;
         });
     }, [depots, searchQuery, specialiteFilter, typeFilter, yearFilter]);
 
@@ -203,6 +220,21 @@ export default function DepotsPage() {
                             <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                         </div>
 
+                        {/* Cycle */}
+                        <div className="relative min-w-[180px] flex-1">
+                            <select
+                                value={cycleFilter}
+                                onChange={(e) => { setCycleFilter(e.target.value); setPage(0); }}
+                                className="form-input appearance-none w-full font-bold bg-surface"
+                            >
+                                <option value="">Tous les cycles</option>
+                                {cycles.map(c => (
+                                    <option key={c.id} value={c.nomCycle}>{c.nomCycle}</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                        </div>
+
                         {/* Type */}
                         <div className="relative min-w-[180px] flex-1">
                             <select
@@ -257,6 +289,7 @@ export default function DepotsPage() {
                                     <tr className="bg-surface/50 border-b border-glass-border">
                                         <th className="p-4 text-xs font-bold text-text-muted uppercase tracking-wider">Apprenant</th>
                                         <th className="p-4 text-xs font-bold text-text-muted uppercase tracking-wider">Spécialité</th>
+                                        <th className="p-4 text-xs font-bold text-text-muted uppercase tracking-wider">Cycle</th>
                                         <th className="p-4 text-xs font-bold text-text-muted uppercase tracking-wider">Type de dépôt</th>
                                         <th className="p-4 text-xs font-bold text-text-muted uppercase tracking-wider">Date</th>
                                         <th className="p-4 text-xs font-bold text-text-muted uppercase tracking-wider text-right">Actions</th>
@@ -290,6 +323,11 @@ export default function DepotsPage() {
                                                 <td className="p-4">
                                                     <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface border border-glass-border text-text-muted">
                                                         {depot.specialiteApprenant}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface border border-glass-border text-text-muted">
+                                                        {depot.cycleApprenant}
                                                     </span>
                                                 </td>
                                                 <td className="p-4">

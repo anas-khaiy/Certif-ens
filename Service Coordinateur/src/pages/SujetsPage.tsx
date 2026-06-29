@@ -59,6 +59,11 @@ interface Specialite {
     nom: string;
 }
 
+interface Cycle {
+    id: number;
+    nomCycle: string;
+}
+
 interface Apprenant {
     id: number;
     nom: string;
@@ -66,6 +71,7 @@ interface Apprenant {
     email: string;
     photoProfile: string;
     specialite: Specialite | null;
+    cycle?: Cycle | null;
     encadrant: { id: number; nom: string; prenom: string } | null;
     sujetDetails?: { id: number; titre: string } | null;
 }
@@ -80,12 +86,14 @@ interface Sujet {
 export default function SujetsPage() {
     const [apprenants, setApprenants] = useState<Apprenant[]>([]);
     const [specialites, setSpecialites] = useState<Specialite[]>([]);
+    const [cycles, setCycles] = useState<Cycle[]>([]);
     
     const [loadingApprenants, setLoadingApprenants] = useState(true);
     
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
     const [specialiteFilter, setSpecialiteFilter] = useState('');
+    const [cycleFilter, setCycleFilter] = useState('');
     const [sujetFilter, setSujetFilter] = useState('ALL');
     const [encadrantFilter, setEncadrantFilter] = useState('ALL');
 
@@ -114,6 +122,7 @@ export default function SujetsPage() {
 
     useEffect(() => {
         fetchSpecialites();
+        fetchCycles();
         fetchApprenants();
     }, []);
 
@@ -132,6 +141,13 @@ export default function SujetsPage() {
             setSelectedSujetId(null);
         }
     }, [selectedApprenant, isModalOpen]);
+
+    const fetchCycles = async () => {
+        try {
+            const res = await api.get('/affectation/cycles');
+            setCycles(res.data || []);
+        } catch {}
+    };
 
     const fetchSpecialites = async () => {
         try {
@@ -246,17 +262,18 @@ export default function SujetsPage() {
             const matchSearch = `${a.prenom} ${a.nom}`.toLowerCase().includes(searchQuery.toLowerCase()) || 
                                 (a.email || '').toLowerCase().includes(searchQuery.toLowerCase());
             const matchSpec = specialiteFilter ? a.specialite?.id?.toString() === specialiteFilter : true;
+            const matchCycle = cycleFilter ? a.cycle?.id?.toString() === cycleFilter : true;
             const matchSujet = sujetFilter === 'ALL' ? true : sujetFilter === 'YES' ? !!a.sujetDetails : !a.sujetDetails;
             const matchEncadrant = encadrantFilter === 'ALL' ? true : encadrantFilter === 'YES' ? !!a.encadrant : !a.encadrant;
             
-            return matchSearch && matchSpec && matchSujet && matchEncadrant;
+            return matchSearch && matchSpec && matchCycle && matchSujet && matchEncadrant;
         });
     }, [apprenants, searchQuery, specialiteFilter, sujetFilter, encadrantFilter]);
 
     // Reset pagination when filters change
     useEffect(() => {
         setPage(0);
-    }, [searchQuery, specialiteFilter, sujetFilter, encadrantFilter]);
+    }, [searchQuery, specialiteFilter, cycleFilter, sujetFilter, encadrantFilter]);
 
     const totalPages = Math.ceil(filteredApprenants.length / itemsPerPage);
     const paginatedApprenants = filteredApprenants.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
@@ -311,6 +328,21 @@ export default function SujetsPage() {
                             <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                         </div>
 
+                        {/* Cycle Filter */}
+                        <div className="relative min-w-[180px] flex-1">
+                            <select
+                                value={cycleFilter}
+                                onChange={(e) => setCycleFilter(e.target.value)}
+                                className="form-input appearance-none w-full font-bold bg-surface"
+                            >
+                                <option value="">Tous les cycles</option>
+                                {cycles.map(c => (
+                                    <option key={c.id} value={c.id.toString()}>{c.nomCycle}</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                        </div>
+
                         {/* Encadrant Filter */}
                         <div className="relative min-w-[180px] flex-1">
                             <select
@@ -360,6 +392,7 @@ export default function SujetsPage() {
                                         <th className="py-3 px-6 text-left">Apprenant</th>
                                         <th className="py-3 px-4 text-left">Email</th>
                                         <th className="py-3 px-4 text-left">Spécialité</th>
+                                        <th className="py-3 px-4 text-left">Cycle</th>
                                         <th className="py-3 px-4 text-left">Encadrant</th>
                                         <th className="py-3 px-4 text-left">Sujet</th>
                                     </tr>
@@ -383,6 +416,9 @@ export default function SujetsPage() {
                                             <td className="text-text-muted text-sm py-4 px-4">{a.email}</td>
                                             <td className="py-4 px-4">
                                                 <span className="tag tag-licence font-bold text-xs">{a.specialite?.nom || 'N/A'}</span>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <span className="tag tag-master font-bold text-xs">{a.cycle?.nomCycle || 'N/A'}</span>
                                             </td>
                                             <td className="py-4 px-4">
                                                 {a.encadrant ? (

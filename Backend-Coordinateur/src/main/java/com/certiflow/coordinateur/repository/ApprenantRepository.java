@@ -56,6 +56,12 @@ public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
            "AND (:specialiteId IS NULL OR a.specialite.id = :specialiteId)")
     Page<Apprenant> findByCoordinateurIdOrUnclaimedAndFilters(@Param("coordinateurId") Long coordinateurId, @Param("nom") String nom, @Param("specialiteId") Long specialiteId, Pageable pageable);
 
+    @Query("SELECT a FROM Apprenant a WHERE " +
+           "(:nom = '' OR LOWER(a.nom) LIKE LOWER(CONCAT('%', :nom, '%')) OR LOWER(a.prenom) LIKE LOWER(CONCAT('%', :nom, '%'))) " +
+           "AND (:specialiteId IS NULL OR a.specialite.id = :specialiteId) " +
+           "AND (:coordinateurId IS NULL OR a.coordinateur.id = :coordinateurId)")
+    Page<Apprenant> findAllWithFilters(@Param("nom") String nom, @Param("specialiteId") Long specialiteId, @Param("coordinateurId") Long coordinateurId, Pageable pageable);
+
     @Query("SELECT a FROM Apprenant a WHERE (a.coordinateur.id = :coordinateurId OR a.coordinateur IS NULL) AND " +
            "(:nom = '' OR LOWER(a.nom) LIKE LOWER(CONCAT('%', :nom, '%')) OR LOWER(a.prenom) LIKE LOWER(CONCAT('%', :nom, '%'))) " +
            "AND (:specialiteId IS NULL OR a.specialite.id = :specialiteId) " +

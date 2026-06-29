@@ -204,19 +204,19 @@
 	"variable": [
 		{
 			"key": "baseUrl_Admin",
-			"value": "http://localhost:9091"
+			"value": "http://192.168.20.25:9091"
 		},
 		{
 			"key": "baseUrl_Formateur",
-			"value": "http://localhost:9092"
+			"value": "http://192.168.20.25:9092"
 		},
 		{
 			"key": "baseUrl_Apprenant",
-			"value": "http://localhost:9093"
+			"value": "http://192.168.20.25:9093"
 		},
 		{
 			"key": "gatewayUrl",
-			"value": "http://localhost:9092"
+			"value": "http://192.168.20.25:9092"
 		}
 	]
 }

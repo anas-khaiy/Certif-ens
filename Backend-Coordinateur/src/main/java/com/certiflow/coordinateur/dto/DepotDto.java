@@ -12,6 +12,7 @@ public class DepotDto {
     private String nomApprenant;
     private String prenomApprenant;
     private String specialiteApprenant;
+    private String cycleApprenant;
     private String sujetTitre;
     private String typeDepot;
     private String fichierUrl;

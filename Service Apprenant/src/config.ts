@@ -1,5 +1,5 @@
 // ─── Central Server Configuration ────────────────────────────────────────────
-// Change SERVER_HOST to switch between environments (localhost, IP, domain…)
+// Change SERVER_HOST to switch between environments (192.168.20.25, IP, domain…)
 
 export const SERVER_HOST = '192.168.20.25';
 

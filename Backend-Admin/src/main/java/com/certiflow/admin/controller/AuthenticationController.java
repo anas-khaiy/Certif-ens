@@ -130,7 +130,7 @@ public class AuthenticationController {
         cookie.setPath("/");
         cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
         // SameSite=Strict is good for preventing CSRF
-        // Since we are on localhost, some browsers might be picky about SameSite
+        // Since we are on 192.168.20.25, some browsers might be picky about SameSite
         // But for university platform, it's best to use it.
         response.addCookie(cookie);
     }

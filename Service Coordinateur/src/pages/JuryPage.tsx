@@ -59,6 +59,11 @@ interface Specialite {
     nom: string;
 }
 
+interface Cycle {
+    id: number;
+    nomCycle: string;
+}
+
 interface Enseignant {
     id: number;
     nom: string;
@@ -73,6 +78,7 @@ interface Apprenant {
     prenom: string;
     email: string;
     specialite: Specialite | null;
+    cycle?: Cycle | null;
     encadrant: Enseignant | null;
     examinateurs: Enseignant[];
     rapporteurs: Enseignant[];
@@ -83,6 +89,7 @@ interface Apprenant {
 export default function JuryPage() {
     const [apprenants, setApprenants] = useState<Apprenant[]>([]);
     const [specialites, setSpecialites] = useState<Specialite[]>([]);
+    const [cycles, setCycles] = useState<Cycle[]>([]);
     const [formateurs, setFormateurs] = useState<Enseignant[]>([]);
     
     const [loadingApprenants, setLoadingApprenants] = useState(true);
@@ -90,6 +97,7 @@ export default function JuryPage() {
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
     const [specialiteFilter, setSpecialiteFilter] = useState('');
+    const [cycleFilter, setCycleFilter] = useState('');
     const [sujetFilter, setSujetFilter] = useState('ALL');
     const [encadrantFilter, setEncadrantFilter] = useState('ALL');
     const [yearFilter, setYearFilter] = useState('ALL');
@@ -123,6 +131,7 @@ export default function JuryPage() {
 
     useEffect(() => {
         fetchSpecialites();
+        fetchCycles();
         fetchApprenants();
         fetchFormateurs();
     }, []);
@@ -134,6 +143,13 @@ export default function JuryPage() {
         } catch (error) {
             console.error("Erreur chargement spécialités", error);
         }
+    };
+
+    const fetchCycles = async () => {
+        try {
+            const res = await api.get('/affectation/cycles');
+            setCycles(res.data || []);
+        } catch {}
     };
 
     const fetchFormateurs = async () => {
@@ -220,14 +236,15 @@ export default function JuryPage() {
             const matchSearch = `${a.prenom} ${a.nom}`.toLowerCase().includes(searchQuery.toLowerCase()) || 
                                 (a.email || '').toLowerCase().includes(searchQuery.toLowerCase());
             const matchSpec = specialiteFilter ? a.specialite?.id?.toString() === specialiteFilter : true;
+            const matchCycle = cycleFilter ? a.cycle?.id?.toString() === cycleFilter : true;
             const matchSujet = sujetFilter === 'ALL' ? true : sujetFilter === 'YES' ? !!a.sujetDetails : !a.sujetDetails;
             const matchEncadrant = encadrantFilter === 'ALL' ? true : encadrantFilter === 'YES' ? !!a.encadrant : !a.encadrant;
             const matchYear = yearFilter === 'ALL' ? true : a.dateSoutenance ? new Date(a.dateSoutenance).getFullYear().toString() === yearFilter : false;
-            return matchSearch && matchSpec && matchSujet && matchEncadrant && matchYear;
+            return matchSearch && matchSpec && matchCycle && matchSujet && matchEncadrant && matchYear;
         });
     }, [apprenants, searchQuery, specialiteFilter, sujetFilter, encadrantFilter, yearFilter]);
 
-    useEffect(() => { setPage(0); }, [searchQuery, specialiteFilter, sujetFilter, encadrantFilter, yearFilter]);
+    useEffect(() => { setPage(0); }, [searchQuery, specialiteFilter, cycleFilter, sujetFilter, encadrantFilter, yearFilter]);
 
     const totalPages = Math.ceil(filteredApprenants.length / itemsPerPage);
     const paginatedApprenants = filteredApprenants.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
@@ -298,6 +315,20 @@ export default function JuryPage() {
                             </select>
                             <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                         </div>
+
+                        <div className="relative min-w-[150px] flex-1">
+                            <select
+                                value={cycleFilter}
+                                onChange={(e) => setCycleFilter(e.target.value)}
+                                className="form-input appearance-none w-full font-bold bg-surface"
+                            >
+                                <option value="">Tous les cycles</option>
+                                {cycles.map(c => (
+                                    <option key={c.id} value={c.id.toString()}>{c.nomCycle}</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                        </div>
                         
                         <div className="relative min-w-[150px] flex-1">
                             <select
@@ -359,6 +390,7 @@ export default function JuryPage() {
                                     <tr className="bg-surface-hover/50 text-text-muted text-xs uppercase tracking-widest">
                                         <th className="py-3 px-6 text-left">Apprenant</th>
                                         <th className="py-3 px-4 text-left">Spécialité</th>
+                                        <th className="py-3 px-4 text-left">Cycle</th>
                                         <th className="py-3 px-4 text-left">Encadrant</th>
                                         <th className="py-3 px-4 text-left">Examinateurs</th>
                                         <th className="py-3 px-4 text-left">Rapporteurs</th>
@@ -381,6 +413,9 @@ export default function JuryPage() {
                                             </td>
                                             <td className="py-4 px-4">
                                                 <span className="tag tag-licence font-bold text-xs">{a.specialite?.nom || 'N/A'}</span>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <span className="tag tag-master font-bold text-xs">{a.cycle?.nomCycle || 'N/A'}</span>
                                             </td>
                                             <td className="py-4 px-4">
                                                 {a.encadrant ? (

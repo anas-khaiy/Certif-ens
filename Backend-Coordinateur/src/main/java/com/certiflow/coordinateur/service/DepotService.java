@@ -27,6 +27,7 @@ public class DepotService {
 
     private DepotDto mapToDto(DepotPfe depot) {
         String specialite = depot.getApprenant().getSpecialite() != null ? depot.getApprenant().getSpecialite().getNom() : "Non assigné";
+        String cycle = depot.getApprenant().getCycle() != null ? depot.getApprenant().getCycle().getNomCycle() : "Non assigné";
         String sujet = depot.getApprenant().getSujetDetails() != null ? depot.getApprenant().getSujetDetails().getTitre() : "Non assigné";
 
         return DepotDto.builder()
@@ -34,6 +35,7 @@ public class DepotService {
                 .nomApprenant(depot.getApprenant().getNom())
                 .prenomApprenant(depot.getApprenant().getPrenom())
                 .specialiteApprenant(specialite)
+                .cycleApprenant(cycle)
                 .sujetTitre(sujet)
                 .typeDepot(depot.getTypeDepot())
                 .fichierUrl(depot.getFichierUrl())

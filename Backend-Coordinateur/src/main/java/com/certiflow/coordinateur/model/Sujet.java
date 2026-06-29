@@ -37,4 +37,8 @@ public class Sujet {
     @ManyToOne
     @JoinColumn(name = "formateur_id", referencedColumnName = "id")
     private Enseignant formateur;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modifie_par_id")
+    private Coordinateur modifiePar;
 }

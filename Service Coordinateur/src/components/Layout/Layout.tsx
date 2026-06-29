@@ -14,7 +14,8 @@ import {
     Target,
     Users,
     Calendar,
-    FileText
+    FileText,
+    ListChecks
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -153,6 +154,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <div className="mt-4 mb-2 px-3 text-xs font-bold text-text-muted uppercase tracking-widest">Coordinateur</div>
                     <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/affectations" icon={<UserCheck size={20} />} label="Affectations" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
+                    <SidebarItem to="/mes-affectations" icon={<ListChecks size={20} />} label="Mes Affectations" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/sujets" icon={<Target size={20} />} label="Sujets & Objectifs" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/config-sujets" icon={<Settings size={20} />} label="Config. Sujets" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/deadlines" icon={<Calendar size={20} />} label="Dates Limites" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
