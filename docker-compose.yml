@@ -194,6 +194,28 @@ services:
     environment:
       - "LIVEKIT_KEYS=devkey: devsecret32charslongtofitrequirement"
 
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:latest
+    container_name: certiflow-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/certiflow.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - service-admin
+      - service-formateur
+      - service-apprenant
+      - service-coordinateur
+      - backend-admin
+      - backend-formateur
+      - backend-apprenant
+      - backend-coordinateur
+      - livekit
+      - ai-detection-service
+
 volumes:
   certificate_postgres_data:
     external: true
