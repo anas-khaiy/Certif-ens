@@ -1,6 +1,8 @@
 package com.certiflow.admin.controller;
 
+import com.certiflow.admin.model.Apprenant;
 import com.certiflow.admin.model.Coordinateur;
+import com.certiflow.admin.model.Enseignant;
 import com.certiflow.admin.service.CoordinateurService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +60,28 @@ public class CoordinateurController {
     public ResponseEntity<Void> deleteMultipleCoordinateurs(@RequestBody List<Long> ids) {
         coordinateurService.deleteMultipleCoordinateurs(ids);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/apprenants")
+    public ResponseEntity<List<Apprenant>> getAssignedApprenants(@PathVariable Long id) {
+        return ResponseEntity.ok(coordinateurService.getAssignedApprenants(id));
+    }
+
+    @GetMapping("/{id}/enseignants")
+    public ResponseEntity<List<Enseignant>> getAssignedEnseignants(@PathVariable Long id) {
+        return ResponseEntity.ok(coordinateurService.getAssignedEnseignants(id));
+    }
+
+    @PutMapping("/{id}/assign-apprenants")
+    public ResponseEntity<Void> assignApprenants(@PathVariable Long id, @RequestBody List<Long> apprenantIds) {
+        coordinateurService.assignApprenants(id, apprenantIds);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/assign-enseignants")
+    public ResponseEntity<Void> assignEnseignants(@PathVariable Long id, @RequestBody List<Long> enseignantIds) {
+        coordinateurService.assignEnseignants(id, enseignantIds);
+        return ResponseEntity.ok().build();
     }
 
     // Helper record for error responses

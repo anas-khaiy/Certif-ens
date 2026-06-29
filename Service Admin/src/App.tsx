@@ -19,6 +19,7 @@ import AdminBundleEnrollmentPage from './pages/AdminBundleEnrollmentPage';
 import AdminBundleManagementPage from './pages/AdminBundleManagementPage';
 import BundleStatsPage from './pages/BundleStatsPage';
 import CoordinateursPage from './pages/CoordinateursPage';
+import CoordinateurAssignPage from './pages/CoordinateurAssignPage';
 import DepartementsPage from './pages/DepartementsPage';
 import api from './api/api-client';
 
@@ -158,6 +159,16 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <CoordinateursPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/coordinateur-assign"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <CoordinateurAssignPage />
               </Layout>
             </PrivateRoute>
           }

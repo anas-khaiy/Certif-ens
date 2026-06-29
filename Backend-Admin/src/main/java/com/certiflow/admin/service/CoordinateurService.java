@@ -1,11 +1,14 @@
 package com.certiflow.admin.service;
 
+import com.certiflow.admin.model.Apprenant;
 import com.certiflow.admin.model.Coordinateur;
 import com.certiflow.admin.model.Enseignant;
+import com.certiflow.admin.repository.ApprenantRepository;
 import com.certiflow.admin.repository.CoordinateurRepository;
 import com.certiflow.admin.repository.EnseignantRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,15 +17,18 @@ public class CoordinateurService {
 
     private final CoordinateurRepository coordinateurRepository;
     private final EnseignantRepository enseignantRepository;
+    private final ApprenantRepository apprenantRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
     public CoordinateurService(CoordinateurRepository coordinateurRepository,
                                EnseignantRepository enseignantRepository,
+                               ApprenantRepository apprenantRepository,
                                PasswordEncoder passwordEncoder,
                                EmailService emailService) {
         this.coordinateurRepository = coordinateurRepository;
         this.enseignantRepository = enseignantRepository;
+        this.apprenantRepository = apprenantRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
     }
@@ -148,5 +154,49 @@ public class CoordinateurService {
 
     public void deleteMultipleCoordinateurs(List<Long> ids) {
         coordinateurRepository.deleteAllById(ids);
+    }
+
+    public List<Apprenant> getAssignedApprenants(Long coordinateurId) {
+        return apprenantRepository.findByCoordinateurId(coordinateurId);
+    }
+
+    public List<Enseignant> getAssignedEnseignants(Long coordinateurId) {
+        return enseignantRepository.findByCoordinateurId(coordinateurId);
+    }
+
+    @Transactional
+    public void assignApprenants(Long coordinateurId, List<Long> apprenantIds) {
+        Coordinateur coordinateur = getCoordinateurById(coordinateurId);
+        // Unassign all current apprenants of this coordinateur
+        List<Apprenant> current = apprenantRepository.findByCoordinateurId(coordinateurId);
+        for (Apprenant a : current) {
+            a.setCoordinateur(null);
+            apprenantRepository.save(a);
+        }
+        // Assign selected apprenants
+        for (Long id : apprenantIds) {
+            Apprenant a = apprenantRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Apprenant not found with id: " + id));
+            a.setCoordinateur(coordinateur);
+            apprenantRepository.save(a);
+        }
+    }
+
+    @Transactional
+    public void assignEnseignants(Long coordinateurId, List<Long> enseignantIds) {
+        Coordinateur coordinateur = getCoordinateurById(coordinateurId);
+        // Unassign all current enseignants of this coordinateur
+        List<Enseignant> current = enseignantRepository.findByCoordinateurId(coordinateurId);
+        for (Enseignant e : current) {
+            e.setCoordinateur(null);
+            enseignantRepository.save(e);
+        }
+        // Assign selected enseignants
+        for (Long id : enseignantIds) {
+            Enseignant e = enseignantRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Enseignant not found with id: " + id));
+            e.setCoordinateur(coordinateur);
+            enseignantRepository.save(e);
+        }
     }
 }

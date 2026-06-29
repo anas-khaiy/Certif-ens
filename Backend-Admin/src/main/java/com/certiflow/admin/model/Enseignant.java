@@ -36,4 +36,8 @@ public class Enseignant {
     @ManyToOne
     @JoinColumn(name = "specialite_id")
     private Specialite specialite;
+
+    @ManyToOne
+    @JoinColumn(name = "coordinateur_id")
+    private Coordinateur coordinateur;
 }

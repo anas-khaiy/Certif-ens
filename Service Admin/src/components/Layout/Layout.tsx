@@ -161,6 +161,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <div className="mt-4 mb-2 px-3 text-xs font-bold text-text-muted uppercase tracking-widest">Gestion</div>
                     <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/coordinateurs" icon={<UserCog size={20} />} label="Coordinateurs" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
+                    <SidebarItem to="/coordinateur-assign" icon={<UserCog size={20} />} label="Affectation Coord." onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/trainers" icon={<Users size={20} />} label="Formateurs" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/learners" icon={<GraduationCap size={20} />} label="Apprenants" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/cycles" icon={<RefreshCw size={20} />} label="Cycles" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
