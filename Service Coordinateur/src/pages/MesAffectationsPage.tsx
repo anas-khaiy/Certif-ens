@@ -161,8 +161,9 @@ const MesAffectationsPage = () => {
             cancelEditing();
             fetchApprenants();
             fetchSujets();
-        } catch {
-            showToast('error', "Erreur lors de l'affectation");
+        } catch (err: unknown) {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Erreur lors de l'affectation";
+            showToast('error', msg);
         }
         setSavingRow(null);
     };
@@ -187,8 +188,9 @@ const MesAffectationsPage = () => {
             cancelEditing();
             fetchApprenants();
             fetchSujets();
-        } catch {
-            showToast('error', "Erreur lors de l'affectation");
+        } catch (err: unknown) {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Erreur lors de l'affectation";
+            showToast('error', msg);
         }
         setSavingRow(null);
     };

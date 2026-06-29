@@ -180,6 +180,10 @@ public class AffectationController {
         
         Sujet sujet = sujetRepository.findById(sujetId)
                 .orElseThrow(() -> new RuntimeException("Sujet non trouvé"));
+
+        if (sujet.getApprenant() != null && !sujet.getApprenant().getId().equals(id)) {
+            throw new RuntimeException("Ce sujet est déjà attribué à un autre apprenant");
+        }
                 
         sujetRepository.findByApprenantId(id).ifPresent(oldSujet -> {
             if (!oldSujet.getId().equals(sujetId)) {
