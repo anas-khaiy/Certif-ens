@@ -10,7 +10,8 @@ import {
     ChevronDown,
     Users,
     GraduationCap,
-    Save
+    Save,
+    Ban
 } from 'lucide-react';
 import api from '../api/api-client';
 
@@ -22,10 +23,12 @@ interface Cycle { id: number; nomCycle: string; }
 interface Apprenant {
     id: number; nom: string; prenom: string; email: string;
     specialite?: Specialite; cycle?: Cycle;
+    coordinateur?: { id: number; nom: string; prenom: string };
 }
 interface Enseignant {
     id: number; nom: string; prenom: string; email: string;
     specialite?: Specialite;
+    coordinateur?: { id: number; nom: string; prenom: string };
 }
 
 const CoordinateurAssignPage = () => {
@@ -368,11 +371,11 @@ const CoordinateurAssignPage = () => {
                                                     <input
                                                         type="checkbox"
                                                         className="w-4 h-4 rounded border-glass-border bg-background cursor-pointer"
-                                                        checked={paginatedApprenants.length > 0 && paginatedApprenants.every(a => selectedApprenantIds.has(a.id))}
+                                                        checked={paginatedApprenants.length > 0 && paginatedApprenants.filter(a => !a.coordinateur || a.coordinateur.id === parseInt(selectedCoordId)).every(a => selectedApprenantIds.has(a.id))}
                                                         onChange={() => {
                                                             const all = new Set(paginatedApprenants.map(a => a.id));
                                                             setSelectedApprenantIds(prev => {
-                                                                const allSelected = paginatedApprenants.every(a => prev.has(a.id));
+                                                                const allSelected = paginatedApprenants.filter(a => !a.coordinateur || a.coordinateur.id === parseInt(selectedCoordId)).every(a => prev.has(a.id));
                                                                 if (allSelected) {
                                                                     const next = new Set(prev);
                                                                     all.forEach(id => next.delete(id));
@@ -392,24 +395,32 @@ const CoordinateurAssignPage = () => {
                                         <tbody className="divide-y divide-glass-border">
                                             {paginatedApprenants.length > 0 ? paginatedApprenants.map(a => {
                                                 const checked = selectedApprenantIds.has(a.id);
+                                                const otherCoord = a.coordinateur && a.coordinateur.id !== parseInt(selectedCoordId);
                                                 return (
                                                     <tr
                                                         key={a.id}
-                                                        className={`hover:bg-surface-hover/30 transition-colors cursor-pointer ${checked ? 'bg-primary/5' : ''}`}
-                                                        onClick={() => toggleApprenant(a.id)}
+                                                        className={`transition-colors ${otherCoord ? 'bg-warning/5 opacity-60' : 'hover:bg-surface-hover/30 cursor-pointer'} ${checked && !otherCoord ? 'bg-primary/5' : ''}`}
+                                                        onClick={() => { if (!otherCoord) toggleApprenant(a.id); }}
                                                     >
                                                         <td className="text-center">
                                                             <input
                                                                 type="checkbox"
                                                                 className="w-4 h-4 rounded border-glass-border bg-background cursor-pointer"
                                                                 checked={checked}
-                                                                onChange={() => toggleApprenant(a.id)}
+                                                                disabled={!!otherCoord}
+                                                                onChange={() => { if (!otherCoord) toggleApprenant(a.id); }}
                                                             />
                                                         </td>
                                                         <td className="font-bold text-text capitalize">{a.prenom} {a.nom}</td>
                                                         <td className="text-text-muted">{a.email}</td>
                                                         <td>{a.specialite?.nom || <span className="text-text-muted">—</span>}</td>
-                                                        <td>{a.cycle?.nomCycle || <span className="text-text-muted">—</span>}</td>
+                                                        <td>
+                                                            {otherCoord ? (
+                                                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-warning">
+                                                                    <Ban size={12} /> {a.coordinateur?.prenom} {a.coordinateur?.nom}
+                                                                </span>
+                                                            ) : a.cycle?.nomCycle || <span className="text-text-muted">—</span>}
+                                                        </td>
                                                     </tr>
                                                 );
                                             }) : (
@@ -461,11 +472,11 @@ const CoordinateurAssignPage = () => {
                                                     <input
                                                         type="checkbox"
                                                         className="w-4 h-4 rounded border-glass-border bg-background cursor-pointer"
-                                                        checked={paginatedEnseignants.length > 0 && paginatedEnseignants.every(e => selectedEnseignantIds.has(e.id))}
+                                                        checked={paginatedEnseignants.length > 0 && paginatedEnseignants.filter(e => !e.coordinateur || e.coordinateur.id === parseInt(selectedCoordId)).every(e => selectedEnseignantIds.has(e.id))}
                                                         onChange={() => {
                                                             const all = new Set(paginatedEnseignants.map(e => e.id));
                                                             setSelectedEnseignantIds(prev => {
-                                                                const allSelected = paginatedEnseignants.every(e => prev.has(e.id));
+                                                                const allSelected = paginatedEnseignants.filter(e => !e.coordinateur || e.coordinateur.id === parseInt(selectedCoordId)).every(e => prev.has(e.id));
                                                                 if (allSelected) {
                                                                     const next = new Set(prev);
                                                                     all.forEach(id => next.delete(id));
@@ -484,23 +495,31 @@ const CoordinateurAssignPage = () => {
                                         <tbody className="divide-y divide-glass-border">
                                             {paginatedEnseignants.length > 0 ? paginatedEnseignants.map(e => {
                                                 const checked = selectedEnseignantIds.has(e.id);
+                                                const otherCoord = e.coordinateur && e.coordinateur.id !== parseInt(selectedCoordId);
                                                 return (
                                                     <tr
                                                         key={e.id}
-                                                        className={`hover:bg-surface-hover/30 transition-colors cursor-pointer ${checked ? 'bg-primary/5' : ''}`}
-                                                        onClick={() => toggleEnseignant(e.id)}
+                                                        className={`transition-colors ${otherCoord ? 'bg-warning/5 opacity-60' : 'hover:bg-surface-hover/30 cursor-pointer'} ${checked && !otherCoord ? 'bg-primary/5' : ''}`}
+                                                        onClick={() => { if (!otherCoord) toggleEnseignant(e.id); }}
                                                     >
                                                         <td className="text-center">
                                                             <input
                                                                 type="checkbox"
                                                                 className="w-4 h-4 rounded border-glass-border bg-background cursor-pointer"
                                                                 checked={checked}
-                                                                onChange={() => toggleEnseignant(e.id)}
+                                                                disabled={!!otherCoord}
+                                                                onChange={() => { if (!otherCoord) toggleEnseignant(e.id); }}
                                                             />
                                                         </td>
                                                         <td className="font-bold text-text capitalize">{e.prenom} {e.nom}</td>
                                                         <td className="text-text-muted">{e.email}</td>
-                                                        <td>{e.specialite?.nom || <span className="text-text-muted">—</span>}</td>
+                                                        <td>
+                                                            {otherCoord ? (
+                                                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-warning">
+                                                                    <Ban size={12} /> {e.coordinateur?.prenom} {e.coordinateur?.nom}
+                                                                </span>
+                                                            ) : e.specialite?.nom || <span className="text-text-muted">—</span>}
+                                                        </td>
                                                     </tr>
                                                 );
                                             }) : (
