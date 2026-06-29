@@ -320,11 +320,15 @@ public class AffectationController {
     @GetMapping("/random-assign-stats")
     public ResponseEntity<Map<String, Object>> getRandomAssignStats() {
         Long coordinateurId = getCurrentCoordinateurId();
-        long apprenantsSansSujet = apprenantRepository.countWithoutSujetByCoordinateurId(coordinateurId);
+        List<Map<String, Object>> apprenantsList = apprenantRepository.findWithoutSujetByCoordinateurId(coordinateurId)
+            .stream()
+            .map(a -> Map.<String, Object>of("id", a.getId(), "nom", a.getNom(), "prenom", a.getPrenom()))
+            .toList();
         long sujetsDisponibles = sujetRepository.countAvailableByCoordinateurId(coordinateurId);
         return ResponseEntity.ok(Map.of(
-            "apprenantsSansSujet", apprenantsSansSujet,
-            "sujetsDisponibles", sujetsDisponibles
+            "apprenantsSansSujet", (long) apprenantsList.size(),
+            "sujetsDisponibles", sujetsDisponibles,
+            "apprenants", apprenantsList
         ));
     }
 
