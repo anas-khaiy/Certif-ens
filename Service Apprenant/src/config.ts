@@ -17,4 +17,4 @@ export const VERIFY_URL_FORMATEUR = `http://${SERVER_HOST}:6175/verify`;
 export const VERIFY_URL_APPRENANT = `http://${SERVER_HOST}:6175/verify`;
 
 // ── AI detection service ──────────────────────────────────────────────────────
-export const AI_DETECT_URL = `http://${SERVER_HOST}:8000/detect`;
+export const AI_DETECT_URL = `http://${SERVER_HOST}:88/detect`;

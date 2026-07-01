@@ -26,8 +26,17 @@ app = FastAPI(title="CertiFlow AI Detection Service")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost",
+        "http://localhost:80",
+        "http://localhost:81",
+        "http://localhost:82",
+        "http://localhost:83",
+        "http://localhost:84",
+        "http://localhost:85",
+        "http://localhost:86",
+        "http://localhost:88",
+        "http://localhost:89",
         "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
-        "http://localhost:6173", "http://localhost:6174", "http://localhost:6175",
         "http://localhost:6173", "http://localhost:6174", "http://localhost:6175", "http://localhost:6176",
         "http://localhost:9091", "http://localhost:9092", "http://localhost:9093", "http://localhost:9094"
     ],
