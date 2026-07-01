@@ -7,7 +7,7 @@ export const SERVER_HOST = 'localhost';
 export const API_FORMATEUR = `http://${SERVER_HOST}:85/api/v1`;
 export const API_APPRENANT = `http://${SERVER_HOST}:86/api/v1`;
 export const API_ADMIN = `http://${SERVER_HOST}:84/api/v1`;
-export const API_COORDINATEUR = `http://${SERVER_HOST}:87/api/v1/coord`;
+export const API_COORDINATEUR = `http://${SERVER_HOST}:89/api/v1/coord`;
 
 // ── WebSocket ─────────────────────────────────────────────────────────────────
 export const WS_APPRENANT = `ws://${SERVER_HOST}:86/ws`;

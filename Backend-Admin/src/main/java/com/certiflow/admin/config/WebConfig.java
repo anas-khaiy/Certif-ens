@@ -19,7 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:84",
                         "http://localhost:85",
                         "http://localhost:86",
-                        "http://localhost:87",
+                        "http://localhost:89",
                         "http://localhost:88",
                         "http://localhost:6173",
                         "http://localhost:6174",
