@@ -68,8 +68,11 @@ public class SecurityConfiguration {
                 CorsConfiguration configuration = new CorsConfiguration();
                 // Use allowedOriginPatterns for more flexibility with localhost, internal IPs and server IPs
                 configuration.setAllowedOriginPatterns(List.of(
+                                "http://localhost",
                                 "http://localhost:*",
+                                "https://localhost",
                                 "https://localhost:*",
+                                "http://127.0.0.1",
                                 "http://127.0.0.1:*",
                                 "https://127.0.0.1:*",
                                 "http://192.168.22.*:*",
@@ -78,9 +81,7 @@ public class SecurityConfiguration {
                                 "http://10.10.10.*:*",
                                 "http://10.10.10.2:*",
                                 "http://217.65.145.127:*",
-                                "https://217.65.145.127:*",
-                                "http://localhost:*",
-                                "https://localhost:*"));
+                                "https://217.65.145.127:*"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));
