@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Users, ToggleLeft, ToggleRight, Loader2, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Search, Users, ToggleLeft, ToggleRight, Loader2, ChevronLeft, ChevronRight, Filter, BookOpen, Lock } from 'lucide-react';
 import api from '../api/api-client';
 
 interface Specialite { id: number; nom: string }
@@ -7,9 +7,14 @@ interface Cycle { id: number; nomCycle: string }
 
 interface ApprenantItem {
     id: number; nom: string; prenom: string; email: string;
-    selectionSujetActive: boolean; hasSujet: boolean;
+    selectionSujetActive: boolean; hasSujet: boolean; sujetTitre?: string;
     specialiteId?: number; specialiteNom?: string;
     cycleId?: number; cycleNom?: string;
+}
+
+interface SujetItem {
+    id: number; titre: string; description: string;
+    formateurNom: string; selectionActive: boolean; pris: boolean;
 }
 
 interface PageResponse {
@@ -21,9 +26,11 @@ interface PageResponse {
 
 const ConfigSelectionSujetsPage = () => {
     const [apprenants, setApprenants] = useState<ApprenantItem[]>([]);
+    const [sujets, setSujets] = useState<SujetItem[]>([]);
     const [specialites, setSpecialites] = useState<Specialite[]>([]);
     const [cycles, setCycles] = useState<Cycle[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingSujets, setLoadingSujets] = useState(true);
     const [search, setSearch] = useState('');
     const [specialiteId, setSpecialiteId] = useState<number | undefined>(undefined);
     const [cycleId, setCycleId] = useState<number | undefined>(undefined);
@@ -31,6 +38,7 @@ const ConfigSelectionSujetsPage = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [toggling, setToggling] = useState<number | null>(null);
+    const [togglingSujet, setTogglingSujet] = useState<number | null>(null);
     const size = 10;
 
     const fetchFilters = async () => {
@@ -61,11 +69,24 @@ const ConfigSelectionSujetsPage = () => {
         setLoading(false);
     };
 
+    const fetchSujets = async () => {
+        setLoadingSujets(true);
+        try {
+            const res = await api.get<SujetItem[]>('/affectation/sujets-selection');
+            setSujets(res.data);
+        } catch {}
+        setLoadingSujets(false);
+    };
+
     useEffect(() => { fetchFilters(); }, []);
 
     useEffect(() => {
         fetchApprenants();
     }, [page, search, specialiteId, cycleId]);
+
+    useEffect(() => {
+        fetchSujets();
+    }, []);
 
     const handleSearchChange = (val: string) => { setSearch(val); setPage(0); };
     const handleSpecialiteChange = (val: string) => { setSpecialiteId(val ? Number(val) : undefined); setPage(0); };
@@ -80,18 +101,103 @@ const ConfigSelectionSujetsPage = () => {
         setToggling(null);
     };
 
+    const handleToggleSujet = async (id: number) => {
+        setTogglingSujet(id);
+        try {
+            const res = await api.put<{ id: number; selectionActive: boolean }>(`/affectation/sujets/${id}/selection-toggle`);
+            setSujets(prev => prev.map(s => s.id === id ? { ...s, selectionActive: res.data.selectionActive } : s));
+        } catch {}
+        setTogglingSujet(null);
+    };
+
     const getInitials = (p?: string, n?: string) =>
         `${(p?.[0] || '').toUpperCase()}${(n?.[0] || '').toUpperCase()}`;
 
     return (
-        <div className="space-y-6 animate-fade-in pb-20">
+        <div className="space-y-8 animate-fade-in pb-20">
             <div>
                 <h2 className="text-3xl font-bold">Configuration Sélection Sujets</h2>
-                <p className="text-text-muted">Activer ou désactiver la possibilité pour chaque apprenant de choisir son sujet.</p>
+                <p className="text-text-muted">Gérez les permissions des apprenants et la visibilité des sujets.</p>
+            </div>
+
+            <div className="glass overflow-hidden">
+                <div className="p-6 border-b border-glass-border">
+                    <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+                        <BookOpen size={20} className="text-primary" />
+                        Sujets
+                    </h3>
+
+                    {loadingSujets ? (
+                        <div className="flex items-center justify-center py-10">
+                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                        </div>
+                    ) : sujets.length === 0 ? (
+                        <p className="text-text-muted text-center py-10">Aucun sujet trouvé</p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="bg-surface-hover/50 text-text-muted text-xs uppercase tracking-widest">
+                                        <th className="py-3 px-6 text-left">Sujet</th>
+                                        <th className="py-3 px-4 text-left">Formateur</th>
+                                        <th className="py-3 px-4 text-center">Assigné</th>
+                                        <th className="py-3 px-4 text-center">Visible</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-glass-border">
+                                    {sujets.map(s => (
+                                        <tr key={s.id} className="hover:bg-surface-hover/30 transition-colors">
+                                            <td className="py-4 px-6">
+                                                <span className={`font-semibold ${s.pris ? 'text-text-muted' : 'text-text'}`}>
+                                                    {s.titre}
+                                                </span>
+                                                {s.description && (
+                                                    <p className="text-xs text-text-muted mt-0.5 line-clamp-1">{s.description}</p>
+                                                )}
+                                            </td>
+                                            <td className="py-4 px-4 text-sm text-text-muted">{s.formateurNom || '-'}</td>
+                                            <td className="py-4 px-4 text-center">
+                                                {s.pris ? (
+                                                    <Lock size={16} className="inline text-warning" />
+                                                ) : (
+                                                    <span className="text-xs text-text-muted italic">Non</span>
+                                                )}
+                                            </td>
+                                            <td className="py-4 px-4 text-center">
+                                                <button
+                                                    onClick={() => handleToggleSujet(s.id)}
+                                                    disabled={togglingSujet === s.id}
+                                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                                                        s.selectionActive
+                                                            ? 'bg-success/10 text-success hover:bg-success/20'
+                                                            : 'bg-surface-hover text-text-muted hover:bg-surface-hover/80'
+                                                    }`}
+                                                >
+                                                    {togglingSujet === s.id ? (
+                                                        <Loader2 size={16} className="animate-spin" />
+                                                    ) : s.selectionActive ? (
+                                                        <ToggleRight size={20} />
+                                                    ) : (
+                                                        <ToggleLeft size={20} />
+                                                    )}
+                                                    {s.selectionActive ? 'Activé' : 'Désactivé'}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="glass overflow-hidden">
                 <div className="p-6 border-b border-glass-border space-y-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                        <Users size={20} className="text-primary" />
+                        Apprenants
+                    </h3>
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="search-container max-w-xs flex-1 min-w-[200px]">
                             <div className="search-icon"><Search size={18} /></div>
@@ -168,7 +274,7 @@ const ConfigSelectionSujetsPage = () => {
                                         <td className="py-4 px-4 text-sm text-text-muted">{a.cycleNom ?? '-'}</td>
                                         <td className="py-4 px-4 text-center">
                                             {a.hasSujet ? (
-                                                <span className="tag tag-licence text-xs">Assigné</span>
+                                                <span className="text-sm text-text font-semibold">{a.sujetTitre}</span>
                                             ) : (
                                                 <span className="text-xs text-text-muted italic">Aucun</span>
                                             )}

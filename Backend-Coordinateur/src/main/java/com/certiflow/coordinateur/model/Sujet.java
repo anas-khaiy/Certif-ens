@@ -41,4 +41,8 @@ public class Sujet {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modifie_par_id")
     private Coordinateur modifiePar;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean selectionActive = true;
 }

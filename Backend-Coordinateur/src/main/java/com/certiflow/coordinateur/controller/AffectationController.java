@@ -382,6 +382,7 @@ public class AffectationController {
                 map.put("email", a.getEmail());
                 map.put("selectionSujetActive", a.isSelectionSujetActive());
                 map.put("hasSujet", a.getSujetDetails() != null);
+                map.put("sujetTitre", a.getSujetDetails() != null ? a.getSujetDetails().getTitre() : null);
                 map.put("specialiteId", a.getSpecialite() != null ? a.getSpecialite().getId() : null);
                 map.put("specialiteNom", a.getSpecialite() != null ? a.getSpecialite().getNom() : null);
                 map.put("cycleId", a.getCycle() != null ? a.getCycle().getId() : null);
@@ -406,6 +407,35 @@ public class AffectationController {
         return ResponseEntity.ok(Map.of(
             "id", apprenant.getId(),
             "selectionSujetActive", apprenant.isSelectionSujetActive()
+        ));
+    }
+
+    @GetMapping("/sujets-selection")
+    public ResponseEntity<List<Map<String, Object>>> getSujetsSelection() {
+        Long coordinateurId = getCurrentCoordinateurId();
+        List<Sujet> sujets = sujetRepository.findByCoordinateurId(coordinateurId);
+        List<Map<String, Object>> result = sujets.stream()
+            .map(s -> Map.<String, Object>of(
+                "id", s.getId(),
+                "titre", s.getTitre(),
+                "description", s.getDescription() != null ? s.getDescription() : "",
+                "formateurNom", s.getFormateur() != null ? s.getFormateur().getPrenom() + " " + s.getFormateur().getNom() : "",
+                "selectionActive", s.isSelectionActive(),
+                "pris", s.getApprenant() != null
+            ))
+            .toList();
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/sujets/{id}/selection-toggle")
+    public ResponseEntity<Map<String, Object>> toggleSujetSelection(@PathVariable Long id) {
+        Sujet sujet = sujetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sujet non trouvé"));
+        sujet.setSelectionActive(!sujet.isSelectionActive());
+        sujetRepository.save(sujet);
+        return ResponseEntity.ok(Map.of(
+            "id", sujet.getId(),
+            "selectionActive", sujet.isSelectionActive()
         ));
     }
 

@@ -32,9 +32,14 @@ public class Sujet {
 
     @OneToOne
     @JoinColumn(name = "apprenant_id", unique = true)
+    @ToString.Exclude
     private Apprenant apprenant;
 
     @ManyToOne
     @JoinColumn(name = "formateur_id", referencedColumnName = "id")
     private Enseignant formateur;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean selectionActive = true;
 }
