@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, Users, Search, Loader2, CheckCircle2, AlertCircle, ChevronDown } from 'lucide-react';
+import { BookOpen, Users, Search, Loader2, CheckCircle2, AlertCircle, Lock, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api-client';
 
 interface SujetDisponible {
     id: number; titre: string; description?: string;
     objectifs?: string[];
+    pris: boolean;
     formateur?: { id: number; nom: string; prenom: string } | null;
 }
 
@@ -32,8 +33,8 @@ const ChoixSujetPage = () => {
         setLoading(true);
         try {
             const [sujetsRes, monSujetRes] = await Promise.all([
-                api.get<SujetDisponible[]>('/api/v1/apprenant/sujets/disponibles'),
-                api.get<MonSujet>('/api/v1/apprenant/sujets/mon-sujet')
+                api.get<SujetDisponible[]>('/apprenant/sujets/disponibles'),
+                api.get<MonSujet>('/apprenant/sujets/mon-sujet')
             ]);
             setSujets(sujetsRes.data);
             setMonSujet(monSujetRes.data);
@@ -49,11 +50,11 @@ const ChoixSujetPage = () => {
     const handleChoose = async (sujetId: number) => {
         setChoosing(sujetId);
         try {
-            const res = await api.post<{ success: boolean; message: string }>(`/api/v1/apprenant/sujets/choisir/${sujetId}`);
+            const res = await api.post<{ success: boolean; message: string }>(`/apprenant/sujets/choisir/${sujetId}`);
             if (res.data.success) {
                 showToast('success', res.data.message);
-                fetchData();
                 setSelectedSujet(null);
+                fetchData();
             } else {
                 showToast('error', res.data.message);
             }
@@ -68,9 +69,6 @@ const ChoixSujetPage = () => {
         s.titre.toLowerCase().includes(search.toLowerCase())
     );
 
-    const getInitials = (p?: string, n?: string) =>
-        `${(p?.[0] || '').toUpperCase()}${(n?.[0] || '').toUpperCase()}`;
-
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -83,7 +81,7 @@ const ChoixSujetPage = () => {
         <div className="space-y-6 animate-fade-in pb-20">
             <div>
                 <h2 className="text-3xl font-bold">Choix du Sujet PFE</h2>
-                <p className="text-text-muted">Parcourez les sujets disponibles et choisissez celui qui vous correspond.</p>
+                <p className="text-text-muted">Cliquez sur un sujet pour voir ses détails et le choisir.</p>
             </div>
 
             {monSujet?.hasSujet ? (
@@ -123,66 +121,103 @@ const ChoixSujetPage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filtered.map(s => (
-                            <div
-                                key={s.id}
-                                className={`glass p-5 cursor-pointer transition-all border-2 ${
-                                    selectedSujet?.id === s.id
-                                        ? 'border-primary shadow-lg shadow-primary/20'
-                                        : 'border-transparent hover:border-primary/30'
-                                }`}
-                                onClick={() => setSelectedSujet(selectedSujet?.id === s.id ? null : s)}
-                            >
-                                <div className="flex items-start justify-between gap-3 mb-3">
-                                    <h3 className="font-bold text-text leading-snug">{s.titre}</h3>
-                                </div>
-                                {s.description && (
-                                    <p className="text-sm text-text-muted mb-3 line-clamp-2">{s.description}</p>
-                                )}
-                                {s.objectifs && s.objectifs.length > 0 && (
-                                    <div className="mb-3">
-                                        <p className="text-xs font-semibold text-text-muted uppercase mb-1">Objectifs</p>
-                                        <ul className="list-disc list-inside text-xs text-text-muted space-y-0.5">
-                                            {s.objectifs.slice(0, 3).map((obj, i) => (
-                                                <li key={i} className="line-clamp-1">{obj}</li>
-                                            ))}
-                                            {s.objectifs.length > 3 && (
-                                                <li className="text-primary">+{s.objectifs.length - 3} autres</li>
-                                            )}
-                                        </ul>
+                        {filtered.map(s => {
+                            const canSelect = !s.pris;
+                            return (
+                                <div
+                                    key={s.id}
+                                    onClick={() => {
+                                        if (canSelect) setSelectedSujet(s);
+                                    }}
+                                    className={`glass p-5 transition-all border-2 ${
+                                        !canSelect
+                                            ? 'opacity-50 cursor-not-allowed border-transparent'
+                                            : 'cursor-pointer border-transparent hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        {!canSelect && <Lock size={16} className="text-text-muted shrink-0" />}
+                                        <h3 className={`font-bold leading-snug truncate ${canSelect ? 'text-text' : 'text-text-muted'}`}>
+                                            {s.titre}
+                                        </h3>
                                     </div>
-                                )}
-                                {s.formateur && (
-                                    <p className="text-xs text-text-muted flex items-center gap-1">
-                                        <Users size={12} />
-                                        Proposé par : <span className="font-semibold text-text">{s.formateur.prenom} {s.formateur.nom}</span>
-                                    </p>
-                                )}
-                                {selectedSujet?.id === s.id && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        className="mt-4 pt-4 border-t border-glass-border"
-                                    >
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleChoose(s.id); }}
-                                            disabled={choosing === s.id}
-                                            className="primary action-btn w-full py-2.5 flex items-center justify-center gap-2 text-sm"
-                                        >
-                                            {choosing === s.id ? (
-                                                <Loader2 size={16} className="animate-spin" />
-                                            ) : (
-                                                <CheckCircle2 size={16} />
-                                            )}
-                                            {choosing === s.id ? 'Choix en cours...' : 'Choisir ce sujet'}
-                                        </button>
-                                    </motion.div>
-                                )}
-                            </div>
-                        ))}
+                                </div>
+                            );
+                        })}
                     </div>
                 </>
             )}
+
+            <AnimatePresence>
+                {selectedSujet && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                        onClick={() => setSelectedSujet(null)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            onClick={e => e.stopPropagation()}
+                            className="glass w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 rounded-2xl shadow-2xl"
+                        >
+                            <div className="flex items-start justify-between gap-4 mb-4">
+                                <h3 className="text-xl font-bold text-text pr-8">{selectedSujet.titre}</h3>
+                                <button
+                                    onClick={() => setSelectedSujet(null)}
+                                    className="shrink-0 p-1 rounded-lg hover:bg-surface-hover transition-colors"
+                                >
+                                    <X size={20} className="text-text-muted" />
+                                </button>
+                            </div>
+
+                            {selectedSujet.description && (
+                                <p className="text-sm text-text-muted leading-relaxed mb-4">{selectedSujet.description}</p>
+                            )}
+
+                            {selectedSujet.objectifs && selectedSujet.objectifs.length > 0 && (
+                                <div className="mb-4">
+                                    <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Objectifs</p>
+                                    <ul className="space-y-1.5">
+                                        {selectedSujet.objectifs.map((obj, i) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-text-muted">
+                                                <span className="w-5 h-5 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold mt-0.5">
+                                                    {i + 1}
+                                                </span>
+                                                {obj}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {selectedSujet.formateur && (
+                                <p className="text-sm text-text-muted flex items-center gap-1.5 mb-6">
+                                    <Users size={14} />
+                                    Proposé par : <span className="font-semibold text-text">{selectedSujet.formateur.prenom} {selectedSujet.formateur.nom}</span>
+                                </p>
+                            )}
+
+                            <button
+                                onClick={() => handleChoose(selectedSujet.id)}
+                                disabled={choosing === selectedSujet.id}
+                                className="primary action-btn w-full py-3 flex items-center justify-center gap-2 text-sm font-bold"
+                            >
+                                {choosing === selectedSujet.id ? (
+                                    <Loader2 size={18} className="animate-spin" />
+                                ) : (
+                                    <CheckCircle2 size={18} />
+                                )}
+                                {choosing === selectedSujet.id ? 'Choix en cours...' : 'Choisir ce sujet'}
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <AnimatePresence>
                 {toast && (
