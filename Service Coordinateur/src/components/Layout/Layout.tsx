@@ -15,7 +15,8 @@ import {
     FileText,
     ListChecks,
     Shuffle,
-    ToggleLeft
+    ToggleLeft,
+    UserPlus
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -156,6 +157,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <SidebarItem to="/mes-affectations" icon={<ListChecks size={20} />} label="Mes Affectations" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/config-sujets" icon={<Settings size={20} />} label="Config. Sujets" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/config-selection-sujets" icon={<ToggleLeft size={20} />} label="Config. Sélection" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
+                    <SidebarItem to="/membres-externes" icon={<UserPlus size={20} />} label="Membres Externes" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/deadlines" icon={<Calendar size={20} />} label="Dates Limites" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/depots" icon={<FileText size={20} />} label="Dépôts PFE" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />
                     <SidebarItem to="/jury" icon={<Users size={20} />} label="Jury & Soutenances" onClick={() => window.innerWidth < 1024 && setIsSidebarCollapsed(true)} />

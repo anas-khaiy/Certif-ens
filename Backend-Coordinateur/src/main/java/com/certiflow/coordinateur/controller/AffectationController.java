@@ -4,11 +4,13 @@ import com.certiflow.coordinateur.dto.AssignRequest;
 import com.certiflow.coordinateur.model.Apprenant;
 import com.certiflow.coordinateur.model.Coordinateur;
 import com.certiflow.coordinateur.model.Enseignant;
+import com.certiflow.coordinateur.model.MembreExterne;
 import com.certiflow.coordinateur.model.Specialite;
 import com.certiflow.coordinateur.repository.ApprenantRepository;
 import com.certiflow.coordinateur.repository.CoordinateurRepository;
 import com.certiflow.coordinateur.repository.CycleRepository;
 import com.certiflow.coordinateur.repository.EnseignantRepository;
+import com.certiflow.coordinateur.repository.MembreExterneRepository;
 import com.certiflow.coordinateur.repository.SpecialiteRepository;
 import com.certiflow.coordinateur.repository.SujetRepository;
 import com.certiflow.coordinateur.dto.SujetUpdateRequest;
@@ -37,19 +39,22 @@ public class AffectationController {
     private final CycleRepository cycleRepository;
     private final SujetRepository sujetRepository;
     private final CoordinateurRepository coordinateurRepository;
+    private final MembreExterneRepository membreExterneRepository;
 
     public AffectationController(EnseignantRepository enseignantRepository,
                                   ApprenantRepository apprenantRepository,
                                   SpecialiteRepository specialiteRepository,
                                   CycleRepository cycleRepository,
                                   SujetRepository sujetRepository,
-                                  CoordinateurRepository coordinateurRepository) {
+                                  CoordinateurRepository coordinateurRepository,
+                                  MembreExterneRepository membreExterneRepository) {
         this.enseignantRepository = enseignantRepository;
         this.apprenantRepository = apprenantRepository;
         this.specialiteRepository = specialiteRepository;
         this.cycleRepository = cycleRepository;
         this.sujetRepository = sujetRepository;
         this.coordinateurRepository = coordinateurRepository;
+        this.membreExterneRepository = membreExterneRepository;
     }
 
     @GetMapping("/all-apprenants")
@@ -243,8 +248,18 @@ public class AffectationController {
             ? enseignantRepository.findAllById(request.getRapporteursIds()) 
             : java.util.List.of();
 
+        java.util.List<MembreExterne> examinateursExternes = request.getExaminateursExternesIds() != null && !request.getExaminateursExternesIds().isEmpty()
+            ? membreExterneRepository.findAllById(request.getExaminateursExternesIds())
+            : java.util.List.of();
+
+        java.util.List<MembreExterne> rapporteursExternes = request.getRapporteursExternesIds() != null && !request.getRapporteursExternesIds().isEmpty()
+            ? membreExterneRepository.findAllById(request.getRapporteursExternesIds())
+            : java.util.List.of();
+
         apprenant.setExaminateurs(new java.util.HashSet<>(examinateurs));
         apprenant.setRapporteurs(new java.util.HashSet<>(rapporteurs));
+        apprenant.setExaminateursExternes(new java.util.HashSet<>(examinateursExternes));
+        apprenant.setRapporteursExternes(new java.util.HashSet<>(rapporteursExternes));
         apprenant.setDateSoutenance(request.getDateSoutenance());
 
         return ResponseEntity.ok(apprenantRepository.save(apprenant));

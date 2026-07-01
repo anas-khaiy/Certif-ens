@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
 import ConfigSujetsPage from './pages/ConfigSujetsPage';
 import ConfigSelectionSujetsPage from './pages/ConfigSelectionSujetsPage';
+import MembresExternesPage from './pages/MembresExternesPage';
 import AffectationPage from './pages/AffectationPage';
 import SujetsPage from './pages/SujetsPage';
 import JuryPage from './pages/JuryPage';
@@ -98,6 +99,17 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <ConfigSelectionSujetsPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/membres-externes"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <MembresExternesPage />
               </Layout>
             </PrivateRoute>
           }

@@ -88,4 +88,20 @@ public class Apprenant {
         inverseJoinColumns = @JoinColumn(name = "enseignant_id")
     )
     private java.util.Set<Enseignant> rapporteurs;
+
+    @ManyToMany
+    @JoinTable(
+        name = "apprenant_examinateurs_externes",
+        joinColumns = @JoinColumn(name = "apprenant_id"),
+        inverseJoinColumns = @JoinColumn(name = "membre_externe_id")
+    )
+    private java.util.Set<MembreExterne> examinateursExternes;
+
+    @ManyToMany
+    @JoinTable(
+        name = "apprenant_rapporteurs_externes",
+        joinColumns = @JoinColumn(name = "apprenant_id"),
+        inverseJoinColumns = @JoinColumn(name = "membre_externe_id")
+    )
+    private java.util.Set<MembreExterne> rapporteursExternes;
 }
