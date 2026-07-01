@@ -11,8 +11,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/v1/apprenant/sujets")
@@ -31,22 +33,27 @@ public class SujetSelectionController {
     }
 
     @GetMapping("/disponibles")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<Map<String, Object>>> getSujetsDisponibles() {
         Apprenant current = getCurrentApprenant();
         if (!current.isSelectionSujetActive()) {
             return ResponseEntity.ok(List.of());
         }
-        List<Sujet> sujets = sujetRepository.findByApprenantIsNull();
+        List<Sujet> sujets = sujetRepository.findByCoordinateurId(current.getCoordinateurId());
         List<Map<String, Object>> result = sujets.stream()
-            .map(s -> Map.<String, Object>of(
-                "id", s.getId(),
-                "titre", s.getTitre(),
-                "description", s.getDescription() != null ? s.getDescription() : "",
-                "objectifs", s.getObjectifs() != null ? s.getObjectifs() : List.of(),
-                "formateur", s.getFormateur() != null
+            .map(s -> {
+                boolean pris = s.getApprenant() != null && !s.getApprenant().getId().equals(current.getId());
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", s.getId());
+                map.put("titre", s.getTitre());
+                map.put("description", s.getDescription() != null ? s.getDescription() : "");
+                map.put("objectifs", s.getObjectifs() != null ? s.getObjectifs() : List.of());
+                map.put("pris", pris);
+                map.put("formateur", s.getFormateur() != null
                     ? Map.of("id", s.getFormateur().getId(), "nom", s.getFormateur().getNom(), "prenom", s.getFormateur().getPrenom())
-                    : null
-            ))
+                    : null);
+                return map;
+            })
             .toList();
         return ResponseEntity.ok(result);
     }

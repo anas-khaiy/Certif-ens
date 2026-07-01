@@ -121,30 +121,15 @@ const EncadrementPage = () => {
     useEffect(() => {
         const fetchApprenants = async () => {
             try {
-                // Fetch apprenants enrolled in this formateur's courses
-                const response = await api.get('/dashboard/learner-statistics');
+                const response = await api.get('/encadrement/apprenants');
                 const data: any[] = response.data || [];
-                
-                // Fetch enrollments to get specialities
-                let specialiteMap: Record<string, string> = {};
-                try {
-                    const enrollResponse = await api.get('/enrollments');
-                    enrollResponse.data.forEach((e: any) => {
-                        if (e.apprenant && e.apprenant.email && e.apprenant.specialite) {
-                            specialiteMap[e.apprenant.email] = e.apprenant.specialite.nom || e.apprenant.specialite;
-                        }
-                    });
-                } catch (err) {
-                    console.error("Error fetching specialites from enrollments:", err);
-                }
-
                 const mapped: Apprenant[] = data.map((a: any) => ({
                     id: a.id,
-                    nom: (a.name || '').split(' ').slice(1).join(' ') || a.name,
-                    prenom: (a.name || '').split(' ')[0] || '',
+                    nom: a.nom || '',
+                    prenom: a.prenom || '',
                     email: a.email || '',
                     photoProfile: a.photoProfile,
-                    specialite: specialiteMap[a.email] || a.specialite?.nom || a.specialite || '',
+                    specialite: a.specialite?.nom || '',
                 }));
                 setApprenants(mapped);
             } catch {

@@ -3,6 +3,7 @@ package com.certiflow.coordinateur.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.certiflow.coordinateur.model.Enseignant;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -34,7 +35,7 @@ public class EncadrementPlan {
 
     @ManyToOne
     @JoinColumn(name = "trainer_id")
-    private Coordinateur trainer;
+    private Enseignant trainer;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

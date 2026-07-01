@@ -8,7 +8,9 @@ import com.certiflow.apprenant.repository.ApprenantRepository;
 import com.certiflow.apprenant.repository.CoordinateurSettingRepository;
 import com.certiflow.apprenant.repository.DepotPfeRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -53,11 +55,15 @@ public class MonPfeService {
                 .collect(Collectors.toMap(CoordinateurSetting::getSettingKey, CoordinateurSetting::getSettingValue));
     }
 
+    @Transactional(readOnly = true)
     public MonPfeDto getMonPfeDetails(String email) {
         Apprenant apprenant = apprenantRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Apprenant introuvable"));
 
         Map<String, String> deadlines = getDeadlinesForApprenant(apprenant);
+
+        Hibernate.initialize(apprenant.getExaminateurs());
+        Hibernate.initialize(apprenant.getRapporteurs());
 
         // Fetch depots
         List<DepotPfe> depotsList = depotPfeRepository.findByApprenantId(apprenant.getId());

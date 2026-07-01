@@ -14,6 +14,7 @@ import DeadlinesPage from './pages/DeadlinesPage';
 import DepotsPage from './pages/DepotsPage';
 import MesAffectationsPage from './pages/MesAffectationsPage';
 import TiragePage from './pages/TiragePage';
+import RapportsPage from './pages/RapportsPage';
 import api from './api/api-client';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -165,6 +166,17 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <DepotsPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/rapports"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <RapportsPage />
               </Layout>
             </PrivateRoute>
           }

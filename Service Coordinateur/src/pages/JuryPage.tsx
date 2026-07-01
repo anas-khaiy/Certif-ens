@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Search, Save, X, Loader2, CheckCircle2, AlertCircle, ChevronDown, Users, UserCheck, ShieldCheck, Eye, CalendarDays, Pencil
+    Search, Save, X, Loader2, CheckCircle2, AlertCircle, ChevronDown, Users, UserCheck, ShieldCheck, Eye, CalendarDays, Pencil, UserPlus
 } from 'lucide-react';
 import api from '../api/api-client';
 
@@ -72,6 +72,16 @@ interface Enseignant {
     specialite: Specialite | null;
 }
 
+interface MembreExterne {
+    id: number;
+    nom: string;
+    prenom: string;
+    email: string;
+    affiliation: string;
+    telephone: string;
+    specialite: string;
+}
+
 interface Apprenant {
     id: number;
     nom: string;
@@ -82,6 +92,8 @@ interface Apprenant {
     encadrant: Enseignant | null;
     examinateurs: Enseignant[];
     rapporteurs: Enseignant[];
+    examinateursExternes: MembreExterne[];
+    rapporteursExternes: MembreExterne[];
     sujetDetails?: { id: number; titre: string } | null;
     dateSoutenance?: string | null;
 }
@@ -91,6 +103,7 @@ export default function JuryPage() {
     const [specialites, setSpecialites] = useState<Specialite[]>([]);
     const [cycles, setCycles] = useState<Cycle[]>([]);
     const [formateurs, setFormateurs] = useState<Enseignant[]>([]);
+    const [membresExternes, setMembresExternes] = useState<MembreExterne[]>([]);
     
     const [loadingApprenants, setLoadingApprenants] = useState(true);
     
@@ -113,6 +126,8 @@ export default function JuryPage() {
 
     const [selectedExaminateurs, setSelectedExaminateurs] = useState<Set<number>>(new Set());
     const [selectedRapporteurs, setSelectedRapporteurs] = useState<Set<number>>(new Set());
+    const [selectedExaminateursExternes, setSelectedExaminateursExternes] = useState<Set<number>>(new Set());
+    const [selectedRapporteursExternes, setSelectedRapporteursExternes] = useState<Set<number>>(new Set());
     const [selectedDateSoutenance, setSelectedDateSoutenance] = useState<string>('');
 
     const [saving, setSaving] = useState(false);
@@ -124,6 +139,11 @@ export default function JuryPage() {
     const [formateurPage, setFormateurPage] = useState(0);
     const formateursPerPage = 4;
 
+    // Modal External Members Filters & Pagination
+    const [externeSearch, setExterneSearch] = useState('');
+    const [externePage, setExternePage] = useState(0);
+    const externesPerPage = 4;
+
     const showToast = (type: 'success' | 'error', text: string) => {
         setToast({ type, text });
         setTimeout(() => setToast(null), 3000);
@@ -134,6 +154,7 @@ export default function JuryPage() {
         fetchCycles();
         fetchApprenants();
         fetchFormateurs();
+        fetchMembresExternes();
     }, []);
 
     const fetchSpecialites = async () => {
@@ -161,6 +182,15 @@ export default function JuryPage() {
         }
     };
 
+    const fetchMembresExternes = async () => {
+        try {
+            const res = await api.get<MembreExterne[]>('/membres-externes');
+            setMembresExternes(res.data);
+        } catch (error) {
+            console.error("Erreur chargement membres externes", error);
+        }
+    };
+
     const fetchApprenants = async () => {
         setLoadingApprenants(true);
         try {
@@ -177,10 +207,14 @@ export default function JuryPage() {
         setSelectedApprenant(a);
         setSelectedExaminateurs(new Set((a.examinateurs || []).map(e => e.id)));
         setSelectedRapporteurs(new Set((a.rapporteurs || []).map(e => e.id)));
+        setSelectedExaminateursExternes(new Set((a.examinateursExternes || []).map(e => e.id)));
+        setSelectedRapporteursExternes(new Set((a.rapporteursExternes || []).map(e => e.id)));
         setSelectedDateSoutenance(a.dateSoutenance || '');
         setFormateurSearch('');
         setFormateurSpecialiteFilter('');
         setFormateurPage(0);
+        setExterneSearch('');
+        setExternePage(0);
         setIsModalOpen(true);
     };
 
@@ -198,6 +232,8 @@ export default function JuryPage() {
             const payload = {
                 examinateursIds: Array.from(selectedExaminateurs),
                 rapporteursIds: Array.from(selectedRapporteurs),
+                examinateursExternesIds: Array.from(selectedExaminateursExternes),
+                rapporteursExternesIds: Array.from(selectedRapporteursExternes),
                 dateSoutenance: selectedDateSoutenance || null
             };
             const res = await api.put(`/affectation/apprenant/${selectedApprenant.id}/jury`, payload);
@@ -225,6 +261,22 @@ export default function JuryPage() {
 
     const toggleRapporteur = (id: number) => {
         setSelectedRapporteurs(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleExaminateurExterne = (id: number) => {
+        setSelectedExaminateursExternes(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleRapporteurExterne = (id: number) => {
+        setSelectedRapporteursExternes(prev => {
             const next = new Set(prev);
             if (next.has(id)) next.delete(id); else next.add(id);
             return next;
@@ -269,6 +321,15 @@ export default function JuryPage() {
 
     const formateurTotalPages = Math.ceil(filteredFormateurs.length / formateursPerPage);
     const paginatedFormateurs = filteredFormateurs.slice(formateurPage * formateursPerPage, (formateurPage + 1) * formateursPerPage);
+
+    const filteredExternes = membresExternes.filter(m => {
+        return `${m.prenom} ${m.nom}`.toLowerCase().includes(externeSearch.toLowerCase());
+    });
+
+    useEffect(() => { setExternePage(0); }, [externeSearch]);
+
+    const externeTotalPages = Math.ceil(filteredExternes.length / externesPerPage);
+    const paginatedExternes = filteredExternes.slice(externePage * externesPerPage, (externePage + 1) * externesPerPage);
 
     return (
         <div className="space-y-6 animate-fade-in pb-20">
@@ -425,18 +486,18 @@ export default function JuryPage() {
                                                 )}
                                             </td>
                                             <td className="py-4 px-4">
-                                                {a.examinateurs && a.examinateurs.length > 0 ? (
+                                                {(a.examinateurs && a.examinateurs.length > 0) || (a.examinateursExternes && a.examinateursExternes.length > 0) ? (
                                                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-                                                        <ShieldCheck size={14}/> {a.examinateurs.length}
+                                                        <ShieldCheck size={14}/> {(a.examinateurs?.length || 0) + (a.examinateursExternes?.length || 0)}
                                                     </span>
                                                 ) : (
                                                     <span className="text-xs text-text-muted italic">0</span>
                                                 )}
                                             </td>
                                             <td className="py-4 px-4">
-                                                {a.rapporteurs && a.rapporteurs.length > 0 ? (
+                                                {(a.rapporteurs && a.rapporteurs.length > 0) || (a.rapporteursExternes && a.rapporteursExternes.length > 0) ? (
                                                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold" style={{ background: 'rgba(168, 85, 247, 0.1)', color: 'var(--secondary)' }}>
-                                                        <UserCheck size={14}/> {a.rapporteurs.length}
+                                                        <UserCheck size={14}/> {(a.rapporteurs?.length || 0) + (a.rapporteursExternes?.length || 0)}
                                                     </span>
                                                 ) : (
                                                     <span className="text-xs text-text-muted italic">0</span>
@@ -641,6 +702,100 @@ export default function JuryPage() {
                                         />
                                     </div>
                                 )}
+
+                                {/* External Members Section */}
+                                <div className="border-t border-glass-border pt-4 mt-4">
+                                    <div className="flex items-center justify-between px-4 mb-3">
+                                        <h4 className="text-md font-bold flex items-center gap-2">
+                                            <UserPlus size={18} className="text-amber-500" />
+                                            Membres Externes
+                                        </h4>
+                                        <div className="search-container w-64">
+                                            <div className="search-icon"><Search size={16} /></div>
+                                            <input 
+                                                type="text"
+                                                placeholder="Filtrer..."
+                                                value={externeSearch}
+                                                onChange={e => setExterneSearch(e.target.value)}
+                                                className="search-input text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    {paginatedExternes.length === 0 ? (
+                                        <div className="text-center py-6 text-text-muted text-sm">Aucun membre externe trouvé.</div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 gap-3 px-4 pb-2">
+                                            {paginatedExternes.map(m => {
+                                                const isExaminateur = selectedExaminateursExternes.has(m.id);
+                                                const isRapporteur = selectedRapporteursExternes.has(m.id);
+
+                                                return (
+                                                    <div key={`ext-${m.id}`} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${isExaminateur || isRapporteur ? 'bg-amber-500/5 border-amber-500/30 shadow-sm' : 'bg-surface border-glass-border hover:border-text-muted'}`}>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 font-bold text-xs shrink-0">
+                                                                {getInitials(m.prenom, m.nom)}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-sm text-text">
+                                                                    {m.prenom} {m.nom}
+                                                                </p>
+                                                                <p className="text-xs text-text-muted">{m.affiliation || m.specialite || 'Membre externe'}</p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex gap-4">
+                                                            <label className="flex items-center gap-2 cursor-pointer group">
+                                                                <div className="relative flex items-center justify-center w-5 h-5">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        className="peer sr-only"
+                                                                        checked={isExaminateur}
+                                                                        onChange={() => toggleExaminateurExterne(m.id)}
+                                                                    />
+                                                                    <div className="w-5 h-5 border-2 border-text-muted rounded flex items-center justify-center peer-checked:bg-[#3b82f6] peer-checked:border-[#3b82f6] transition-colors">
+                                                                        {isExaminateur && <CheckCircle2 size={14} className="text-white" />}
+                                                                    </div>
+                                                                </div>
+                                                                <span className={`text-sm font-semibold transition-colors ${isExaminateur ? 'text-[#3b82f6]' : 'text-text-muted group-hover:text-text'}`}>
+                                                                    Examinateur
+                                                                </span>
+                                                            </label>
+
+                                                            <label className="flex items-center gap-2 cursor-pointer group ml-2">
+                                                                <div className="relative flex items-center justify-center w-5 h-5">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        className="peer sr-only"
+                                                                        checked={isRapporteur}
+                                                                        onChange={() => toggleRapporteurExterne(m.id)}
+                                                                    />
+                                                                    <div className="w-5 h-5 border-2 border-text-muted rounded flex items-center justify-center peer-checked:bg-secondary peer-checked:border-secondary transition-colors">
+                                                                        {isRapporteur && <CheckCircle2 size={14} className="text-white" />}
+                                                                    </div>
+                                                                </div>
+                                                                <span className={`text-sm font-semibold transition-colors ${isRapporteur ? 'text-secondary' : 'text-text-muted group-hover:text-text'}`}>
+                                                                    Rapporteur
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                    {filteredExternes.length > 0 && (
+                                        <div className="pb-4 px-4">
+                                            <Pagination 
+                                                page={externePage} 
+                                                totalPages={externeTotalPages} 
+                                                total={filteredExternes.length} 
+                                                itemsPerPage={externesPerPage} 
+                                                label="membres externes" 
+                                                onPageChange={setExternePage} 
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     </div>
@@ -731,6 +886,19 @@ export default function JuryPage() {
                                             ) : (
                                                 <p className="text-sm text-text-muted italic pl-2">Aucun examinateur.</p>
                                             )}
+                                            {selectedApprenant.examinateursExternes && selectedApprenant.examinateursExternes.length > 0 && (
+                                                <>
+                                                    <p className="text-xs font-bold text-text-muted uppercase tracking-wider pt-2 pb-1">Externes</p>
+                                                    {selectedApprenant.examinateursExternes.map(e => (
+                                                        <div key={`ex-ext-${e.id}`} className="flex items-center gap-3 p-2.5 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                                                            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-600 flex items-center justify-center font-bold text-xs">
+                                                                {getInitials(e.prenom, e.nom)}
+                                                            </div>
+                                                            <p className="font-semibold text-sm text-text">{e.prenom} {e.nom}</p>
+                                                        </div>
+                                                    ))}
+                                                </>
+                                            )}
                                         </div>
                                     </div>
 
@@ -751,6 +919,19 @@ export default function JuryPage() {
                                                 ))
                                             ) : (
                                                 <p className="text-sm text-text-muted italic pl-2">Aucun rapporteur.</p>
+                                            )}
+                                            {selectedApprenant.rapporteursExternes && selectedApprenant.rapporteursExternes.length > 0 && (
+                                                <>
+                                                    <p className="text-xs font-bold text-text-muted uppercase tracking-wider pt-2 pb-1">Externes</p>
+                                                    {selectedApprenant.rapporteursExternes.map(e => (
+                                                        <div key={`rap-ext-${e.id}`} className="flex items-center gap-3 p-2.5 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                                                            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-600 flex items-center justify-center font-bold text-xs">
+                                                                {getInitials(e.prenom, e.nom)}
+                                                            </div>
+                                                            <p className="font-semibold text-sm text-text">{e.prenom} {e.nom}</p>
+                                                        </div>
+                                                    ))}
+                                                </>
                                             )}
                                         </div>
                                     </div>

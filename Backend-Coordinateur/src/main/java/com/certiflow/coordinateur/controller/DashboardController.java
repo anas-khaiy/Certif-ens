@@ -37,7 +37,7 @@ public class DashboardController {
     public ResponseEntity<Map<String, Object>> getStats() {
         Long coordinateurId = getCurrentCoordinateurId();
 
-        long totalFormateurs = enseignantRepository.count();
+        long totalFormateurs = enseignantRepository.findAllEnseignantsByCoordinateurId(coordinateurId).size();
         long totalApprenants = apprenantRepository.countByCoordinateurIdOrUnclaimed(coordinateurId);
         long nombreExaminateur = apprenantRepository.countDistinctExaminateursByCoordinateurId(coordinateurId);
         long nombreRapporteur = apprenantRepository.countDistinctRapporteursByCoordinateurId(coordinateurId);

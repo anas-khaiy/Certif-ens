@@ -45,6 +45,9 @@ public class Enseignant implements UserDetails {
     @JoinColumn(name = "specialite_id")
     private Specialite specialite;
 
+    @Column(name = "coordinateur_id")
+    private Long coordinateurId;
+
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {

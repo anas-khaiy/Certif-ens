@@ -442,43 +442,7 @@ const MonPfePage = () => {
                                 )}
                             </div>
 
-                            {/* Examinateurs */}
-                            <div>
-                                <span className="text-xs uppercase font-bold text-text-muted tracking-wider">Examinateurs</span>
-                                {data.examinateurs && data.examinateurs.length > 0 ? (
-                                    <div className="mt-2 space-y-2">
-                                        {data.examinateurs.map((ex, i) => (
-                                            <div key={i} className="flex flex-col bg-surface p-3 rounded-xl border border-glass-border">
-                                                <p className="font-bold text-sm">{ex.nom} {ex.prenom}</p>
-                                                <a href={`mailto:${ex.email}`} className="text-xs text-text-muted hover:text-primary flex items-center gap-1 mt-1">
-                                                    <Mail size={12} /> {ex.email}
-                                                </a>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-text-muted mt-1 italic">Aucun examinateur assigné</p>
-                                )}
-                            </div>
 
-                            {/* Rapporteurs */}
-                            <div>
-                                <span className="text-xs uppercase font-bold text-text-muted tracking-wider">Rapporteurs</span>
-                                {data.rapporteurs && data.rapporteurs.length > 0 ? (
-                                    <div className="mt-2 space-y-2">
-                                        {data.rapporteurs.map((rap, i) => (
-                                            <div key={i} className="flex flex-col bg-surface p-3 rounded-xl border border-glass-border">
-                                                <p className="font-bold text-sm">{rap.nom} {rap.prenom}</p>
-                                                <a href={`mailto:${rap.email}`} className="text-xs text-text-muted hover:text-primary flex items-center gap-1 mt-1">
-                                                    <Mail size={12} /> {rap.email}
-                                                </a>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-text-muted mt-1 italic">Aucun rapporteur assigné</p>
-                                )}
-                            </div>
                         </div>
                     </div>
                 </div>
