@@ -11,7 +11,7 @@ export const API_COORDINATEUR = `http://${SERVER_HOST}:89/api/v1/coord`;
 
 // ── WebSocket ─────────────────────────────────────────────────────────────────
 export const WS_APPRENANT = `ws://${SERVER_HOST}:86/ws`;
-export const WS_LIVEKIT = `http://${SERVER_HOST}:88`;
+export const WS_LIVEKIT = `ws://${SERVER_HOST}:7880`;
 
 // ── Front-end verify URL (used in certificate share links) ───────────────────
 export const VERIFY_URL_FORMATEUR = `http://${SERVER_HOST}:82/verify`;

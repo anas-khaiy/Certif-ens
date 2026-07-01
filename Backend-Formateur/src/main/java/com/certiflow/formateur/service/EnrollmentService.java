@@ -101,7 +101,7 @@ public class EnrollmentService {
         }
 
         return learners.stream()
-                .filter(java.util.Objects::nonNull)
+                .filter(l -> l != null && l.getEmail() != null)
                 .collect(java.util.stream.Collectors.toMap(
                     com.certiflow.formateur.model.Apprenant::getEmail,
                     l -> l,
