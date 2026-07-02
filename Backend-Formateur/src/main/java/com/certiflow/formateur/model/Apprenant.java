@@ -61,6 +61,8 @@ public class Apprenant {
 
     private java.time.LocalDateTime dateSoutenance;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToOne(mappedBy = "apprenant", cascade = CascadeType.ALL)
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties("apprenant")
     private Sujet sujetDetails;

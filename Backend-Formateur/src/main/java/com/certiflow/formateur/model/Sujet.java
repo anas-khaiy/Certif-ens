@@ -30,6 +30,8 @@ public class Sujet {
     @Builder.Default
     private List<String> objectifs = new ArrayList<>();
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToOne
     @JoinColumn(name = "apprenant_id", unique = true, nullable = true)
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties("sujetDetails")
