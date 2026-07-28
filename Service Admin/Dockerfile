@@ -14,7 +14,13 @@ RUN echo 'server { \
   listen 6173; \
   root /usr/share/nginx/html; \
   index index.html; \
-  location / { try_files $uri $uri/ /index.html; } \
+  location /admin/ { \
+    alias /usr/share/nginx/html/; \
+    try_files $uri $uri/ /admin/index.html; \
+  } \
+  location / { \
+    try_files $uri $uri/ /index.html; \
+  } \
 }' > /etc/nginx/conf.d/default.conf
 EXPOSE 6173
 CMD ["nginx", "-g", "daemon off;"]

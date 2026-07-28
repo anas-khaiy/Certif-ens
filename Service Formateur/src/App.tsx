@@ -36,7 +36,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <Router>
+    <Router basename="/formateur">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 

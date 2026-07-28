@@ -57,7 +57,7 @@ function App() {
   }
 
   return (
-    <Router>
+    <Router basename="/coordinateur">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 

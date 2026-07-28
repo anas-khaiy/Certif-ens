@@ -133,24 +133,18 @@ services:
     build: 
       context: ./Service Admin
     container_name: certiflow-frontend-admin
-    ports:
-      - "6173:6173"
 
   # Frontend Formateur
   service-formateur:
     build: 
       context: ./Service Formateur
     container_name: certiflow-frontend-formateur
-    ports:
-      - "6174:6174"
 
   # Frontend Apprenant
   service-apprenant:
     build: 
       context: ./Service Apprenant
     container_name: certiflow-frontend-apprenant
-    ports:
-      - "6175:6175"
 
   # Backend Coordinateur
   backend-coordinateur:
@@ -177,8 +171,6 @@ services:
     build: 
       context: ./Service Coordinateur
     container_name: certiflow-frontend-coordinateur
-    ports:
-      - "6176:6176"
 
   # LiveKit Server (Video Conferencing / Google Meet alternative)
   livekit:
@@ -200,9 +192,6 @@ services:
     container_name: certiflow-nginx
     ports:
       - "80:80"
-      - "81:81"
-      - "82:82"
-      - "83:83"
       - "84:84"
       - "85:85"
       - "86:86"
