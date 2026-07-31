@@ -25,13 +25,13 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            localStorage.removeItem('isAdmin');
+            localStorage.removeItem('isCoordinateur');
             localStorage.removeItem('user');
-            localStorage.removeItem('adminNom');
-            localStorage.removeItem('adminPrenom');
+            localStorage.removeItem('coordinateurNom');
+            localStorage.removeItem('coordinateurPrenom');
             localStorage.removeItem('token');
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+            if (window.location.pathname !== '/coordinateur/login') {
+                window.location.href = '/coordinateur/login';
             }
         }
         return Promise.reject(error);
