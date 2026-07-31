@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: certif_db
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - certificate_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,8 +22,7 @@ services:
     build: 
       context: ./Backend-Admin
     container_name: certiflow-backend-admin
-    ports:
-      - "9091:9091"
+    # ports: intentionally not exposed to host — Docker-internal only
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -42,8 +41,7 @@ services:
     build: 
       context: ./Backend-Formateur
     container_name: certiflow-backend-formateur
-    ports:
-      - "9092:9092"
+    # ports: intentionally not exposed to host — Docker-internal only
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -68,8 +66,7 @@ services:
     build: 
       context: ./Backend-Apprenant
     container_name: certiflow-backend-apprenant
-    ports:
-      - "9093:9093"
+    # ports: intentionally not exposed to host — Docker-internal only
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -88,15 +85,14 @@ services:
     build: 
       context: ./AI-Detection-Service
     container_name: certiflow-ai-service
-    ports:
-      - "8000:8000"
+    # ports: intentionally not exposed to host — Docker-internal only
 
   # Ollama LLM (Mistral 7B)
   ollama:
     image: ollama/ollama:latest
     container_name: certiflow-ollama
     ports:
-      - "11434:11434"
+      - "127.0.0.1:11434:11434"
     volumes:
       - ollama_data:/root/.ollama
     environment:
@@ -151,8 +147,7 @@ services:
     build: 
       context: ./Backend-Coordinateur
     container_name: certiflow-backend-coordinateur
-    ports:
-      - "9094:9094"
+    # ports: intentionally not exposed to host — Docker-internal only
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -191,12 +186,8 @@ services:
     image: nginx:latest
     container_name: certiflow-nginx
     ports:
-      - "80:80"
-      - "84:84"
-      - "85:85"
-      - "86:86"
-      - "89:89"
-      - "88:88"
+      # Only expose on localhost — server nginx (app25.conf) proxies to this port
+      - "127.0.0.1:8080:80"
     volumes:
       - ./nginx/certiflow.conf:/etc/nginx/conf.d/default.conf
     depends_on:

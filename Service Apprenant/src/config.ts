@@ -1,20 +1,19 @@
 // ─── Central Server Configuration ────────────────────────────────────────────
-// Change SERVER_HOST to switch between environments (localhost, IP, domain…)
+// All APIs go through port 80 via nginx path-based routing.
+// Works on both localhost (dev) and app25.ens-marrakech.ac.ma (production).
 
-export const SERVER_HOST = 'localhost';
+// ── API base URLs (relative paths → always port 80) ──────────────────────────
+export const API_ADMIN      = '/api/admin/api/v1';
+export const API_FORMATEUR  = '/api/formateur/api/v1';
+export const API_APPRENANT  = '/api/apprenant/api/v1';
 
-// ── API base URLs (via Nginx proxy) ─────────────────────────
-export const API_FORMATEUR = `http://${SERVER_HOST}:85/api/v1`;
-export const API_APPRENANT = `http://${SERVER_HOST}:86/api/v1`;
-export const API_ADMIN = `http://${SERVER_HOST}:84/api/v1`;
+// ── WebSocket (through nginx on port 80) ─────────────────────────────────────
+export const WS_APPRENANT   = `ws://${window.location.host}/ws`;
+export const WS_LIVEKIT     = `ws://${window.location.host}/livekit`;
 
-// ── WebSocket ─────────────────────────────────────────────────────────────────
-export const WS_APPRENANT = `ws://${SERVER_HOST}:86/ws`;
-export const WS_LIVEKIT = `ws://${SERVER_HOST}:7880`;
-
-// ── Front-end verify URL (used in certificate share links) ───────────────────
-export const VERIFY_URL_FORMATEUR = `http://${SERVER_HOST}:6175/verify`;
-export const VERIFY_URL_APPRENANT = `http://${SERVER_HOST}:6175/verify`;
+// ── Front-end verify URL ──────────────────────────────────────────────────────
+export const VERIFY_URL_FORMATEUR = `${window.location.origin}/formateur/verify`;
+export const VERIFY_URL_APPRENANT = `${window.location.origin}/verify`;
 
 // ── AI detection service ──────────────────────────────────────────────────────
-export const AI_DETECT_URL = `http://${SERVER_HOST}:88/detect`;
+export const AI_DETECT_URL = '/api/ai/detect';
