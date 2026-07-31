@@ -21,7 +21,7 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(toEmail);
             helper.setSubject("Code de réinitialisation de mot de passe");
-            helper.setFrom("Certif.fun <noreply@certif.fun>");
+            helper.setFrom("ENS-Learning <noreply@ens-marrakech.ac.ma>");
             String html = "Votre code de réinitialisation est : <b>" + code + "</b>";
             helper.setText(html, true);
             mailSender.send(message);
@@ -36,7 +36,7 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(toEmail);
             helper.setSubject("Rapport PFE - " + apprenantNom + " (" + depotLabel + ")");
-            helper.setFrom("Certif.fun <noreply@certif.fun>");
+            helper.setFrom("ENS-Learning <noreply@ens-marrakech.ac.ma>");
 
             String html = """
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 12px;">
@@ -44,7 +44,7 @@ public class EmailService {
                         <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
                             <span style="color: white; font-size: 24px; font-weight: bold;">C</span>
                         </div>
-                        <h2 style="color: #1e293b; margin: 0;">Certif.fun</h2>
+                        <h2 style="color: #1e293b; margin: 0;">ENS-Learning</h2>
                     </div>
                     <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
                         <p style="color: #475569; font-size: 15px; line-height: 1.6;">Bonjour,</p>
@@ -63,7 +63,7 @@ public class EmailService {
                         </p>
                     </div>
                     <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 20px;">
-                        Cet email a ete envoye automatiquement depuis la plateforme Certif.fun.
+                        Cet email a ete envoye automatiquement depuis la plateforme ENS-Learning.
                     </p>
                 </div>
                 """.formatted(depotLabel, apprenantNom, downloadLink);

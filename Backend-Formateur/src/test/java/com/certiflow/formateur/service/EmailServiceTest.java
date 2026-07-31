@@ -35,7 +35,7 @@ class EmailServiceTest {
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
 
         assertDoesNotThrow(() -> 
-            emailService.sendPasswordResetEmail("test@certif.fun", "Anas", "123456")
+            emailService.sendPasswordResetEmail("test@ens-marrakech.ac.ma", "Anas", "123456")
         );
 
         verify(mailSender, times(1)).createMimeMessage();
