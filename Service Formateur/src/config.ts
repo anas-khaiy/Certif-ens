@@ -8,8 +8,9 @@ export const API_FORMATEUR  = '/api/formateur/api/v1';
 export const API_APPRENANT  = '/api/apprenant/api/v1';
 
 // ── WebSocket (through nginx on port 80) ─────────────────────────────────────
-export const WS_APPRENANT   = `ws://${window.location.host}/ws`;
-export const WS_LIVEKIT     = `ws://${window.location.host}/livekit`;
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+export const WS_APPRENANT   = `${wsProtocol}//${window.location.host}/ws`;
+export const WS_LIVEKIT     = `${wsProtocol}//${window.location.host}/livekit`;
 
 // ── Front-end verify URL ──────────────────────────────────────────────────────
 export const VERIFY_URL_FORMATEUR = `${window.location.origin}/formateur/verify`;

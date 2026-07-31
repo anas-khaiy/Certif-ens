@@ -3,6 +3,7 @@ package com.certiflow.formateur.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,8 +18,16 @@ public class QuizAIService {
     @Autowired
     private SystemSettingRepository systemSettingRepository;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    // 5-minute timeout — Ollama CPU inference can be slow
+    private final RestTemplate restTemplate = buildRestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static RestTemplate buildRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(10_000);   // 10 s to connect
+        factory.setReadTimeout(300_000);     // 5 min to read response
+        return new RestTemplate(factory);
+    }
 
     private String getModelName() {
         Optional<SystemSetting> setting = systemSettingRepository.findById("OLLAMA_MODEL");
