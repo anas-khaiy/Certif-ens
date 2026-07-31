@@ -1,15 +1,16 @@
 port: 7880
 bind_addresses:
   - 0.0.0.0
+
 rtc:
   tcp_port: 7881
   udp_port: 7882
-  # Use the public server address so ICE candidates are reachable from browsers
-  use_external_ip: true
+  # IMPORTANT: set this to the server's actual public IP
+  # Run: curl -s ifconfig.me   on the server to get the IP
+  node_ip: 192.168.20.1   # <-- REMPLACE PAR L'IP PUBLIQUE DU SERVEUR
+
 keys:
   devkey: devsecret32charslongtofitrequirement
+
 logging:
   level: info
-# Expose LiveKit via the public domain through nginx proxy
-web_hook:
-  urls: []
