@@ -62,6 +62,7 @@ public class SecurityConfiguration {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
                 configuration.setAllowedOriginPatterns(List.of(
+                                "*",
                                 "http://localhost",
                                 "http://localhost:*",
                                 "https://localhost",
@@ -75,7 +76,11 @@ public class SecurityConfiguration {
                                 "http://10.10.10.*:*",
                                 "http://10.10.10.2:*",
                                 "http://217.65.145.127:*",
-                                "https://217.65.145.127:*"));
+                                "https://217.65.145.127:*",
+                                "http://*.ens-marrakech.ac.ma:*",
+                                "https://*.ens-marrakech.ac.ma:*",
+                                "http://*.ens-marrakech.ac.ma",
+                                "https://*.ens-marrakech.ac.ma"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));
