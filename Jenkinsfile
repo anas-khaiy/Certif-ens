@@ -8,7 +8,7 @@ pipeline {
         VPS_SSH_CREDENTIALS   = "vps-ssh-key" // ID de la clé SSH privée configurée dans Jenkins (créez ce credential dans Jenkins UI)
         VPS_USER              = "root"
         VPS_IP                = "217.65.145.127"
-        DEPLOY_PATH           = "/opt/certif-fun"
+        DEPLOY_PATH           = "/opt/ens-learning"
     }
 
     options {
@@ -156,7 +156,7 @@ pipeline {
                         sh """
                             ssh -o StrictHostKeyChecking=no ${env.VPS_USER}@${env.VPS_IP} "mkdir -p ${env.DEPLOY_PATH}"
                             scp -o StrictHostKeyChecking=no deploy.tar.gz ${env.VPS_USER}@${env.VPS_IP}:${env.DEPLOY_PATH}/
-                            ssh -o StrictHostKeyChecking=no ${env.VPS_USER}@${env.VPS_IP} "cd ${env.DEPLOY_PATH} && tar -xzf deploy.tar.gz && rm deploy.tar.gz && docker exec certiflow-db pg_dump -U postgres certif_db > /opt/certif-fun/backup_\$(date +%Y%m%d_%H%M%S).sql 2>/dev/null || true && docker ps --format '{{.Names}}' | grep -v certiflow-db | xargs -r docker stop 2>/dev/null || true && docker ps -a --format '{{.Names}}' | grep -v certiflow-db | xargs -r docker rm 2>/dev/null || true && docker volume create certif_uploads_data 2>/dev/null || true && docker compose up --build -d && docker image prune -f"
+                            ssh -o StrictHostKeyChecking=no ${env.VPS_USER}@${env.VPS_IP} "cd ${env.DEPLOY_PATH} && tar -xzf deploy.tar.gz && rm deploy.tar.gz && docker exec certiflow-db pg_dump -U postgres certif_db > /opt/ens-learning/backup_\$(date +%Y%m%d_%H%M%S).sql 2>/dev/null || true && docker ps --format '{{.Names}}' | grep -v certiflow-db | xargs -r docker stop 2>/dev/null || true && docker ps -a --format '{{.Names}}' | grep -v certiflow-db | xargs -r docker rm 2>/dev/null || true && docker volume create certif_uploads_data 2>/dev/null || true && docker compose up --build -d && docker image prune -f"
                         """
                     }
                 }
@@ -191,7 +191,7 @@ pipeline {
             cleanWs()
         }
         success {
-            echo '=== PIPELINE REUSSIE ! La plateforme Certif-fun a été mise en production avec succès. ==='
+            echo '=== PIPELINE REUSSIE ! La plateforme ENS-Learning a été mise en production avec succès. ==='
             // Optionnel : Envoi d'une notification (Email, Slack, Discord, Discord Webhook, etc.)
         }
         failure {

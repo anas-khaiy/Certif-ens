@@ -41,12 +41,12 @@ public class DataInitializer implements CommandLineRunner {
             Admin admin = new Admin();
             admin.setNom("Default");
             admin.setPrenom("Admin");
-            admin.setEmail("admin@certiflow.com");
-            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setEmail("admin@ens-marrakech.ac.ma");
+            admin.setPassword(passwordEncoder.encode("ENS@Admin#2026!"));
             admin.setRole(Role.SUPER_ADMIN);
             admin.setPhotoProfile("default.png");
             adminRepository.save(admin);
-            System.out.println("Default admin created: admin@certiflow.com / admin123");
+            System.out.println("Default admin created: admin@ens-marrakech.ac.ma / ENS@Admin#2026!");
         } else {
             // Update existing admins missing a profile photo
             List<Admin> admins = adminRepository.findAll();

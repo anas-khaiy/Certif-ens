@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="CertifLogo.png" alt="Certif-fun Logo" width="150" style="border-radius: 20px;"/>
-  <h1>🎓 Certif-fun</h1>
+  <img src="CertifLogo.png" alt="ENS-Learning Logo" width="150" style="border-radius: 20px;"/>
+  <h1>🎓 ENS-Learning</h1>
   <p><strong>Écosystème Intelligent de Certification Numérique et d'Apprentissage Assisté par IA</strong></p>
   
   [![Java](https://img.shields.io/badge/Java-21-orange.svg?style=flat-square&logo=java)](https://www.oracle.com/java/)
@@ -13,7 +13,7 @@
 
 <br>
 
-**Certif-fun** est une plateforme de certification en ligne de nouvelle génération qui réconcilie l'intégrité des évaluations à distance avec une expérience pédagogique fluide. Grâce à une architecture microservices et une intelligence artificielle multi-modale, elle offre un environnement de confiance pour les institutions et une assistance intelligente pour les formateurs.
+**ENS-Learning** est une plateforme de certification en ligne de nouvelle génération qui réconcilie l'intégrité des évaluations à distance avec une expérience pédagogique fluide. Grâce à une architecture microservices et une intelligence artificielle multi-modale, elle offre un environnement de confiance pour les institutions et une assistance intelligente pour les formateurs.
 
 ---
 
@@ -33,7 +33,7 @@
 
 La transformation numérique de l'éducation a révélé des lacunes critiques dans les outils de gestion de l'apprentissage (LMS) traditionnels : fragmentation des outils, absence d'IA native pour l'assistance pédagogique, et vulnérabilité des examens à distance.
 
-**Certif-fun** répond à ces défis avec un objectif multidimensionnel :
+**ENS-Learning** répond à ces défis avec un objectif multidimensionnel :
 1. **Surveillance intelligente** : Détection automatique de fraude.
 2. **Génération de contenu** : Création instantanée de quiz et résumés via LLM.
 3. **Espace Collaboratif** : Système de visioconférence intégré et module de suivi de progression structuré.
@@ -64,7 +64,7 @@ Intégration locale via **Ollama** pour garantir la confidentialité absolue des
 
 ## 🏗️ Architecture du Système
 
-Certif-fun repose sur une architecture distribuée moderne et conteneurisée, assurant scalabilité, isolation et maintenabilité :
+ENS-Learning repose sur une architecture distribuée moderne et conteneurisée, assurant scalabilité, isolation et maintenabilité :
 
 <p align="center">
   <img src="diagramme architecture.png" width="700" alt="Architecture Microservices">
@@ -94,7 +94,7 @@ L'architecture est structurée en 4 couches majeures :
 
 ## 🚀 Performances et Tests (CI/CD)
 
-La fiabilité et la performance de Certif-fun ont été prouvées par des tests rigoureux :
+La fiabilité et la performance de ENS-Learning ont été prouvées par des tests rigoureux :
 
 - **Performance IA :** Cadence d'inférence de **28.2 FPS** avec une latence moyenne de ~35ms par image, garantissant une détection fluide et réactive. Échantillonnage intelligent pour optimiser les ressources CPU.
 - **Tests Unitaires et d'Intégration :** Plus de 100 tests (JUnit & Pytest) avec une couverture de code > 90%. Validation des requêtes SQL via **Testcontainers**.
@@ -164,5 +164,5 @@ Ce projet a été réalisé dans le cadre du **Master Didactique des Sciences et
 
 ---
 <p align="center">
-  © 2026 Certif-fun — Conçu pour l'excellence pédagogique et l'intégrité numérique.
+  © 2026 ENS-Learning — Conçu pour l'excellence pédagogique et l'intégrité numérique.
 </p>
