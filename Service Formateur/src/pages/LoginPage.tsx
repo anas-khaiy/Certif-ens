@@ -130,31 +130,23 @@ const LoginPage = () => {
     return (
         <div className="h-screen w-full bg-animated relative overflow-y-auto">
             <div className="min-h-full w-full flex flex-col items-center justify-center p-6 md:p-10 relative z-10">
-                {/* Theme Toggle Button */}
-                <motion.button
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={toggleTheme}
-                    className="absolute top-8 right-8 z-50 w-14 h-14 flex items-center justify-center rounded-xl bg-[#0f172a] text-primary shadow-2xl border border-white/10 hover:bg-[#1e293b] transition-all"
-                    aria-label="Toggle theme"
-                >
-                    {isDarkMode ? <Sun size={34} strokeWidth={2.5} /> : <Moon size={34} strokeWidth={2.5} />}
-                </motion.button>
-
-                {/* Home Button */}
-                <motion.button
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => window.location.href = '/'}
-                    className="absolute top-24 right-8 z-50 w-14 h-14 flex items-center justify-center rounded-xl bg-[#0f172a] text-primary shadow-2xl border border-white/10 hover:bg-[#1e293b] transition-all"
-                    aria-label="Go home"
-                >
-                    <Home size={34} strokeWidth={2.5} />
-                </motion.button>
+                {/* Action Buttons */}
+                <div className="absolute top-8 right-8 z-50 flex flex-col gap-4">
+                    <button
+                        onClick={toggleTheme}
+                        className="w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
+                        aria-label="Toggle theme"
+                    >
+                        {isDarkMode ? <Sun size={34} strokeWidth={2.5} /> : <Moon size={34} strokeWidth={2.5} />}
+                    </button>
+                    <button
+                        onClick={() => window.location.href = '/'}
+                        className="w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
+                        aria-label="Go home"
+                    >
+                        <Home size={34} strokeWidth={2.5} />
+                    </button>
+                </div>
 
                 {/* Main Container - Centered */}
                 <motion.div

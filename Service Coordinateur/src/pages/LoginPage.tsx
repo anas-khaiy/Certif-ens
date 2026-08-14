@@ -131,22 +131,23 @@ const LoginPage = () => {
         <div className="min-h-screen w-full flex items-center justify-center bg-animated relative overflow-hidden p-6">
 
 
-            {/* Simple Theme Toggle */}
-            <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="absolute top-8 right-8 z-50 w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
-            >
-                {isDarkMode ? <Sun size={34} /> : <Moon size={34} />}
-            </button>
-
-            {/* Home Button */}
-            <button
-                onClick={() => window.location.href = '/'}
-                className="absolute top-24 right-8 z-50 w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
-                aria-label="Go home"
-            >
-                <Home size={34} />
-            </button>
+            {/* Action Buttons */}
+            <div className="absolute top-8 right-8 z-50 flex flex-col gap-4">
+                <button
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className="w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
+                    aria-label="Toggle theme"
+                >
+                    {isDarkMode ? <Sun size={34} /> : <Moon size={34} />}
+                </button>
+                <button
+                    onClick={() => window.location.href = '/'}
+                    className="w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
+                    aria-label="Go home"
+                >
+                    <Home size={34} />
+                </button>
+            </div>
 
             {/* Main Login Card - Using standard div for stability */}
             <div className="glass-morphism max-w-md w-full p-10 z-10 relative overflow-hidden shadow-soft animate-fade-in">
