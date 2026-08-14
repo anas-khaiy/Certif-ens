@@ -137,14 +137,14 @@ const LoginPage = () => {
                         className="w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
                         aria-label="Toggle theme"
                     >
-                        {isDarkMode ? <Sun size={34} strokeWidth={2.5} /> : <Moon size={34} strokeWidth={2.5} />}
+                        {isDarkMode ? <Sun size={34} /> : <Moon size={34} />}
                     </button>
                     <button
                         onClick={() => window.location.href = '/'}
                         className="w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
                         aria-label="Go home"
                     >
-                        <Home size={34} strokeWidth={2.5} />
+                        <Home size={34} />
                     </button>
                 </div>
 
