@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import LoginPage from './pages/LoginPage';
@@ -21,7 +20,6 @@ import BundleStatsPage from './pages/BundleStatsPage';
 import CoordinateursPage from './pages/CoordinateursPage';
 import CoordinateurAssignPage from './pages/CoordinateurAssignPage';
 import DepartementsPage from './pages/DepartementsPage';
-import api from './api/api-client';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const isAdmin = localStorage.getItem('isAdmin') === 'true';
@@ -29,38 +27,6 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
-  const [isInitializing, setIsInitializing] = useState(true);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await api.get('/auth/me');
-        const user = response.data;
-        localStorage.setItem('isAdmin', 'true');
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('adminNom', user.nom);
-        localStorage.setItem('adminPrenom', user.prenom);
-      } catch (err) {
-        console.log('Not authenticated');
-        localStorage.removeItem('isAdmin');
-        localStorage.removeItem('user');
-        localStorage.removeItem('adminNom');
-        localStorage.removeItem('adminPrenom');
-      } finally {
-        setIsInitializing(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  if (isInitializing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-      </div>
-    );
-  }
 
   return (
     <Router basename="/admin">
