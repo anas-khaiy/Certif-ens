@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, ChevronRight, Moon, Sun } from 'lucide-react';
+import { Lock, Mail, ChevronRight, Moon, Sun, Home } from 'lucide-react';
 import api from '../api/api-client';
 
 const LoginPage = () => {
@@ -136,6 +136,15 @@ const LoginPage = () => {
                 className="absolute top-8 right-8 z-50 w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
             >
                 {isDarkMode ? <Sun size={34} /> : <Moon size={34} />}
+            </button>
+
+            {/* Home Button */}
+            <button
+                onClick={() => window.location.href = '/'}
+                className="absolute top-24 right-8 z-50 w-14 h-14 flex items-center justify-center rounded-xl bg-surface text-primary border border-white/10 hover:bg-surface-hover transition-all"
+                aria-label="Go home"
+            >
+                <Home size={34} />
             </button>
 
             {/* Main Login Card - Using standard div for stability */}

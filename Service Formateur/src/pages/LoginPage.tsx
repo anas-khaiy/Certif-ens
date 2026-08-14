@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Lock, Mail, ChevronRight, Moon, Sun, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ChevronRight, Moon, Sun, AlertCircle, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
 import '../login.css';
 import api from '../api/api-client';
@@ -141,6 +141,19 @@ const LoginPage = () => {
                     aria-label="Toggle theme"
                 >
                     {isDarkMode ? <Sun size={34} strokeWidth={2.5} /> : <Moon size={34} strokeWidth={2.5} />}
+                </motion.button>
+
+                {/* Home Button */}
+                <motion.button
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => window.location.href = '/'}
+                    className="absolute top-24 right-8 z-50 w-14 h-14 flex items-center justify-center rounded-xl bg-[#0f172a] text-primary shadow-2xl border border-white/10 hover:bg-[#1e293b] transition-all"
+                    aria-label="Go home"
+                >
+                    <Home size={34} strokeWidth={2.5} />
                 </motion.button>
 
                 {/* Main Container - Centered */}
