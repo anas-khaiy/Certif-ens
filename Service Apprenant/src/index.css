@@ -1386,4 +1386,28 @@ svg {
 }
 
 
+/* ─── HomePage Responsive Utilities ─── */
+.hp-desktop-nav { display: none; }
+.hp-desktop-actions { display: none; }
+.hp-mobile-actions { display: flex; }
+.hp-mobile-drawer { display: block; }
+.hp-hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.hp-hero-left { }
+.hp-hero-right { }
+.hp-grid-3 { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.hp-grid-4 { display: grid; grid-template-columns: 1fr; gap: 24px; }
 
+@media (min-width: 768px) {
+  .hp-desktop-actions { display: flex; }
+  .hp-mobile-actions { display: none; }
+  .hp-mobile-drawer { display: none; }
+  .hp-grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .hp-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .hp-desktop-nav { display: flex; }
+  .hp-hero-grid { grid-template-columns: 7fr 5fr; }
+  .hp-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .hp-grid-4 { grid-template-columns: repeat(4, 1fr); }
+}

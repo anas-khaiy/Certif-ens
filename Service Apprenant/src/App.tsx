@@ -23,6 +23,7 @@ import LiveClassPage from './pages/LiveClassPage';
 import EncadrementApprenantPage from './pages/EncadrementApprenantPage';
 import MonPfePage from './pages/MonPfePage';
 import ChoixSujetPage from './pages/ChoixSujetPage';
+import HomePage from './pages/HomePage';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = localStorage.getItem('token') !== null;
@@ -34,9 +35,10 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<HomePage />} />
 
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <PrivateRoute>
               <Layout>

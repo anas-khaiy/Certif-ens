@@ -129,7 +129,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 </div>
 
                 <nav className="flex-1 flex flex-col gap-2 overflow-y-auto pr-2 custom-scrollbar">
-                    <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Tableau de bord" onClick={closeSidebarOnMobile} />
+                    <SidebarItem to="/dashboard" icon={<LayoutDashboard size={20} />} label="Tableau de bord" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/courses" icon={<BookOpen size={20} />} label="Catalogue des Cours" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/enrolled-courses" icon={<BookOpen size={20} className="text-primary" />} label="Mes Cours Inscrits" onClick={closeSidebarOnMobile} />
                     <SidebarItem to="/completed-courses" icon={<BookOpen size={20} className="text-success" />} label="Cours Terminés" onClick={closeSidebarOnMobile} />
