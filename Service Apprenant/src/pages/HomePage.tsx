@@ -46,28 +46,28 @@ const PORTALS_DATA: PortalData[] = [
     shortTitle: 'Portail Étudiant',
     targetAudience: 'Accéder aux cours, passer les examens avec surveillance IA',
     badge: 'Apprenant',
-    path: '/dashboard'
+    path: '/login'
   },
   {
     id: 'teacher',
     shortTitle: 'Espace Enseignant',
     targetAudience: 'Créer des cours, configurer les quiz IA et visioconférences',
     badge: 'Formateur',
-    path: '/formateur/'
+    path: '/formateur/login'
   },
   {
     id: 'coordinator',
     shortTitle: 'Espace Coordinateur',
     targetAudience: 'Gérer les spécialités, affecter les cours et formateurs',
     badge: 'Coordinateur',
-    path: '/coordinateur/'
+    path: '/coordinateur/login'
   },
   {
     id: 'admin',
     shortTitle: 'Console Admin',
     targetAudience: 'Administration globale du système et gestion des comptes',
     badge: 'Administrateur',
-    path: '/admin/'
+    path: '/admin/login'
   }
 ];
 
@@ -99,7 +99,7 @@ export default function HomePage() {
   const handleOpenPortal = (role: PortalRole) => {
     const portal = PORTALS_DATA.find(p => p.id === role);
     if (portal) {
-      navigate(portal.path);
+      window.location.href = portal.path;
     }
   };
 
