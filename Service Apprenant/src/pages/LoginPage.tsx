@@ -92,7 +92,7 @@ const LoginPage = () => {
             specialite: data.specialite,
             cin: data.cin,
         }));
-        navigate('/');
+        navigate('/dashboard');
     };
 
     // --- Password Reset Handlers ---
