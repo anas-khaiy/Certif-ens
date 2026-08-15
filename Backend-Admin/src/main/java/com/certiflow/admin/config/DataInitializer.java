@@ -37,17 +37,33 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        String adminEmail = "admin@ens-marrakech.ac.ma";
+        String adminPassword = "ENS@Admin#2026!";
         if (adminRepository.count() == 0) {
             Admin admin = new Admin();
             admin.setNom("Default");
             admin.setPrenom("Admin");
-            admin.setEmail("admin@ens-marrakech.ac.ma");
-            admin.setPassword(passwordEncoder.encode("ENS@Admin#2026!"));
+            admin.setEmail(adminEmail);
+            admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setRole(Role.SUPER_ADMIN);
             admin.setPhotoProfile("default.png");
             adminRepository.save(admin);
-            System.out.println("Default admin created: admin@ens-marrakech.ac.ma / ENS@Admin#2026!");
+            System.out.println("Default admin created: " + adminEmail + " / " + adminPassword);
         } else {
+            // Ensure a SUPER_ADMIN exists with the expected credentials.
+            Admin target = adminRepository.findByEmail(adminEmail)
+                    .orElseGet(() -> {
+                        Admin a = new Admin();
+                        a.setNom("Default");
+                        a.setPrenom("Admin");
+                        a.setEmail(adminEmail);
+                        a.setRole(Role.SUPER_ADMIN);
+                        a.setPhotoProfile("default.png");
+                        return a;
+                    });
+            target.setPassword(passwordEncoder.encode(adminPassword));
+            adminRepository.save(target);
+            System.out.println("Default admin ensured: " + adminEmail + " / " + adminPassword);
             // Update existing admins missing a profile photo
             List<Admin> admins = adminRepository.findAll();
             boolean updated = false;
