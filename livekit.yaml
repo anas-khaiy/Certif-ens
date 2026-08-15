@@ -7,7 +7,7 @@ rtc:
   udp_port: 7882
   # IMPORTANT: set this to the server's actual public IP
   # Run: curl -s ifconfig.me   on the server to get the IP
-  node_ip: 192.168.20.1   # <-- REMPLACE PAR L'IP PUBLIQUE DU SERVEUR
+  node_ip: 196.200.178.203   # public IP of the VPS
 
 keys:
   devkey: devsecret32charslongtofitrequirement
