@@ -4158,7 +4158,7 @@ const CourseEditorPage: React.FC = () => {
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2 flex-wrap sm:ml-auto">
                         {/* Preview Button */}
-                        {(!course.id || course.id === '' || id === 'new') ? (
+                        {(!course.id && !id || id === 'new') ? (
                             <button
                                 disabled
                                 className="px-4 py-2.5 rounded-xl bg-white/5 text-text-muted border border-glass-border flex items-center gap-2 font-bold text-sm cursor-not-allowed opacity-50"
@@ -4169,7 +4169,7 @@ const CourseEditorPage: React.FC = () => {
                             </button>
                         ) : (
                             <a
-                                href={`/formateur/courses/${course.id}/preview`}
+                                href={`/formateur/courses/${course.id || id}/preview`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-text border border-glass-border flex items-center gap-2 font-bold transition-all text-sm"

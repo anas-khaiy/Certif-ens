@@ -58,6 +58,11 @@ public class AuthenticationService {
                 response.setPrenom(coordinateur.getPrenom());
                 response.setRole("COORDINATEUR");
                 response.setPhotoProfile(coordinateur.getPhotoProfile());
+
+                // Check if password is still the default (email)
+                boolean isDefault = passwordEncoder.matches(coordinateur.getEmail().toLowerCase().trim(), coordinateur.getMotDePasse());
+                response.setMustChangePassword(isDefault);
+
                 return response;
         }
 
@@ -69,6 +74,11 @@ public class AuthenticationService {
                 response.setPrenom(coordinateur.getPrenom());
                 response.setRole("COORDINATEUR");
                 response.setPhotoProfile(coordinateur.getPhotoProfile());
+
+                // Check if password is still the default (email)
+                boolean isDefault = passwordEncoder.matches(coordinateur.getEmail().toLowerCase().trim(), coordinateur.getMotDePasse());
+                response.setMustChangePassword(isDefault);
+
                 return response;
         }
 
@@ -83,6 +93,11 @@ public class AuthenticationService {
                 }
 
                 if (request.getPassword() != null && !request.getPassword().isBlank()) {
+                        if (request.getPassword().trim().length() < 6) {
+                                throw new org.springframework.web.server.ResponseStatusException(
+                                                org.springframework.http.HttpStatus.BAD_REQUEST,
+                                                "Le mot de passe doit contenir au moins 6 caractères.");
+                        }
                         if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
                                 throw new org.springframework.web.server.ResponseStatusException(
                                                 org.springframework.http.HttpStatus.BAD_REQUEST,

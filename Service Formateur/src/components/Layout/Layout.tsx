@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useReminders } from '../../hooks/useReminders';
 import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../../config';
+import ChangeDefaultPasswordModal from '../ChangeDefaultPasswordModal';
 interface SidebarItemProps {
     to: string;
     icon: React.ReactNode;
@@ -59,10 +60,21 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     };
 
     const [user, setUser] = useState(loadUser());
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+    useEffect(() => {
+        const mustChange = localStorage.getItem('mustChangePassword') === 'true';
+        if (mustChange) {
+            setShowPasswordModal(true);
+        }
+    }, [location.pathname]);
 
     useEffect(() => {
         const handleStorageChange = () => {
             setUser(loadUser());
+            if (localStorage.getItem('mustChangePassword') === 'true') {
+                setShowPasswordModal(true);
+            }
         };
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
@@ -261,6 +273,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     {children}
                 </div>
             </main>
+
+            <ChangeDefaultPasswordModal
+                isOpen={showPasswordModal}
+                onClose={() => setShowPasswordModal(false)}
+                onSuccess={() => setShowPasswordModal(false)}
+            />
         </div>
     );
 };

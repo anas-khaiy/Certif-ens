@@ -58,10 +58,16 @@ public class AuthenticationService {
                                         .email(apprenant.getEmail())
                                         .mfaEnabled(true)
                                         .mfaRequired(true)
+                                        .mustChangePassword(false)
                                         .build();
                 }
 
                 String jwtToken = jwtService.generateToken(apprenant);
+
+                // Check if password is still the default (CIN)
+                boolean isDefault = passwordEncoder.matches(
+                                apprenant.getCin() != null ? apprenant.getCin().toUpperCase().trim() : "",
+                                apprenant.getMotDePasse());
 
                 return AuthenticationResponse.builder()
                                 .id(apprenant.getId())
@@ -75,6 +81,7 @@ public class AuthenticationService {
                                 .cin(apprenant.getCin())
                                 .mfaEnabled(false)
                                 .mfaRequired(false)
+                                .mustChangePassword(isDefault)
                                 .build();
         }
 
@@ -88,6 +95,11 @@ public class AuthenticationService {
 
                 String jwtToken = jwtService.generateToken(apprenant);
 
+                // Check if password is still the default (CIN)
+                boolean isDefault = passwordEncoder.matches(
+                                apprenant.getCin() != null ? apprenant.getCin().toUpperCase().trim() : "",
+                                apprenant.getMotDePasse());
+
                 return AuthenticationResponse.builder()
                                 .id(apprenant.getId())
                                 .token(jwtToken)
@@ -100,6 +112,7 @@ public class AuthenticationService {
                                 .cin(apprenant.getCin())
                                 .mfaEnabled(true)
                                 .mfaRequired(false)
+                                .mustChangePassword(isDefault)
                                 .build();
         }
 
@@ -139,6 +152,12 @@ public class AuthenticationService {
                 Apprenant apprenant = repository.findByEmail(normalizedEmail)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Apprenant non trouvé"));
+
+                // Check if password is still the default (CIN)
+                boolean isDefault = passwordEncoder.matches(
+                                apprenant.getCin() != null ? apprenant.getCin().toUpperCase().trim() : "",
+                                apprenant.getMotDePasse());
+
                 return AuthenticationResponse.builder()
                                 .id(apprenant.getId())
                                 .email(apprenant.getEmail())
@@ -148,6 +167,7 @@ public class AuthenticationService {
                                 .photoProfile(apprenant.getPhotoProfile())
                                 .specialite(apprenant.getSpecialite() != null ? apprenant.getSpecialite().getNom() : null)
                                 .cin(apprenant.getCin())
+                                .mustChangePassword(isDefault)
                                 .build();
         }
 
@@ -172,6 +192,11 @@ public class AuthenticationService {
                 }
 
                 if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+                        if (request.getPassword().trim().length() < 6) {
+                                throw new ResponseStatusException(
+                                                HttpStatus.BAD_REQUEST,
+                                                "Le mot de passe doit contenir au moins 6 caractères.");
+                        }
                         if (request.getCurrentPassword() == null || request.getCurrentPassword().trim().isEmpty()) {
                                 throw new ResponseStatusException(
                                                 HttpStatus.BAD_REQUEST,

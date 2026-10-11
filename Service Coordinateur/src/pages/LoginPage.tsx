@@ -57,6 +57,7 @@ const LoginPage = () => {
             localStorage.setItem('coordinateurNom', response.data.nom);
             localStorage.setItem('coordinateurPrenom', response.data.prenom);
             localStorage.setItem('user', JSON.stringify(response.data));
+            localStorage.setItem('mustChangePassword', response.data.mustChangePassword ? 'true' : 'false');
             
             // Dispatch event to update Layout
             window.dispatchEvent(new Event('profileUpdate'));

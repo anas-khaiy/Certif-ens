@@ -8,6 +8,7 @@ public class AuthenticationResponse {
     private String role;
     private String photoProfile;
     private String signature;
+    private boolean mustChangePassword;
 
     public AuthenticationResponse() {
     }
@@ -77,5 +78,13 @@ public class AuthenticationResponse {
 
     public void setSignature(String signature) {
         this.signature = signature;
+    }
+
+    public boolean isMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public void setMustChangePassword(boolean mustChangePassword) {
+        this.mustChangePassword = mustChangePassword;
     }
 }

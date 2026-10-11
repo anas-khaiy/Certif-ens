@@ -54,7 +54,9 @@ const LoginPage = () => {
                 prenom: data.prenom,
                 role: data.role,
                 photoProfile: data.photoProfile,
+                mustChangePassword: data.mustChangePassword,
             }));
+            localStorage.setItem('mustChangePassword', data.mustChangePassword ? 'true' : 'false');
 
             navigate('/');
         } catch (err: any) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../api/api-client';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { API_COORDINATEUR } from '../../config';
+import ChangeDefaultPasswordModal from '../ChangeDefaultPasswordModal';
 import {
     LayoutDashboard,
     LogOut,
@@ -84,6 +85,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     });
     
     const [imgError, setImgError] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(() => {
+        return localStorage.getItem('mustChangePassword') === 'true';
+    });
 
     const fetchUserInfo = useCallback(async () => {
         try {
@@ -91,6 +95,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             setUserInfo(response.data);
             localStorage.setItem('coordinateurNom', response.data.nom);
             localStorage.setItem('coordinateurPrenom', response.data.prenom);
+            if (response.data.mustChangePassword !== undefined) {
+                const mustChange = Boolean(response.data.mustChangePassword);
+                localStorage.setItem('mustChangePassword', mustChange ? 'true' : 'false');
+                if (mustChange) {
+                    setShowPasswordModal(true);
+                }
+            }
         } catch (error) {
             console.error('Error fetching user info:', error);
         }
@@ -240,6 +251,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     {children}
                 </main>
             </div>
+
+            <ChangeDefaultPasswordModal
+                isOpen={showPasswordModal}
+                onClose={() => setShowPasswordModal(false)}
+                onSuccess={() => setShowPasswordModal(false)}
+            />
         </div>
     );
 };

@@ -18,7 +18,8 @@ import {
     CheckCircle,
     AlertCircle,
     MessageSquare,
-    Clock
+    Clock,
+    Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCourses } from '../hooks/useCourses';
@@ -413,17 +414,31 @@ const CoursesPage: React.FC = () => {
                                 </div>
                             )}
 
-                            {/* Delete Button */}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (course.id) setConfirmModal({ isOpen: true, id: course.id });
-                                }}
-                                className="absolute top-4 right-4 p-2.5 bg-white hover:bg-error text-error hover:text-white rounded-xl border border-error/30 transition-all duration-300 z-20 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 shadow-lg shadow-error/10 hover:shadow-error/30"
-                                title="Supprimer ce cours"
-                            >
-                                <Trash2 size={18} strokeWidth={2.5} />
-                            </button>
+                            {/* Action Buttons */}
+                            <div className="absolute top-4 right-4 flex items-center gap-1.5 z-20 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                                {course.id && (
+                                    <a
+                                        href={`/formateur/courses/${course.id}/preview`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="p-2.5 bg-white hover:bg-primary text-text-muted hover:text-white rounded-xl border border-glass-border transition-all duration-300 shadow-lg"
+                                        title="Aperçu du cours (nouvel onglet)"
+                                    >
+                                        <Eye size={18} strokeWidth={2.5} />
+                                    </a>
+                                )}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (course.id) setConfirmModal({ isOpen: true, id: course.id });
+                                    }}
+                                    className="p-2.5 bg-white hover:bg-error text-error hover:text-white rounded-xl border border-error/30 transition-all duration-300 shadow-lg shadow-error/10 hover:shadow-error/30"
+                                    title="Supprimer ce cours"
+                                >
+                                    <Trash2 size={18} strokeWidth={2.5} />
+                                </button>
+                            </div>
 
                             {/* Level Badge */}
                             <span className={`absolute top-4 left-4 px-3 py-1 rounded-xl text-[10px] font-black uppercase shadow-lg z-10 border bg-white ${course.level === 'Master'

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import ChangeDefaultPasswordModal from '../ChangeDefaultPasswordModal';
 import {
     LayoutDashboard,
     Settings,
@@ -45,12 +46,21 @@ const SidebarItem = ({ to, icon, label, onClick }: SidebarItemProps) => (
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
     const [theme, setTheme] = useState<'dark' | 'light'>(() => {
         return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
     });
     const { reminders } = useReminders();
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+    useEffect(() => {
+        const mustChange = localStorage.getItem('mustChangePassword') === 'true';
+        if (mustChange) {
+            setShowPasswordModal(true);
+        }
+    }, [location.pathname]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -244,6 +254,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 </div>
                 <ReminderOverlay />
             </main>
+
+            <ChangeDefaultPasswordModal
+                isOpen={showPasswordModal}
+                onClose={() => setShowPasswordModal(false)}
+                onSuccess={() => setShowPasswordModal(false)}
+            />
         </div>
     );
 };

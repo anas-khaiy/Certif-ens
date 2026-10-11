@@ -21,4 +21,5 @@ public class AuthenticationResponse {
     private String cin;
     private boolean mfaEnabled;
     private boolean mfaRequired;
+    private boolean mustChangePassword;
 }

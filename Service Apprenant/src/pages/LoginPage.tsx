@@ -91,7 +91,9 @@ const LoginPage = () => {
             photoProfile: data.photoProfile,
             specialite: data.specialite,
             cin: data.cin,
+            mustChangePassword: data.mustChangePassword,
         }));
+        localStorage.setItem('mustChangePassword', data.mustChangePassword ? 'true' : 'false');
         navigate('/dashboard');
     };
 

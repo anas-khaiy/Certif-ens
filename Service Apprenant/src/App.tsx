@@ -26,7 +26,23 @@ import ChoixSujetPage from './pages/ChoixSujetPage';
 import HomePage from './pages/HomePage';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = localStorage.getItem('token') !== null;
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.role === 'ENSEIGNANT' || user.role === 'FORMATEUR') {
+        window.location.replace(`/formateur${window.location.pathname}`);
+        return null;
+      }
+      if (user.role === 'COORDINATEUR') {
+        window.location.replace(`/coordinateur${window.location.pathname}`);
+        return null;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  const isAuthenticated = token !== null;
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 

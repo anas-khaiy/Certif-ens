@@ -102,6 +102,11 @@ public class AuthenticationService {
                 response.setRole("ENSEIGNANT");
                 response.setPhotoProfile(enseignant.getPhotoProfile());
                 response.setSignature(enseignant.getSignature());
+
+                // Check if password is still the default (email)
+                boolean isDefault = passwordEncoder.matches(enseignant.getEmail().toLowerCase().trim(), enseignant.getMotDePasse());
+                response.setMustChangePassword(isDefault);
+
                 return response;
         }
 
@@ -115,6 +120,11 @@ public class AuthenticationService {
                 response.setRole("ENSEIGNANT");
                 response.setPhotoProfile(enseignant.getPhotoProfile());
                 response.setSignature(enseignant.getSignature());
+
+                // Check if password is still the default (email)
+                boolean isDefault = passwordEncoder.matches(enseignant.getEmail().toLowerCase().trim(), enseignant.getMotDePasse());
+                response.setMustChangePassword(isDefault);
+
                 return response;
         }
 
@@ -131,6 +141,11 @@ public class AuthenticationService {
 
                 // Password update logic - only triggers if password is provided
                 if (request.getPassword() != null && !request.getPassword().isBlank()) {
+                        if (request.getPassword().trim().length() < 6) {
+                                throw new org.springframework.web.server.ResponseStatusException(
+                                                org.springframework.http.HttpStatus.BAD_REQUEST,
+                                                "Le mot de passe doit contenir au moins 6 caractères.");
+                        }
                         if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
                                 throw new org.springframework.web.server.ResponseStatusException(
                                                 org.springframework.http.HttpStatus.BAD_REQUEST,
