@@ -242,19 +242,11 @@ export default function HomePage() {
           {/* Logo */}
           <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 12,
-              background: 'linear-gradient(135deg, #6366f1, #a855f7, #ec4899)',
-              padding: 1, boxShadow: '0 4px 15px rgba(99,102,241,0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <div style={{ width: '100%', height: '100%', backgroundColor: isDark ? '#0c0e1e' : '#fff', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Sparkles style={{ width: 20, height: 20, color: '#818cf8' }} />
-              </div>
-            </div>
-            <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>
-              ENS<span style={{ color: '#6366f1' }}>-Learning</span>
-            </span>
+            <img 
+              src={isDark ? "/logoDark.png?v=2" : "/logoLite.png?v=2"} 
+              alt="ENS-Learning Logo" 
+              style={{ height: 48, width: 'auto', objectFit: 'contain' }} 
+            />
           </a>
 
           {/* Desktop Nav Links */}
@@ -658,10 +650,11 @@ export default function HomePage() {
       <footer style={{ backgroundColor: isDark ? 'rgba(2,6,23,1)' : '#f1f5f9', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`, padding: '48px 0' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Sparkles style={{ width: 16, height: 16, color: '#818cf8' }} />
-            </div>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>ENS-Learning</span>
+            <img 
+              src={isDark ? "/logoDark.png?v=2" : "/logoLite.png?v=2"} 
+              alt="ENS-Learning Logo" 
+              style={{ height: 36, width: 'auto', objectFit: 'contain' }} 
+            />
           </div>
           <div style={{ textAlign: 'right' }}>
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Plateforme d'apprentissage intelligente de l'ENS - Marrakech</p>

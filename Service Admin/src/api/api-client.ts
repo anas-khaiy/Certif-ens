@@ -30,8 +30,8 @@ api.interceptors.response.use(
             localStorage.removeItem('adminNom');
             localStorage.removeItem('adminPrenom');
             localStorage.removeItem('token');
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+            if (window.location.pathname !== '/admin/login') {
+                window.location.href = '/admin/login';
             }
         }
         return Promise.reject(error);

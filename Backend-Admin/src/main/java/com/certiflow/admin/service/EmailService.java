@@ -152,6 +152,13 @@ public class EmailService {
     }
 
     private String buildWelcomeEmailHtml(String prenom, String email, String password, String roleName) {
+        String loginUrl = switch (roleName) {
+            case "Administrateur" -> "https://app25.ens-marrakech.ac.ma/admin/login";
+            case "Formateur" -> "https://app25.ens-marrakech.ac.ma/formateur/login";
+            case "Coordinateur" -> "https://app25.ens-marrakech.ac.ma/coordinateur/login";
+            default -> "https://app25.ens-marrakech.ac.ma/login";
+        };
+
         return """
                 <!DOCTYPE html>
                 <html lang="fr">
@@ -184,7 +191,7 @@ public class EmailService {
                                                 <p style="color:#e2e8f0;font-size:16px;margin:0 0 12px;"><strong>Mot de passe:</strong> %s</p>
                                             </div>
                                             <div style="text-align:center;margin-bottom:32px;">
-                                                <a href="http://localhost:6173/login" style="background-color:#6366f1;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">Se connecter</a>
+                                                <a href="%s" style="background-color:#6366f1;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">Se connecter</a>
                                             </div>
                                             <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:16px;margin-bottom:32px;">
                                                 <p style="color:#f87171;font-size:13px;margin:0;line-height:1.6;">
@@ -204,6 +211,6 @@ public class EmailService {
                     </table>
                 </body>
                 </html>
-                """.formatted(prenom, roleName, email, password);
+                """.formatted(prenom, roleName, email, password, loginUrl);
     }
 }

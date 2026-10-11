@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Users, Settings, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../api/api-client';
+import { API_FORMATEUR } from '../config';
 import type { Enseignant, SujetPropositionConfig, Specialite } from '../types';
 
 const ConfigSujetsPage = () => {
@@ -226,7 +227,7 @@ const ConfigSujetsPage = () => {
                                         <div className="flex items-center gap-3 overflow-hidden">
                                             <div className="w-10 h-10 rounded-full bg-surface-hover flex items-center justify-center overflow-hidden border border-glass-border shrink-0">
                                                 {f.photoProfile && f.photoProfile !== 'default.png' ? (
-                                                    <img src={`http://localhost:9094/api/v1/files/profiles/${f.photoProfile}`} alt="Avatar" className="w-full h-full object-cover" />
+                                                    <img src={`${API_FORMATEUR}/files/profiles/${f.photoProfile}`} alt="Avatar" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <span className="font-semibold text-sm">{f.prenom?.[0]}{f.nom?.[0]}</span>
                                                 )}

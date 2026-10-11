@@ -347,7 +347,7 @@ const CompletedCoursesPage = () => {
     const handleSocialShare = async (platform: 'linkedin' | 'facebook' | 'instagram' | 'copy', course: Course) => {
         const completion = coursesCompletion[course.id] || coursesCompletion[course.id.toString()];
         const certId = completion?.certificateId || `CERT-${course.id}`;
-        const shareUrl = `${window.location.protocol}//${window.location.host}/verify/${certId}`;
+        const shareUrl = `${VERIFY_URL_APPRENANT}/${certId}`;
         const shareText = `Je suis ravi de partager mon nouveau certificat pour la formation "${course.title}" sur ENS-Learning ! 🚀`;
 
         switch (platform) {

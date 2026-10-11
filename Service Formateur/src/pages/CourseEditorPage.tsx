@@ -4157,18 +4157,31 @@ const CourseEditorPage: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2 flex-wrap sm:ml-auto">
+                        {/* Preview Button */}
+                        {(!course.id || course.id === '' || id === 'new') ? (
+                            <button
+                                disabled
+                                className="px-4 py-2.5 rounded-xl bg-white/5 text-text-muted border border-glass-border flex items-center gap-2 font-bold text-sm cursor-not-allowed opacity-50"
+                                title="Veuillez enregistrer le cours avant d'accéder à l'aperçu"
+                            >
+                                <Eye size={18} />
+                                <span className="hidden sm:inline">Aperçu</span>
+                            </button>
+                        ) : (
+                            <a
+                                href={`/formateur/courses/${course.id}/preview`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-text border border-glass-border flex items-center gap-2 font-bold transition-all text-sm"
+                                title="Voir l'aperçu apprenant (nouvel onglet)"
+                            >
+                                <Eye size={18} />
+                                <span className="hidden sm:inline">Aperçu</span>
+                            </a>
+                        )}
+
                         {id !== 'new' && (
                             <>
-                                <a
-                                    href={`/courses/${id}/preview`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-text border border-glass-border flex items-center gap-2 font-bold transition-all text-sm"
-                                    title="Voir l'aperçu apprenant (nouvel onglet)"
-                                >
-                                    <Eye size={18} />
-                                    <span className="hidden sm:inline">Aperçu</span>
-                                </a>
                                 <button
                                     onClick={() => setCourse(prev => ({ ...prev, published: !prev.published }))}
                                     className={`px-4 py-2.5 rounded-xl flex items-center gap-2 font-bold transition-all border-2 text-sm ${course.published

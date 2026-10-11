@@ -1349,7 +1349,7 @@ const AdminBundleManagementPage: React.FC = () => {
                                                 className="abm-card-date"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    window.location.href = `/admin-bundle-enrollments?bundleId=${bundle.id}`;
+                                                    window.location.href = `/admin/bundle-enrollments?bundleId=${bundle.id}`;
                                                 }}
                                             >
                                                 <Clock size={11} />

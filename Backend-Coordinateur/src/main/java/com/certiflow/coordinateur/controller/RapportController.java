@@ -146,7 +146,7 @@ public class RapportController {
             default -> typeDepot;
         };
 
-        String downloadLink = "http://localhost:9093/api/v1/mon-pfe/download/" + depot.getFichierUrl();
+        String downloadLink = "https://app25.ens-marrakech.ac.ma/api/apprenant/api/v1/mon-pfe/download/" + depot.getFichierUrl();
 
         for (String email : recipients) {
             try {

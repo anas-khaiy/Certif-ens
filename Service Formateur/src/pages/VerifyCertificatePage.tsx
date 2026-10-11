@@ -37,8 +37,10 @@ const VerifyCertificatePage = () => {
     useEffect(() => {
         const verify = async () => {
             try {
-                // Call the Trainer backend (port 8081) for verification
-                const response = await axios.get(`${API_FORMATEUR}/verify/${enrollmentId}`);
+                const backendUrl = enrollmentId?.startsWith('BND-')
+                    ? `${API_FORMATEUR}/verify/${enrollmentId}`
+                    : `${API_APPRENANT}/verify/${enrollmentId}`;
+                const response = await axios.get(backendUrl);
                 setData(response.data);
             } catch (err: any) {
                 if (err.response?.data?.errorMessage) {

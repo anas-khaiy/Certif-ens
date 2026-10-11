@@ -22,6 +22,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            if (window.location.pathname !== '/formateur/login') {
+                window.location.href = '/formateur/login';
+            }
+        }
         return Promise.reject(error);
     }
 );

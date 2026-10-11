@@ -4,6 +4,7 @@ import {
     Search, Send, Loader2, CheckCircle2, AlertCircle, ChevronDown, Users, UserCheck, FileText, X, Eye, UserPlus, Mail, RefreshCw
 } from 'lucide-react';
 import api from '../api/api-client';
+import { API_APPRENANT } from '../config';
 
 const Pagination = ({ page, totalPages, total, itemsPerPage, label, onPageChange }: {
     page: number; totalPages: number; total: number; itemsPerPage: number; label: string; onPageChange: (p: number) => void;
@@ -696,7 +697,7 @@ export default function RapportsPage() {
 
                             <div className="flex-1 bg-surface-hover/30 relative">
                                 <iframe
-                                    src={`http://localhost:9093/api/v1/mon-pfe/download/${previewDepot.url}`}
+                                    src={`${API_APPRENANT}/mon-pfe/download/${previewDepot.url}`}
                                     className="w-full h-full border-none bg-white"
                                     title="Prévisualisation PDF"
                                 />

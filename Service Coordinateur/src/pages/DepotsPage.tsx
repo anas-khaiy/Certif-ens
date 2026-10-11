@@ -4,6 +4,7 @@ import {
     Search, FileText, Filter, Eye, Loader2, Calendar, BookOpen, AlertCircle, Users, CheckCircle2, FileCheck, X, ChevronDown, Download
 } from 'lucide-react';
 import api from '../api/api-client';
+import { API_APPRENANT } from '../config';
 
 /* ──────────────────── Pagination ──────────────────── */
 const Pagination = ({ page, totalPages, total, itemsPerPage, label, onPageChange }: {
@@ -353,7 +354,7 @@ export default function DepotsPage() {
                                                             <span>Prévisualiser</span>
                                                         </button>
                                                         <a 
-                                                            href={`http://localhost:9093/api/v1/mon-pfe/download/${depot.fichierUrl}`}
+                                                            href={`${API_APPRENANT}/mon-pfe/download/${depot.fichierUrl}`}
                                                             download
                                                             target="_blank"
                                                             rel="noopener noreferrer"
@@ -415,7 +416,7 @@ export default function DepotsPage() {
                             
                             <div className="flex-1 bg-surface-hover/30 relative">
                                 <iframe 
-                                    src={`http://localhost:9093/api/v1/mon-pfe/download/${selectedFichierUrl}`} 
+                                    src={`${API_APPRENANT}/mon-pfe/download/${selectedFichierUrl}`} 
                                     className="w-full h-full border-none bg-white"
                                     title="Prévisualisation PDF"
                                 />
