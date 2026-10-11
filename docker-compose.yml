@@ -186,7 +186,8 @@ services:
     image: nginx:latest
     container_name: certiflow-nginx
     ports:
-      - "80:80"
+      # Only expose on localhost — server nginx (app25.conf) proxies to this port
+      - "127.0.0.1:8080:80"
     volumes:
       - ./nginx/certiflow.conf:/etc/nginx/conf.d/default.conf
     depends_on:
