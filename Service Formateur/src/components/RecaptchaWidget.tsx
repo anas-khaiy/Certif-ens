@@ -3,7 +3,6 @@ import React, { useEffect, useRef } from 'react';
 declare global {
     interface Window {
         grecaptcha: any;
-        onRecaptchaCallback: (token: string) => void;
     }
 }
 
@@ -17,34 +16,50 @@ interface Props {
 const RecaptchaWidget: React.FC<Props> = ({ onChange }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const widgetIdRef = useRef<number | null>(null);
+    const onChangeRef = useRef(onChange);
+    onChangeRef.current = onChange;
 
     useEffect(() => {
-        const scriptId = 'google-recaptcha-script';
-        if (!document.getElementById(scriptId)) {
+        let interval: ReturnType<typeof setInterval>;
+
+        const renderWidget = () => {
+            if (!containerRef.current || widgetIdRef.current !== null) return;
+            if (!window.grecaptcha || typeof window.grecaptcha.render !== 'function') return;
+            widgetIdRef.current = window.grecaptcha.render(containerRef.current, {
+                sitekey: RECAPTCHA_SITE_KEY,
+                callback: (token: string) => onChangeRef.current(token),
+                'expired-callback': () => onChangeRef.current(null),
+                'error-callback': () => onChangeRef.current(null),
+                theme: document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark',
+            });
+            clearInterval(interval);
+        };
+
+        const loadScript = () => {
+            const existing = document.getElementById('google-recaptcha-script') as HTMLScriptElement | null;
+            if (existing) {
+                // Script tag exists — poll until grecaptcha.render is available
+                renderWidget();
+                interval = setInterval(renderWidget, 100);
+                return;
+            }
             const script = document.createElement('script');
-            script.id = scriptId;
+            script.id = 'google-recaptcha-script';
             script.src = 'https://www.google.com/recaptcha/api.js?render=explicit';
             script.async = true;
             script.defer = true;
-            script.onload = renderWidget;
+            script.onload = () => {
+                renderWidget();
+                interval = setInterval(renderWidget, 100);
+            };
             document.head.appendChild(script);
-        } else if (window.grecaptcha && window.grecaptcha.render) {
-            renderWidget();
-        }
+        };
 
-        function renderWidget() {
-            if (!containerRef.current || widgetIdRef.current !== null) return;
-            widgetIdRef.current = window.grecaptcha.render(containerRef.current, {
-                sitekey: RECAPTCHA_SITE_KEY,
-                callback: (token: string) => onChange(token),
-                'expired-callback': () => onChange(null),
-                'error-callback': () => onChange(null),
-                theme: document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark',
-            });
-        }
+        loadScript();
 
         return () => {
-            if (widgetIdRef.current !== null && window.grecaptcha && window.grecaptcha.reset) {
+            clearInterval(interval);
+            if (widgetIdRef.current !== null && window.grecaptcha && typeof window.grecaptcha.reset === 'function') {
                 try { window.grecaptcha.reset(widgetIdRef.current); } catch {}
                 widgetIdRef.current = null;
             }
