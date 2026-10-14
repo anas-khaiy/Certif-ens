@@ -11,7 +11,7 @@ import java.net.http.HttpResponse;
 @Service
 public class RecaptchaService {
 
-    @Value("${recaptcha.secret.key:6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}")
+    @Value("${recaptcha.secret.key:6LeaZu8tAAAAANsQzrTQO4eGM_y96rpksu0u3}")
     private String secretKey;
 
     private static final String VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";

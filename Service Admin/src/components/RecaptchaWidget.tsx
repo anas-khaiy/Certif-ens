@@ -7,7 +7,7 @@ declare global {
 }
 
 // Google reCAPTCHA v2 test keys — always pass. Replace with real keys in production.
-export const RECAPTCHA_SITE_KEY = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
+export const RECAPTCHA_SITE_KEY = '6LeaZu8tAAAAAJRMPk0TOXVwpxHyFuFxZwBQcM94';
 
 interface Props {
     onChange: (token: string | null) => void;
