@@ -2139,7 +2139,7 @@ const CoursePreviewPage: React.FC = () => {
                                                                 <tr className="text-[11px] font-black text-primary">
                                                                     <td className="py-3 pl-6 uppercase tracking-wider text-[9px]">Total de l'examen</td>
                                                                     <td className="py-3 text-right">100%</td>
-                                                                    <td className="py-3 text-right pr-6 text-xs">{totalQuestions} pts</td>
+                                                                    <td className="py-3 text-right pr-6 text-xs">{totalQuestions} questions</td>
                                                                 </tr>
                                                             </tfoot>
                                                         </table>
