@@ -61,7 +61,8 @@ import {
     Link as LinkIcon,
     ArrowUpRight,
     Timer,
-    Briefcase
+    Briefcase,
+    User
 } from 'lucide-react';
 
 // --- STYLES INJECTÉS ---
@@ -266,10 +267,11 @@ const stripTempIds = (obj: any): any => {
 interface StudentAnswer {
     questionId: string;
     type: 'QCU' | 'QCM' | 'OPEN';
-    learnerAnswer: any; // index for QCU, array for QCM, string for OPEN
+    learnerAnswer: any;
     isCorrect?: boolean;
     score?: number; // 0 or 1 for QCU/QCM, 0-20 for OPEN (manual)
     feedback?: string;
+    gradedBy?: 'ai' | 'manual' | 'teacher';
 }
 
 interface QuizSubmission {
@@ -277,10 +279,13 @@ interface QuizSubmission {
     quizId: string;
     quizTitle: string;
     submittedAt: string;
+    submittedAtRaw?: string;
     answers: StudentAnswer[];
     totalScore?: number;
     status: 'pending' | 'graded';
     cheatingReason?: string | null;
+    attemptNumber?: number;
+    totalAttempts?: number;
 }
 
 interface EnrolledLearner {
@@ -1219,7 +1224,14 @@ const QuizEditorModal: React.FC<{
                                                 ].map((t) => (
                                                     <button
                                                         key={t.type}
-                                                        onClick={() => updateQuestion(activeQuestion.id, { type: t.type as 'QCU' | 'QCM' | 'OPEN', correctAnswers: [] })}
+                                                        onClick={() => {
+                                                                const newType = t.type as 'QCU' | 'QCM' | 'OPEN';
+                                                                if (newType === 'OPEN') {
+                                                                    updateQuestion(activeQuestion.id, { type: newType, correctAnswers: [], correctionType: 'manual', criteria: [] });
+                                                                } else {
+                                                                    updateQuestion(activeQuestion.id, { type: newType, correctAnswers: [] });
+                                                                }
+                                                            }}
                                                         className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${activeQuestion.type === t.type
                                                             ? 'border-primary bg-primary/5 text-primary'
                                                             : 'border-glass-border bg-surface hover:border-primary/30 text-text-muted hover:text-text'
@@ -1301,10 +1313,89 @@ const QuizEditorModal: React.FC<{
                                         )}
 
                                         {activeQuestion.type === 'OPEN' && (
-                                            <div className="p-8 bg-surface-hover/30 rounded-2xl border-2 border-dashed border-glass-border flex flex-col items-center justify-center text-center text-text-muted">
-                                                <MessageSquare size={32} className="mb-3 opacity-50" />
-                                                <p className="font-medium">Réponse libre</p>
-                                                <p className="text-xs opacity-70 mt-1">L'apprenant devra saisir une réponse textuelle.</p>
+                                            <div className="space-y-6 animate-fade-in">
+                                                <div className="bg-surface-hover/30 p-4 rounded-xl border border-dashed border-glass-border">
+                                                    <label className="text-xs font-bold text-text-muted uppercase block mb-3">Mode de correction</label>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateQuestion(activeQuestion.id, { correctionType: 'manual', criteria: [] })}
+                                                            className={`p-4 rounded-xl border-2 transition-all text-left ${
+                                                                activeQuestion.correctionType === 'manual' || !activeQuestion.correctionType
+                                                                    ? 'border-primary bg-primary/10 text-primary'
+                                                                    : 'border-glass-border text-text-muted hover:border-primary/50'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <FileText className="text-lg" size={20} />
+                                                                <div>
+                                                                    <p className="font-medium">Manuelle</p>
+                                                                    <p className="text-xs opacity-70">Correction par le formateur</p>
+                                                                </div>
+                                                            </div>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateQuestion(activeQuestion.id, { correctionType: 'ai' })}
+                                                            className={`p-4 rounded-xl border-2 transition-all text-left ${
+                                                                activeQuestion.correctionType === 'ai'
+                                                                    ? 'border-primary bg-primary/10 text-primary'
+                                                                    : 'border-glass-border text-text-muted hover:border-primary/50'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <CheckCircle2 className="text-lg" size={20} />
+                                                                <div>
+                                                                    <p className="font-medium">Automatique (IA)</p>
+                                                                    <p className="text-xs opacity-70">Correction par intelligence artificielle</p>
+                                                                </div>
+                                                            </div>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {activeQuestion.correctionType === 'ai' && (
+                                                    <div className="space-y-4">
+                                                        <label className="text-xs font-bold text-text-muted uppercase block">Critères de correction (mots-clés)</label>
+                                                        <p className="text-sm text-text-muted">
+                                                            Ajoutez les mots-clés ou expressions qui doivent apparaître dans la réponse de l'apprenant.
+                                                            Si le critère existe dans la réponse : note 1, sinon : note 0.
+                                                        </p>
+                                                        <div className="space-y-2">
+                                                            {(activeQuestion.criteria || []).map((criterion, cIdx) => (
+                                                                <div key={cIdx} className="flex items-center gap-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={criterion}
+                                                                        onChange={(e) => {
+                                                                            const newCriteria = [...(activeQuestion.criteria || [])];
+                                                                            newCriteria[cIdx] = e.target.value;
+                                                                            updateQuestion(activeQuestion.id, { criteria: newCriteria });
+                                                                        }}
+                                                                        className="input flex-1"
+                                                                        placeholder={`Critère ${cIdx + 1} (ex: "machine learning", "régression linéaire")`}
+                                                                    />
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const newCriteria = (activeQuestion.criteria || []).filter((_, i) => i !== cIdx);
+                                                                            updateQuestion(activeQuestion.id, { criteria: newCriteria });
+                                                                        }}
+                                                                        className="p-2 text-text-muted hover:text-error hover:bg-error/10 rounded-lg"
+                                                                        title="Supprimer le critère"
+                                                                    >
+                                                                        <X size={18} />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                            <button
+                                                                onClick={() => updateQuestion(activeQuestion.id, { criteria: [...(activeQuestion.criteria || []), ''] })}
+                                                                className="flex items-center gap-2 text-primary hover:bg-primary/10 px-4 py-2 rounded-xl transition-colors text-sm font-semibold w-full justify-center border border-dashed border-primary/30 hover:border-primary"
+                                                            >
+                                                                <Plus size={16} /> Ajouter un critère
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 
@@ -1922,6 +2013,7 @@ const TrainerCorrectionModal: React.FC<{
         const newSubmissions = [...submissions];
         newSubmissions[activeSubmissionIdx].answers[questionIdx].score = score;
         newSubmissions[activeSubmissionIdx].answers[questionIdx].isCorrect = isCorrect;
+        newSubmissions[activeSubmissionIdx].answers[questionIdx].gradedBy = 'teacher';
 
         // Auto-mark as graded if all scores are present
         const allGraded = newSubmissions[activeSubmissionIdx].answers.every(a => a.type !== 'OPEN' || a.score !== undefined);
@@ -2022,6 +2114,18 @@ const TrainerCorrectionModal: React.FC<{
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-[10px] font-black uppercase text-text-muted">Question {qIdx + 1}</span>
                                                     <span className="text-[10px] px-2 py-0.5 bg-surface-hover rounded font-bold">{answer.type}</span>
+                                                    {answer.type === 'OPEN' && answer.gradedBy === 'ai' && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-500 text-[9px] font-black uppercase">
+                                                            <Sparkles size={10} />
+                                                            IA
+                                                        </span>
+                                                    )}
+                                                    {answer.type === 'OPEN' && answer.gradedBy === 'teacher' && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-500 text-[9px] font-black uppercase">
+                                                            <User size={10} />
+                                                            Vous
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 {answer.type !== 'OPEN' ? (
                                                     <div className={`flex items-center gap-1.5 text-xs font-black uppercase ${answer.isCorrect ? 'text-green-500' : 'text-error'}`}>
@@ -2062,7 +2166,9 @@ const TrainerCorrectionModal: React.FC<{
 
                                                 {answer.type === 'OPEN' && (
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-black uppercase text-text-muted">Feedback de l'instructeur</label>
+                                                        <label className="text-[10px] font-black uppercase text-text-muted">
+                                                            {answer.gradedBy === 'ai' ? 'Retour IA (modifiable)' : 'Feedback de l\'instructeur'}
+                                                        </label>
                                                         <textarea
                                                             value={answer.feedback || ''}
                                                             onChange={(e) => handleUpdateFeedback(qIdx, e.target.value)}
@@ -2171,8 +2277,14 @@ const CourseEditorPage: React.FC = () => {
         updatedAnswers[questionIdx] = {
             ...updatedAnswers[questionIdx],
             isCorrect,
-            score: isCorrect ? 100 : 0
+            score: isCorrect ? 100 : 0,
+            gradedBy: 'teacher'
         };
+
+        // Check if ALL OPEN answers are now graded (have a score)
+        const openAnswers = updatedAnswers.filter((a: StudentAnswer) => a.type === 'OPEN');
+        const allOpenGraded = openAnswers.every((a: StudentAnswer) => a.score !== undefined && a.score !== null);
+        const newStatus: 'pending' | 'graded' = allOpenGraded ? 'graded' : 'pending';
 
         // Recalculate quiz total score
         const totalScoreSum = updatedAnswers.reduce((acc: number, a: StudentAnswer) => {
@@ -2191,7 +2303,7 @@ const CourseEditorPage: React.FC = () => {
                 ...sub,
                 answers: updatedAnswers,
                 totalScore: newTotalScore,
-                status: 'graded' as const
+                status: newStatus
             };
 
             // Recalculate stats correctly
@@ -2219,9 +2331,10 @@ const CourseEditorPage: React.FC = () => {
             await api.put(`/courses/${id}/quiz-results/${submissionId}`, {
                 score: newTotalScore,
                 passed: isPassed,
-                answers: JSON.stringify(updatedAnswers)
+                answers: JSON.stringify(updatedAnswers),
+                status: newStatus === 'graded' ? 'GRADED' : 'PENDING_MANUAL'
             });
-            console.log(`Correction saved for submission ${submissionId}`);
+            console.log(`Correction saved for submission ${submissionId} (status: ${newStatus})`);
         } catch (err) {
             console.error("Failed to save quiz correction:", err);
         }
@@ -2363,37 +2476,41 @@ const CourseEditorPage: React.FC = () => {
                             id: String(r.id),
                             quizId: String(r.quizId),
                             quizTitle,
+                            submittedAtRaw: r.attemptedAt || '',
                             submittedAt: r.attemptedAt ? new Date(r.attemptedAt).toLocaleString('fr-FR') : 'Date inconnue',
                             answers,
                             totalScore: r.score,
-                            status: 'graded' as const,
+                            status: (r.status === 'PENDING_MANUAL' ? 'pending' : 'graded') as 'pending' | 'graded',
                             cheatingReason: r.cheatingReason
                         };
                     });
 
-                    // Group submissions by quizId and keep only the highest score for each
-                    const bestByQuiz = new Map<string, any>();
-
+                    // Group ALL attempts by quizId, sort by date, assign attempt numbers
+                    const byQuiz = new Map<string, any[]>();
                     allSubmissions.forEach(sub => {
                         const quizId = sub.quizId;
-                        const existing = bestByQuiz.get(quizId);
-
-                        if (!existing || (sub.totalScore ?? 0) > (existing.totalScore ?? 0)) {
-                            bestByQuiz.set(quizId, sub);
-                        } else if ((sub.totalScore ?? 0) === (existing.totalScore ?? 0)) {
-                            // If scores are equal, keep the most recent one
-                            const subDate = new Date(sub.submittedAt).getTime();
-                            const existingDate = new Date(existing.submittedAt).getTime();
-                            if (!isNaN(subDate) && !isNaN(existingDate) && subDate > existingDate) {
-                                bestByQuiz.set(quizId, sub);
-                            }
-                        }
+                        if (!byQuiz.has(quizId)) byQuiz.set(quizId, []);
+                        byQuiz.get(quizId)!.push(sub);
                     });
 
-                    const submissions = Array.from(bestByQuiz.values()).sort((a, b) => {
-                        // Optional: Sort by quiz title or ID if helpful
-                        return a.quizTitle.localeCompare(b.quizTitle);
+                    // Sort each quiz's attempts by date (oldest first) and number them
+                    byQuiz.forEach(attempts => {
+                        attempts.sort((a, b) => {
+                            const da = new Date(a.submittedAtRaw).getTime();
+                            const db = new Date(b.submittedAtRaw).getTime();
+                            return (isNaN(da) ? 0 : da) - (isNaN(db) ? 0 : db);
+                        });
+                        attempts.forEach((sub, idx) => {
+                            sub.attemptNumber = idx + 1;
+                            sub.totalAttempts = attempts.length;
+                        });
                     });
+
+                    // Keep only the LATEST attempt per quiz for correction view
+                    // (attemptNumber/totalAttempts still tell the teacher it's e.g. attempt 2/3)
+                    const submissions = Array.from(byQuiz.values())
+                        .map(attempts => attempts[attempts.length - 1])
+                        .sort((a, b) => a.quizTitle.localeCompare(b.quizTitle));
 
                     // Calculated section progress
                     const learnerProgress = allProgress.find(p => String(p.apprenantId) === learnerId);
@@ -3449,11 +3566,11 @@ const CourseEditorPage: React.FC = () => {
                                 </button>
                             </div>
 
-                            <div className="bg-surface rounded-[1.5rem] border border-glass-border shadow-xl overflow-hidden flex flex-col lg:flex-row min-h-[450px] max-h-[750px]">
+                            <div className="bg-surface rounded-[1.5rem] border border-glass-border shadow-xl overflow-hidden flex flex-col lg:flex-row lg:min-h-[450px] lg:max-h-[750px]">
                                 {detailedTab === 'quizzes' ? (
                                     <>
                                         {/* Left Sidebar: Quiz List */}
-                                        <div className="lg:w-72 border-r border-glass-border bg-background/30 backdrop-blur-md flex flex-col">
+                                        <div className="lg:w-72 border-b lg:border-b-0 lg:border-r border-glass-border bg-background/30 backdrop-blur-md flex flex-col">
                                             <div className="p-5 border-b border-glass-border bg-surface/50">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <div className="p-2 bg-primary/10 rounded-xl">
@@ -3464,27 +3581,39 @@ const CourseEditorPage: React.FC = () => {
                                                 <p className="text-[10px] text-text-muted font-bold tracking-widest uppercase opacity-60">Tentatives ({learner.submissions?.length || 0})</p>
                                             </div>
 
-                                            <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
+                                            <div className="flex lg:block gap-2 p-3 lg:flex-1 lg:overflow-y-auto overflow-x-auto lg:overflow-x-visible space-y-0 lg:space-y-1.5 custom-scrollbar">
                                                 {learner.submissions?.map((sub: any, sIdx: number) => {
                                                     const isActive = selectedSubmissionIndex === sIdx;
                                                     return (
                                                         <button
                                                             key={sIdx}
                                                             onClick={() => setSelectedSubmissionIndex(sIdx)}
-                                                            className={`w-full text-left px-4 py-3.5 rounded-2xl transition-all duration-300 group relative ${isActive
+                                                            className={`shrink-0 lg:w-full text-left px-4 py-3.5 rounded-2xl transition-all duration-300 group relative ${isActive
                                                                 ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]'
                                                                 : 'hover:bg-primary/5 text-text border border-transparent hover:border-primary/10'
                                                                 }`}
                                                         >
                                                             <div className="flex flex-col gap-0.5">
-                                                                <span className={`font-black text-[11px] tracking-tight truncate ${isActive ? 'text-white' : 'text-text'}`}>
-                                                                    {sub.quizTitle}
-                                                                </span>
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span className={`font-black text-[11px] tracking-tight truncate ${isActive ? 'text-white' : 'text-text'}`}>
+                                                                        {sub.quizTitle}
+                                                                    </span>
+                                                                    {sub.totalAttempts && sub.totalAttempts > 1 && (
+                                                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${isActive ? 'bg-white/25 text-white' : 'bg-primary/10 text-primary'}`}>
+                                                                            T{sub.attemptNumber}/{sub.totalAttempts}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                                 <div className="flex items-center justify-between mt-1">
                                                                     <span className={`text-[9px] font-bold ${isActive ? 'text-white/70' : 'text-text-muted'}`}>
                                                                         {sub.submittedAt.split(',')[0]}
                                                                     </span>
                                                                     <div className="flex items-center gap-1.5">
+                                                                        {sub.status === 'pending' && (
+                                                                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase ${isActive ? 'bg-orange-400/30 text-white' : 'bg-orange-500/15 text-orange-500'}`}>
+                                                                                À corriger
+                                                                            </span>
+                                                                        )}
                                                                         {sub.cheatingReason && (
                                                                             <div title={sub.cheatingReason} className={`p-1 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-red-500/10 text-red-500'}`}>
                                                                                 <AlertTriangle size={10} />
@@ -3520,9 +3649,9 @@ const CourseEditorPage: React.FC = () => {
                                                         <div className="p-6 border-b border-glass-border bg-gradient-to-r from-primary/5 to-transparent flex flex-wrap items-center justify-between gap-4">
                                                             <div>
                                                                 <div className="flex items-center gap-2 mb-0.5">
-                                                                    <div className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-[9px] font-black uppercase tracking-wider">
-                                                                        Meilleure Tentative
-                                                                    </div>
+                                                        <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${sub.status === 'pending' ? 'bg-orange-500/10 text-orange-500' : 'bg-green-500/10 text-green-600'}`}>
+                                                            {sub.status === 'pending' ? 'À corriger' : `Tentative ${sub.attemptNumber || 1}${sub.totalAttempts ? `/${sub.totalAttempts}` : ''}`}
+                                                        </div>
                                                                     <div className="text-[10px] text-text-muted font-bold">{sub.submittedAt}</div>
                                                                 </div>
                                                                 <h4 className="text-xl font-black text-text tracking-tight uppercase">{sub.quizTitle}</h4>
@@ -3572,9 +3701,34 @@ const CourseEditorPage: React.FC = () => {
                                                                                 <div className="space-y-1.5">
                                                                                     {isOpen ? (
                                                                                         <div className="space-y-2">
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                {ans.gradedBy === 'ai' && (
+                                                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-500 text-[9px] font-black uppercase">
+                                                                                                        <Sparkles size={10} />
+                                                                                                        Corrigé par IA
+                                                                                                    </span>
+                                                                                                )}
+                                                                                                {ans.gradedBy === 'teacher' && (
+                                                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-500 text-[9px] font-black uppercase">
+                                                                                                        <User size={10} />
+                                                                                                        Corrigé par vous
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </div>
                                                                                             <div className="p-3 bg-primary/5 rounded-xl text-xs text-text leading-relaxed font-medium italic border border-primary/10">
                                                                                                 {ans.learnerAnswer || "Pas de réponse fournie."}
                                                                                             </div>
+                                                                                            {ans.feedback && (
+                                                                                                <div className={`p-2.5 rounded-lg text-[11px] leading-relaxed border ${ans.gradedBy === 'ai'
+                                                                                                    ? 'bg-purple-500/5 border-purple-500/20 text-purple-700'
+                                                                                                    : 'bg-blue-500/5 border-blue-500/20 text-blue-700'
+                                                                                                    }`}>
+                                                                                                    <span className="font-black uppercase text-[9px] opacity-60 block mb-0.5">
+                                                                                                        {ans.gradedBy === 'ai' ? 'Retour de l\'IA' : 'Feedback'}
+                                                                                                    </span>
+                                                                                                    {ans.feedback}
+                                                                                                </div>
+                                                                                            )}
                                                                                             <div className="flex items-center gap-2">
                                                                                                 <button
                                                                                                     onClick={() => handleGradeOpenQuestion(learner.id, selectedSubmissionIndex!, aIdx, true)}
@@ -3756,7 +3910,7 @@ const CourseEditorPage: React.FC = () => {
                                 {currentItems.map((learner) => (
                                     <tr
                                         key={learner.id}
-                                        onClick={() => setDetailedLearnerId(learner.id)}
+                                        onClick={() => { setDetailedLearnerId(learner.id); setSelectedSubmissionIndex(0); }}
                                         className="group hover:scale-[1.01] transition-all duration-300 cursor-pointer"
                                     >
                                         <td className="bg-surface-hover/30 rounded-l-2xl py-4 pl-6">
@@ -3859,11 +4013,21 @@ const CourseEditorPage: React.FC = () => {
                                             )}
                                         </td>
                                         <td className="bg-surface-hover/30 rounded-r-2xl py-4 pr-6 text-right">
+                                            {(() => {
+                                                const hasPending = (learner.submissions || []).some((s: any) => s.status === 'pending');
+                                                return hasPending ? (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-500 text-[9px] font-black uppercase mb-1.5">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                                                        À corriger
+                                                    </span>
+                                                ) : null;
+                                            })()}
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setDetailedLearnerId(learner.id);
                                                     setShowQuizListInDetails(true);
+                                                    setSelectedSubmissionIndex(0);
                                                 }}
                                                 className="p-2 text-text-muted hover:text-primary transition-colors hover:bg-primary/10 rounded-lg flex items-center gap-2 ml-auto"
                                             >

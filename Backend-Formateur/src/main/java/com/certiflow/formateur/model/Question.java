@@ -38,6 +38,16 @@ public class Question {
     @Builder.Default
     private List<Integer> correctAnswers = new ArrayList<>();
 
+    // OPEN question correction mode: "manual" or "ai"
+    private String correctionType;
+
+    // AI correction criteria: keywords that must appear in the learner's answer
+    @ElementCollection
+    @CollectionTable(name = "question_criteria", joinColumns = @JoinColumn(name = "question_id"))
+    @Column(name = "criterion", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> criteria = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "quiz_id")
     @JsonIgnore

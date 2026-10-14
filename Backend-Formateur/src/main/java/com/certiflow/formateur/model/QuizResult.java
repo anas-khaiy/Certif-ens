@@ -29,4 +29,7 @@ public class QuizResult {
 
     @Column(columnDefinition = "TEXT")
     private String cheatingReason; // Null if no cheating detected; otherwise describes the violation
+
+    // "GRADED" = fully corrected; "PENDING_MANUAL" = waiting for teacher to grade OPEN answers
+    private String status;
 }

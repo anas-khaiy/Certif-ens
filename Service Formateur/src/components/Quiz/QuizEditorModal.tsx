@@ -80,6 +80,10 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClose, onSa
         setExpandedQuestion(newQuestion.id);
     };
 
+    const resetOpenQuestionFields = (qId: string) => {
+        updateQuestion(qId, { correctionType: 'manual', criteria: [] });
+    };
+
     const updateQuestion = (qId: string, updates: Partial<Question>) => {
         setQuiz({
             ...quiz,
@@ -252,11 +256,17 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClose, onSa
                                                         <label className="text-xs font-bold text-text-muted uppercase">Type de réponse</label>
                                                         <select
                                                             value={q.type}
-                                                            onChange={(e) => updateQuestion(q.id, {
-                                                                type: e.target.value as any,
-                                                                options: q.type === 'OPEN' ? ['', ''] : (q.options || ['', '']),
-                                                                correctAnswers: e.target.value === 'OPEN' ? [] : [0]
-                                                            })}
+                                                            onChange={(e) => {
+                                                                const newType = e.target.value as any;
+                                                                if (newType === 'OPEN') {
+                                                                    resetOpenQuestionFields(q.id);
+                                                                }
+                                                                updateQuestion(q.id, {
+                                                                    type: newType,
+                                                                    options: newType === 'OPEN' ? ['', ''] : (q.options || ['', '']),
+                                                                    correctAnswers: newType === 'OPEN' ? [] : [0]
+                                                                });
+                                                            }}
                                                             className="input w-full bg-surface"
                                                         >
                                                             <option value="QCU">Choix Unique</option>
@@ -339,9 +349,89 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClose, onSa
                                                 )}
 
                                                 {q.type === 'OPEN' && (
-                                                    <div className="bg-surface-hover/30 p-4 rounded-xl border border-dashed border-glass-border text-center text-text-muted text-sm">
-                                                        <FileText className="mx-auto mb-2 opacity-50" size={24} />
-                                                        <p>Les questions ouvertes nécessitent une correction manuelle par le formateur.</p>
+                                                    <div className="space-y-6">
+                                                        <div className="bg-surface-hover/30 p-4 rounded-xl border border-dashed border-glass-border">
+                                                            <label className="text-xs font-bold text-text-muted uppercase block mb-3">Mode de correction</label>
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => updateQuestion(q.id, { correctionType: 'manual', criteria: [] })}
+                                                                    className={`p-4 rounded-xl border-2 transition-all text-left ${
+                                                                        q.correctionType === 'manual' || !q.correctionType
+                                                                            ? 'border-primary bg-primary/10 text-primary'
+                                                                            : 'border-glass-border text-text-muted hover:border-primary/50'
+                                                                    }`}
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        <FileText className="text-lg" size={20} />
+                                                                        <div>
+                                                                            <p className="font-medium">Manuelle</p>
+                                                                            <p className="text-xs opacity-70">Correction par le formateur</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => updateQuestion(q.id, { correctionType: 'ai' })}
+                                                                    className={`p-4 rounded-xl border-2 transition-all text-left ${
+                                                                        q.correctionType === 'ai'
+                                                                            ? 'border-primary bg-primary/10 text-primary'
+                                                                            : 'border-glass-border text-text-muted hover:border-primary/50'
+                                                                    }`}
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        <CheckCircle2 className="text-lg" size={20} />
+                                                                        <div>
+                                                                            <p className="font-medium">Automatique (IA)</p>
+                                                                            <p className="text-xs opacity-70">Correction par intelligence artificielle</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {q.correctionType === 'ai' && (
+                                                            <div className="space-y-4">
+                                                                <label className="text-xs font-bold text-text-muted uppercase block">Critères de correction (mots-clés)</label>
+                                                                <p className="text-sm text-text-muted">
+                                                                    Ajoutez les mots-clés ou expressions qui doivent apparaître dans la réponse de l'apprenant.
+                                                                    Si le critère existe dans la réponse : note 1, sinon : note 0.
+                                                                </p>
+                                                                <div className="space-y-2">
+                                                                    {(q.criteria || []).map((criterion, cIdx) => (
+                                                                        <div key={cIdx} className="flex items-center gap-2">
+                                                                            <input
+                                                                                type="text"
+                                                                                value={criterion}
+                                                                                onChange={(e) => {
+                                                                                    const newCriteria = [...(q.criteria || [])];
+                                                                                    newCriteria[cIdx] = e.target.value;
+                                                                                    updateQuestion(q.id, { criteria: newCriteria });
+                                                                                }}
+                                                                                className="input flex-1"
+                                                                                placeholder={`Critère ${cIdx + 1} (ex: "machine learning", "régression linéaire")`}
+                                                                            />
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const newCriteria = (q.criteria || []).filter((_, i) => i !== cIdx);
+                                                                                    updateQuestion(q.id, { criteria: newCriteria });
+                                                                                }}
+                                                                                className="p-2 text-text-muted hover:text-error hover:bg-error/10 rounded-lg"
+                                                                                title="Supprimer le critère"
+                                                                            >
+                                                                                <X size={18} />
+                                                                            </button>
+                                                                        </div>
+                                                                    ))}
+                                                                    <button
+                                                                        onClick={() => updateQuestion(q.id, { criteria: [...(q.criteria || []), ''] })}
+                                                                        className="flex items-center gap-2 text-primary hover:bg-primary/10 px-4 py-2 rounded-xl transition-colors text-sm font-semibold w-full justify-center border border-dashed border-primary/30 hover:border-primary"
+                                                                    >
+                                                                        <Plus size={16} /> Ajouter un critère
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

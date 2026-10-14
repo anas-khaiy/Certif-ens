@@ -1,5 +1,10 @@
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List
+import requests as http_requests
+import os
+import re
 from ultralytics import YOLO
 import cv2
 import numpy as np
@@ -555,7 +560,264 @@ async def verify_faces(
     except Exception as e:
         print(f"Error in verify_faces: {e}")
         return {"success": False, "error": "Erreur de comparaison biométrique."}
+# ─── AI Open-Answer Grading Endpoint ─────────────────────────────────────────
+# The AI reads the question statement and the learner's answer,
+# then predicts whether the answer is correct (1) or not (0).
+# Criteria (if provided) are used as evaluation hints.
+
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "mistral")
+
+# Serialize Ollama calls — a 7B model cannot handle concurrent generate requests
+# (returns HTTP 500 under load). Only 1 LLM call at a time.
+import asyncio
+_llm_semaphore = asyncio.Semaphore(1)
+
+
+class GradeOpenAnswerRequest(BaseModel):
+    question: str
+    answer: str
+    criteria: List[str] = []
+
+
+def _normalize_text(text: str) -> str:
+    text = text.lower()
+    replacements = {"é": "e", "è": "e", "ê": "e", "ë": "e",
+                    "à": "a", "â": "a", "ä": "a",
+                    "î": "i", "ï": "i",
+                    "ô": "o", "ö": "o",
+                    "ù": "u", "û": "u", "ü": "u",
+                    "ç": "c"}
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
+
+
+def _is_gibberish(text: str) -> bool:
+    """Detect if text is random gibberish (not a real answer)."""
+    text = text.strip()
+    if len(text) < 3:
+        return True
+
+    # Must contain at least one vowel (French + English)
+    vowels = set("aeiouyàâäéèêëîïôöùûü")
+    if not any(c in vowels for c in text.lower()):
+        return True
+
+    # Check consonant/vowel ratio — gibberish like "dfdfcddscsdcsdc" has almost no vowels
+    letter_count = sum(1 for c in text if c.isalpha())
+    if letter_count > 5:
+        vowel_count = sum(1 for c in text.lower() if c in vowels)
+        if vowel_count / letter_count < 0.15:
+            return True
+
+    # Check for long consonant runs (5+ consonants in a row = likely gibberish)
+    # Note: y is excluded (treated as vowel-like, common in French: "physique", "synthèse")
+    consonants = set("bcdfghjklmnpqrstvzBCDFGHJKLMNPQRSTVZ")
+    run = 0
+    for c in text:
+        if c in consonants:
+            run += 1
+            if run >= 5:
+                return True
+        else:
+            run = 0
+
+    # Check word-level: if no spaces and long, suspicious
+    if " " not in text and len(text) > 15:
+        return True
+
+    return False
+
+
+def _fallback_grading(question: str, answer: str, criteria: List[str]) -> int:
+    """Fallback: keyword matching if criteria exist, else basic heuristic."""
+    if criteria:
+        normalized_answer = _normalize_text(answer)
+        found = sum(1 for c in criteria if _normalize_text(c.strip()) in normalized_answer)
+        return 1 if found >= len(criteria) * 0.5 else 0
+    # No criteria: consider answer correct if it has some content related to question keywords
+    q_words = set(_normalize_text(question).split())
+    a_words = set(_normalize_text(answer).split())
+    # Remove common stopwords
+    stop_words = {"le", "la", "les", "un", "une", "des", "de", "du", "des", "et", "ou",
+                  "est", "sont", "quel", "quelle", "quels", "quelles", "expliquer",
+                  "définir", "definir", "donnez", "donner", "c'est", "ce", "qui", "que",
+                  "dans", "par", "pour", "sur", "avec", "pas", "ne", "pas", "se", "sa",
+                  "son", "ses", "au", "aux", "en", "à", "a", "the", "is", "are", "what"}
+    q_keywords = q_words - stop_words
+    if not q_keywords:
+        return 1 if len(answer.strip()) > 10 else 0
+    overlap = len(q_keywords & a_words)
+    return 1 if overlap >= max(1, len(q_keywords) // 4) else 0
+
+
+def _grade_with_llm(question: str, answer: str, criteria: List[str]) -> tuple:
+    """Use Ollama LLM to evaluate if the answer is correct given the question.
+    Returns (is_correct: int, feedback: str)."""
+    criteria_section = ""
+    if criteria:
+        criteria_list = "\n".join([f"  - {c}" for c in criteria])
+        criteria_section = f"""
+Key criteria to check in the answer:
+{criteria_list}
+"""
+
+    prompt = f"""You are an automatic quiz grader. Read the question and the student's answer carefully.
+
+QUESTION:
+{question}
+{criteria_section}STUDENT ANSWER:
+{answer}
+
+Your task: decide if the student answer is correct or incorrect.
+- 1 means CORRECT: The answer is a real, meaningful sentence that is relevant and factually reasonable for the question. Partial answers that address the main idea count as correct.
+- 0 means INCORRECT: The answer is empty, random gibberish/characters, completely off-topic, or factually wrong.
+
+IMPORTANT: Random strings of letters like "dfdfcddscsdcsdc" or "asdfghjkl" are ALWAYS incorrect (0).
+
+Analyze step by step. After your analysis, write a brief 1-2 sentence explanation of WHY the answer is correct or incorrect (in French). Then on the very last line write exactly:
+FINAL ANSWER: 0
+or
+FINAL ANSWER: 1
+Do NOT output anything after that line."""
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            resp = http_requests.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={
+                    "model": OLLAMA_MODEL,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"temperature": 0.2}
+                },
+                timeout=120
+            )
+            resp.raise_for_status()
+            text = resp.json().get("response", "").strip()
+            print(f"[LLM RAW] {text[:500]}")
+
+            # Extract feedback: everything before FINAL ANSWER line, cleaned up
+            feedback = ""
+            fb_match = re.split(r'FINAL\s+ANSWER:\s*[01]', text, flags=re.IGNORECASE)
+            if fb_match:
+                raw_fb = fb_match[0].strip()
+                # Remove "Let's analyze" / step-by-step preamble, keep the explanation
+                # Take the last 2-3 sentences before FINAL ANSWER
+                sentences = re.split(r'(?<=[.!?])\s+', raw_fb)
+                # Filter out analysis steps (numbered lists, "Let me", etc.)
+                meaningful = [s for s in sentences if s.strip() and not re.match(r'^[\d\*\-]', s.strip()) and 'step' not in s.lower()[:20]]
+                if meaningful:
+                    feedback = ' '.join(meaningful[-3:]).strip()
+                else:
+                    feedback = raw_fb[-300:].strip()
+
+            # 1. Look for explicit FINAL ANSWER marker (most reliable)
+            is_correct = None
+            m = re.search(r'FINAL\s+ANSWER:\s*([01])\b', text, re.IGNORECASE)
+            if m:
+                is_correct = int(m.group(1))
+
+            # 2. Semantic fallback: look for conclusion patterns
+            if is_correct is None:
+                conclusions = re.findall(r'(?:answer|response)\s+is\s+(correct|incorrect)\b', text, re.IGNORECASE)
+                if conclusions:
+                    is_correct = 1 if conclusions[-1].lower() == 'correct' else 0
+
+            # 3. Last standalone 0 or 1 in the response
+            if is_correct is None:
+                matches = re.findall(r'\b([01])\b', text)
+                if matches:
+                    is_correct = int(matches[-1])
+            # 4. Fallback: find any 0 or 1
+            if is_correct is None:
+                match = re.search(r'([01])', text)
+                if match:
+                    is_correct = int(match.group(1))
+            if is_correct is None:
+                raise ValueError("No valid 0/1 in LLM response")
+
+            # Build final feedback
+            if is_correct == 1:
+                default_fb = "La réponse est correcte et pertinente."
+            else:
+                default_fb = "La réponse est incorrecte ou hors sujet."
+            if feedback and len(feedback) > 20:
+                feedback = f"{default_fb} {feedback}"
+            else:
+                feedback = default_fb
+
+            return (is_correct, feedback)
+        except Exception as e:
+            print(f"LLM attempt {attempt + 1}/{max_retries} failed: {e}")
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(1.5 * (attempt + 1))  # backoff: 1.5s, 3s
+            else:
+                print(f"LLM grading failed after {max_retries} attempts, falling back to keyword matching")
+                fb = "Correction automatique par mots-clés (IA indisponible)."
+                return (_fallback_grading(question, answer, criteria), fb)
+
+
+@app.post("/grade-open-answer")
+async def grade_open_answer(request: GradeOpenAnswerRequest):
+    """
+    AI reads the question statement and the learner's answer,
+    then predicts whether the answer is correct (1) or not (0).
+    - Uses Ollama LLM for semantic understanding.
+    - Falls back to keyword matching if LLM is unavailable.
+    """
+    try:
+        question = request.question.strip()
+        answer = request.answer.strip()
+        criteria = [c.strip() for c in request.criteria if c.strip()]
+
+        if not answer:
+            return {
+                "is_correct": 0,
+                "score": 0,
+                "graded_by": "none",
+                "feedback": "Réponse vide"
+            }
+
+        if not question:
+            return {
+                "is_correct": 0,
+                "score": 0,
+                "graded_by": "none",
+                "feedback": "Question non définie"
+            }
+
+        # Quick gibberish check before calling LLM
+        if _is_gibberish(answer):
+            return {
+                "is_correct": 0,
+                "score": 0,
+                "feedback": "Réponse incorrecte (texte non compréhensible)",
+                "graded_by": "ai"
+            }
+
+        # LLM grading: serialize calls — Ollama 7B can't handle concurrent generate
+        async with _llm_semaphore:
+            is_correct, feedback = await asyncio.to_thread(_grade_with_llm, question, answer, criteria)
+
+        print(f"[AI GRADING] Q='{question[:60]}...' | A='{answer[:60]}...' | Correct={is_correct}")
+
+        return {
+            "is_correct": is_correct,
+            "score": is_correct,
+            "feedback": feedback,
+            "graded_by": "ai"
+        }
+    except Exception as e:
+        print(f"Error in grade_open_answer: {e}")
+        return {"error": f"Erreur de correction IA: {str(e)}", "is_correct": 0}
+
+
 if __name__ == "__main__":
     import uvicorn
-    # Production mode: no hot-reload, 2 workers for concurrent requests
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False, workers=2)
+    # 1 worker: Ollama 7B cannot handle concurrent generate requests (HTTP 500).
+    # A single worker serializes all LLM calls through the asyncio semaphore.
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False, workers=1)

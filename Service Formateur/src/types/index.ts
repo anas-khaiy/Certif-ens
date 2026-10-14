@@ -129,6 +129,8 @@ export interface Question {
     text: string;
     options: string[];
     correctAnswers: number[];
+    correctionType?: 'manual' | 'ai';
+    criteria?: string[];
 }
 
 export interface Sujet {

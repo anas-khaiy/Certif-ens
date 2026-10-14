@@ -41,7 +41,7 @@ import api from '../api/api-client';
 import type { Course, Quiz, Question } from '../types';
 import { YoloDetector } from '../utils/yoloDetector';
 import type { YoloDetection } from '../utils/yoloDetector';
-import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, AI_GRADE_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 interface StudentAnswer {
     questionId: string;
@@ -50,6 +50,7 @@ interface StudentAnswer {
     isCorrect?: boolean;
     score?: number;
     feedback?: string;
+    gradedBy?: 'ai' | 'manual' | 'teacher';
 }
 
 const CoursePreviewPage: React.FC = () => {
@@ -66,6 +67,8 @@ const CoursePreviewPage: React.FC = () => {
     const [quizAnswers, setQuizAnswers] = useState<Record<string, any>>({});
     const [quizSubmitted, setQuizSubmitted] = useState(false);
     const [quizScore, setQuizScore] = useState(0);
+    const [aiGrading, setAiGrading] = useState(false);
+    const [aiGradingMessage, setAiGradingMessage] = useState<string | null>(null);
     const [showScrollTop, setShowScrollTop] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -213,6 +216,39 @@ const CoursePreviewPage: React.FC = () => {
     const sections = course?.sections || [];
     const flatSubSections = sections.flatMap(s => s.subSections || []);
     const activeSubSection = flatSubSections.find(ss => String(ss.id) === String(activeSubSectionId));
+
+    // ── Manual OPEN correction gating ──────────────────────────────────────
+    // A quiz has manual OPEN questions if any question is OPEN with correctionType !== 'ai'
+    const quizHasManualOpen = (quiz?: { questions?: any[] }) =>
+        !!quiz?.questions?.some(q => q.type === 'OPEN' && q.correctionType !== 'ai');
+
+    // Latest result for a given quizId
+    const latestResultFor = (quizId?: string) => {
+        if (!quizId) return undefined;
+        const results = quizResults.filter(r => String(r.quizId) === String(quizId));
+        return results.length > 0 ? results[results.length - 1] : undefined;
+    };
+
+    // True when the learner submitted a quiz containing manual OPEN questions
+    // and the teacher has not graded it yet (status === 'PENDING_MANUAL')
+    const isQuizPendingManual = (quizId?: string) => {
+        const res = latestResultFor(quizId);
+        return res?.status === 'PENDING_MANUAL';
+    };
+
+    // True when the active subsection's quiz is waiting for teacher validation
+    const activeQuizPendingManual = isQuizPendingManual(activeSubSection?.quiz?.id);
+
+    // True when a previous subsection's quiz is still pending (blocks progression further)
+    const hasEarlierPendingManual = (() => {
+        if (!activeSubSectionId) return false;
+        const idx = flatSubSections.findIndex(ss => String(ss.id) === String(activeSubSectionId));
+        for (let i = 0; i < idx; i++) {
+            const prev = flatSubSections[i];
+            if (isQuizPendingManual(prev?.quiz?.id)) return true;
+        }
+        return false;
+    })();
 
     // Load jsQR script dynamically
     useEffect(() => {
@@ -576,9 +612,37 @@ const CoursePreviewPage: React.FC = () => {
 
                 // 5. Setup Course Navigation & Progress
                 let lastId: string | null = null;
+                let initialCompleted: string[] = [];
                 if (progress.completedSubSectionIds) {
-                    const completedIds = progress.completedSubSectionIds.split(',').filter((id: string) => id !== '');
-                    setCompletedSubSections(completedIds);
+                    initialCompleted = progress.completedSubSectionIds.split(',').filter((id: string) => id !== '');
+                    setCompletedSubSections(initialCompleted);
+                }
+
+                // Auto-complete subsections whose quiz was graded (passed) but not yet marked complete.
+                // This handles the case where the teacher validated a manual OPEN answer while the
+                // learner was away — on reload the subsection unlocks.
+                const allSubSections = foundCourse.sections?.flatMap((s: any) => s.subSections || []) || [];
+                const gradedQuizIds = new Set(
+                    results
+                        .filter((r: any) => (r.status === 'GRADED' || !r.status) && r.passed)
+                        .map((r: any) => String(r.quizId))
+                );
+                const autoCompleted: string[] = [];
+                for (const ss of allSubSections) {
+                    if (ss.quiz?.id && gradedQuizIds.has(String(ss.quiz.id))) {
+                        const sid = String(ss.id);
+                        if (!initialCompleted.some(c => String(c) === sid)) {
+                            autoCompleted.push(sid);
+                        }
+                    }
+                }
+                if (autoCompleted.length > 0) {
+                    const merged = [...initialCompleted, ...autoCompleted.map(String)];
+                    setCompletedSubSections(merged);
+                    // Persist each to backend
+                    autoCompleted.forEach(sid => {
+                        api.post(`/progress/${id}`, { completedId: sid }).catch(() => {});
+                    });
                 }
 
                 if (progress.lastSubSectionId) {
@@ -1397,10 +1461,40 @@ const CoursePreviewPage: React.FC = () => {
         setQuizAnswers(prev => ({ ...prev, [questionId]: answer }));
     };
 
-    const handleSubmitQuiz = (quiz: Quiz) => {
-        let score = 0;
+    const handleSubmitQuiz = async (quiz: Quiz) => {
         const questions = isExamActive ? activeExamQuestions : activeQuizQuestions;
         const answersData: StudentAnswer[] = [];
+        let score = 0;
+
+        // All OPEN questions with AI correction type require AI grading
+        const aiOpenQuestions = questions.filter(q => q.type === 'OPEN' && q.correctionType === 'ai');
+        const aiGradingResults: Record<string, { is_correct: number; feedback: string }> = {};
+
+        if (aiOpenQuestions.length > 0) {
+            setAiGrading(true);
+            setAiGradingMessage(`L'IA analyse vos réponses... (${aiOpenQuestions.length} question(s) ouverte(s))`);
+
+            for (const q of aiOpenQuestions) {
+                const currentAnswers = isExamActive ? examAnswers : quizAnswers;
+                const answer = currentAnswers[q.id] || "";
+                try {
+                    const response = await fetch(AI_GRADE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question: q.text, answer, criteria: q.criteria || [] })
+                    });
+                    if (response.ok) {
+                        const result = await response.json();
+                        aiGradingResults[q.id] = result;
+                    }
+                } catch (err) {
+                    console.error(`AI grading failed for question ${q.id}:`, err);
+                }
+            }
+
+            setAiGrading(false);
+            setAiGradingMessage(null);
+        }
 
         questions.forEach(q => {
             const currentAnswers = isExamActive ? examAnswers : quizAnswers;
@@ -1413,7 +1507,6 @@ const CoursePreviewPage: React.FC = () => {
                 isCorrect = answer === correctOption;
                 if (isCorrect) score++;
 
-                // For QCU, store the index of the answer for consistency
                 const answerIndex = q.options.indexOf(answer);
                 answersData.push({
                     questionId: q.id,
@@ -1427,7 +1520,6 @@ const CoursePreviewPage: React.FC = () => {
                 isCorrect = correctOptions.length === answerArray.length && correctOptions.every(opt => answerArray.includes(opt));
                 if (isCorrect) score++;
 
-                // For QCM, store indices of answers
                 const answerIndices = (answerArray as any[]).map(ans => q.options.indexOf(ans)).filter(idx => idx !== -1);
                 answersData.push({
                     questionId: q.id,
@@ -1436,14 +1528,30 @@ const CoursePreviewPage: React.FC = () => {
                     isCorrect
                 });
             } else if (q.type === 'OPEN') {
-                isCorrect = answer && answer.trim().length > 0;
-                if (isCorrect) score++;
-                answersData.push({
-                    questionId: q.id,
-                    type: 'OPEN',
-                    learnerAnswer: answer || "",
-                    isCorrect
-                });
+                if (q.correctionType === 'ai' && aiGradingResults[q.id]) {
+                    const aiResult = aiGradingResults[q.id];
+                    isCorrect = aiResult.is_correct === 1;
+                    if (isCorrect) score++;
+                    answersData.push({
+                        questionId: q.id,
+                        type: 'OPEN',
+                        learnerAnswer: answer || "",
+                        isCorrect,
+                        score: aiResult.is_correct,
+                        feedback: aiResult.feedback || (aiResult.is_correct === 1 ? "Réponse correcte" : "Réponse incorrecte"),
+                        gradedBy: 'ai'
+                    });
+                } else {
+                    // Manual OPEN: NOT auto-corrected — the formateur decides
+                    isCorrect = false;
+                    answersData.push({
+                        questionId: q.id,
+                        type: 'OPEN',
+                        learnerAnswer: answer || "",
+                        isCorrect,
+                        gradedBy: 'manual'
+                    });
+                }
             }
         });
 
@@ -1452,15 +1560,23 @@ const CoursePreviewPage: React.FC = () => {
         const userScorePercent = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
         const roundedUserScore = Math.round(userScorePercent);
 
-        // Special case: If quiz has OPEN questions, allow passing without constraint
         const hasOpenQuestions = questions.some(q => q.type === 'OPEN');
-        const isPassed = hasOpenQuestions || (totalQuestions > 0 && roundedUserScore >= passingScorePercent);
+        const hasAiOpenQuestions = aiOpenQuestions.length > 0;
+        const hasManualOpenQuestions = questions.some(q => q.type === 'OPEN' && q.correctionType !== 'ai');
+        let isPassed: boolean;
+        if (hasManualOpenQuestions) {
+            // Manual OPEN questions: learner cannot self-pass; teacher must validate
+            isPassed = false;
+        } else if (hasAiOpenQuestions) {
+            isPassed = totalQuestions > 0 && roundedUserScore >= passingScorePercent;
+        } else {
+            isPassed = hasOpenQuestions || (totalQuestions > 0 && roundedUserScore >= passingScorePercent);
+        }
 
         if (isExamActive) {
             setExamResult({ score, total: totalQuestions });
             setExamSubmitted(true);
 
-            // Persist Final Exam Result
             if (id) {
                 api.post(`/progress/${id}/quiz/final_exam`, {
                     score: roundedUserScore,
@@ -1477,25 +1593,26 @@ const CoursePreviewPage: React.FC = () => {
             setQuizScore(score);
             setQuizSubmitted(true);
 
-            // Persist regular quiz result
             if (id && activeSubSection?.quiz) {
                 const quizId = activeSubSection.quiz.id || 'default';
                 api.post(`/progress/${id}/quiz/${quizId}`, {
                     score: roundedUserScore,
                     passed: isPassed,
-                    answers: answersData
+                    answers: answersData,
+                    status: hasManualOpenQuestions ? 'PENDING_MANUAL' : 'GRADED'
                 })
                     .then(res => {
-                        // Update local quiz results state
                         setQuizResults(prev => [...prev, res.data]);
                     })
                     .catch(err => console.error("Failed to save quiz result:", err));
             }
 
-            if (isPassed) {
+            if (hasManualOpenQuestions) {
+                // Do NOT mark subsection as completed — teacher must validate first
+                setQuizPassError(null);
+            } else if (isPassed) {
                 if (activeSubSectionId && !completedSubSections.includes(activeSubSectionId)) {
                     setCompletedSubSections(prev => [...prev, activeSubSectionId]);
-                    // Update progress in backend too
                     api.post(`/progress/${id}`, {
                         completedId: activeSubSectionId
                     }).catch(err => console.error("Failed to update progress after quiz:", err));
@@ -2046,9 +2163,15 @@ const CoursePreviewPage: React.FC = () => {
                                             </div>
 
                                             {(() => {
-                                                const bestResult = activeSubSection.quiz?.id ? quizResults
-                                                    .filter(r => String(r.quizId) === String(activeSubSection.quiz?.id))
-                                                    .sort((a, b) => b.score - a.score)[0] : null;
+                                                const allResults = activeSubSection.quiz?.id ? quizResults
+                                                    .filter(r => String(r.quizId) === String(activeSubSection.quiz?.id)) : [];
+                                                const bestResult = allResults.length > 0
+                                                    ? [...allResults].sort((a, b) => (b.score || 0) - (a.score || 0))[0]
+                                                    : null;
+                                                const latestResult = allResults.length > 0
+                                                    ? [...allResults].sort((a, b) => new Date(b.attemptedAt || 0).getTime() - new Date(a.attemptedAt || 0).getTime())[0]
+                                                    : null;
+                                                const isLatestPending = latestResult?.status === 'PENDING_MANUAL';
 
                                                 const isRetaking = activeSubSection.quiz?.id && retakingQuizIds.includes(String(activeSubSection.quiz.id));
 
@@ -2056,37 +2179,53 @@ const CoursePreviewPage: React.FC = () => {
                                                     return (
                                                         <div className="text-left py-10 bg-surface/50 rounded-2xl border border-glass-border p-8 animate-fade-in">
                                                             <div className="flex items-center gap-4 mb-6">
-                                                                <div className="p-3 bg-success/10 text-success rounded-xl">
-                                                                    <Trophy size={32} />
+                                                                <div className={`p-3 rounded-xl ${isLatestPending ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'}`}>
+                                                                    {isLatestPending ? <Clock size={32} /> : <Trophy size={32} />}
                                                                 </div>
                                                                 <div>
-                                                                    <h3 className="text-2xl font-black">Quiz déjà complété</h3>
-                                                                    <p className="text-text-muted font-bold text-sm">Vous avez déjà tenté ce quiz précédemment.</p>
+                                                                    <h3 className="text-2xl font-black">
+                                                                        {isLatestPending ? 'En attente de validation' : 'Quiz déjà complété'}
+                                                                    </h3>
+                                                                    <p className="text-text-muted font-bold text-sm">
+                                                                        {isLatestPending
+                                                                            ? 'Votre dernière réponse est en attente de correction par le formateur.'
+                                                                            : `Vous avez déjà tenté ce quiz ${allResults.length} fois.`}
+                                                                    </p>
                                                                 </div>
                                                             </div>
 
-                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                                                                 <div className="p-5 rounded-2xl bg-surface border border-glass-border shadow-sm">
                                                                     <p className="text-[10px] font-black uppercase text-text-muted tracking-widest mb-1">Meilleur Score</p>
                                                                     <p className="text-3xl font-black text-primary">{Math.round(bestResult.score)}%</p>
-                                                                    <p className="text-sm font-bold text-text-muted">(Meilleure tentative)</p>
+                                                                    <p className="text-sm font-bold text-text-muted">({allResults.length} tentative{allResults.length > 1 ? 's' : ''})</p>
                                                                 </div>
                                                                 <div className="p-5 rounded-2xl bg-surface border border-glass-border shadow-sm">
                                                                     <p className="text-[10px] font-black uppercase text-text-muted tracking-widest mb-1">Statut</p>
-                                                                    {bestResult.passed ? (
+                                                                    {isLatestPending ? (
+                                                                        <p className="text-lg font-black text-warning flex items-center gap-2 mt-1.5"><Clock size={20} /> EN ATTENTE</p>
+                                                                    ) : bestResult.passed ? (
                                                                         <p className="text-lg font-black text-success flex items-center gap-2 mt-1.5"><CheckCircle size={20} /> RÉUSSI</p>
                                                                     ) : (
                                                                         <p className="text-lg font-black text-error flex items-center gap-2 mt-1.5"><AlertTriangle size={20} /> ÉCHOUÉ</p>
                                                                     )}
                                                                 </div>
+                                                                {isLatestPending && (
+                                                                    <div className="p-5 rounded-2xl bg-warning/5 border border-warning/20 shadow-sm">
+                                                                        <p className="text-[10px] font-black uppercase text-warning/80 tracking-widest mb-1">Information</p>
+                                                                        <p className="text-sm font-bold text-warning/90 leading-snug">Le formateur doit valider votre réponse avant de pouvoir continuer.</p>
+                                                                    </div>
+                                                                )}
                                                             </div>
 
-                                                            <button
-                                                                onClick={() => activeSubSection.quiz?.id && setRetakingQuizIds(prev => [...prev, String(activeSubSection.quiz?.id)])}
-                                                                className="px-8 py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-primary-hover transition-all"
-                                                            >
-                                                                <PlayCircle size={18} /> Recommencer le quiz
-                                                            </button>
+                                                            {!isLatestPending && (
+                                                                <button
+                                                                    onClick={() => activeSubSection.quiz?.id && setRetakingQuizIds(prev => [...prev, String(activeSubSection.quiz?.id)])}
+                                                                    className="px-8 py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-primary-hover transition-all"
+                                                                >
+                                                                    <PlayCircle size={18} /> Recommencer le quiz
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     );
                                                 }
@@ -2136,10 +2275,10 @@ const CoursePreviewPage: React.FC = () => {
                                                         ))}
                                                         <button
                                                             onClick={() => activeSubSection.quiz && handleSubmitQuiz(activeSubSection.quiz)}
-                                                            disabled={Object.keys(quizAnswers).length === 0}
-                                                            className="px-10 py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg"
+                                                            disabled={Object.keys(quizAnswers).length === 0 || aiGrading}
+                                                            className="px-10 py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg disabled:opacity-60"
                                                         >
-                                                            Valider mes réponses
+                                                            {aiGrading ? (aiGradingMessage || 'Correction IA en cours...') : 'Valider mes réponses'}
                                                         </button>
                                                     </div>
                                                 ) : (
@@ -2158,7 +2297,15 @@ const CoursePreviewPage: React.FC = () => {
                                                             })()}
                                                         </div>
 
-                                                        {quizPassError ? (
+                                                        {activeQuizPendingManual ? (
+                                                            <div className="mt-4 p-4 bg-warning/10 border border-warning/20 rounded-xl flex items-center gap-3 text-warning animate-fade-in shadow-sm">
+                                                                <Clock size={20} className="shrink-0" />
+                                                                <div>
+                                                                    <p className="text-sm font-black uppercase text-warning/80">En attente de validation</p>
+                                                                    <p className="text-xs font-bold leading-tight">Votre réponse est en attente de correction par le formateur. Vous ne pouvez pas passer à la leçon suivante avant validation.</p>
+                                                                </div>
+                                                            </div>
+                                                        ) : quizPassError ? (
                                                             <div className="mt-4 p-4 bg-error/10 border border-error/20 rounded-xl flex items-center gap-3 text-error animate-fade-in shadow-sm">
                                                                 <AlertTriangle size={20} className="shrink-0" />
                                                                 <div>
@@ -2217,7 +2364,9 @@ const CoursePreviewPage: React.FC = () => {
                                             disabled={
                                                 !activeSubSectionId ||
                                                 flatSubSections.findIndex(ss => ss.id === activeSubSectionId) >= flatSubSections.length - 1 ||
-                                                !completedSubSections.includes(activeSubSectionId)
+                                                !completedSubSections.includes(activeSubSectionId) ||
+                                                activeQuizPendingManual ||
+                                                hasEarlierPendingManual
                                             }
                                             className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-primary text-white rounded-xl font-bold shadow-lg disabled:opacity-30 disabled:grayscale transition-all"
                                         >
@@ -2842,7 +2991,7 @@ const CoursePreviewPage: React.FC = () => {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="flex justify-center"><button onClick={() => course?.finalExam && handleSubmitQuiz(course.finalExam)} className="px-16 py-5 bg-primary text-white rounded-2xl font-black text-xl shadow-2xl">Soumettre l'Examen</button></div>
+                                            <div className="flex justify-center"><button onClick={() => course?.finalExam && handleSubmitQuiz(course.finalExam)} disabled={aiGrading} className="px-16 py-5 bg-primary text-white rounded-2xl font-black text-xl shadow-2xl disabled:opacity-60">{aiGrading ? (aiGradingMessage || 'Correction IA en cours...') : "Soumettre l'Examen"}</button></div>
                                         </>
                                     ) : examFailed ? (
                                         <div className="max-w-md mx-auto mt-20 p-10 bg-surface rounded-[2.5rem] border border-error/30 text-center shadow-2xl">

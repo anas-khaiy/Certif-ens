@@ -105,7 +105,7 @@ public class ProgressService {
 
         @Transactional
         public QuizResult saveQuizResult(Long courseId, String email, String quizId, Integer score, Boolean passed,
-                        String answers, String cheatingReason) {
+                        String answers, String cheatingReason, String status) {
                 try {
                         Apprenant apprenant = apprenantRepository.findByEmail(email)
                                         .orElseThrow(() -> new RuntimeException(
@@ -119,6 +119,7 @@ public class ProgressService {
                                         .passed(passed)
                                         .answers(answers)
                                         .cheatingReason(cheatingReason)
+                                        .status(status != null ? status : "GRADED")
                                         .build();
 
                         return quizResultRepository.save(result);

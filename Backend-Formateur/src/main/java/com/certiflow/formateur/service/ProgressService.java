@@ -94,7 +94,7 @@ public class ProgressService {
     }
 
     @Transactional
-    public QuizResult saveQuizResult(Long courseId, String email, String quizId, Integer score, Boolean passed, String answers, String cheatingReason) {
+    public QuizResult saveQuizResult(Long courseId, String email, String quizId, Integer score, Boolean passed, String answers, String cheatingReason, String status) {
         try {
             Apprenant apprenant = apprenantRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Apprenant non trouvé for email: " + email));
@@ -107,6 +107,7 @@ public class ProgressService {
                     .passed(passed)
                     .answers(answers)
                     .cheatingReason(cheatingReason)
+                    .status(status != null ? status : "GRADED")
                     .attemptedAt(LocalDateTime.now())
                     .build();
 

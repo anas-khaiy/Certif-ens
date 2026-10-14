@@ -79,9 +79,10 @@ public class ProgressController {
         }
 
         String cheatingReason = body.get("cheatingReason") != null ? body.get("cheatingReason").toString() : null;
+        String status = body.get("status") != null ? body.get("status").toString() : null;
 
         return ResponseEntity
-                .ok(progressService.saveQuizResult(courseId, auth.getName(), quizId, score, passed, answers, cheatingReason));
+                .ok(progressService.saveQuizResult(courseId, auth.getName(), quizId, score, passed, answers, cheatingReason, status));
     }
 
     @GetMapping("/{courseId}/quizzes")

@@ -407,6 +407,8 @@ interface Question {
     text: string;
     options: string[]; // Options possibles (vide si OPEN)
     correctAnswers: number[]; // Indices des bonnes réponses (1 seul pour QCU)
+    correctionType?: 'manual' | 'ai';
+    criteria?: string[];
 }
 
 interface QuizSettings {

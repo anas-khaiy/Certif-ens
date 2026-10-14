@@ -51,7 +51,10 @@ public class CourseService {
                         subSection.setSection(section);
                         if (subSection.getQuiz() != null) {
                             if (subSection.getQuiz().getQuestions() != null) {
-                                subSection.getQuiz().getQuestions().forEach(q -> q.setQuiz(subSection.getQuiz()));
+                                subSection.getQuiz().getQuestions().forEach(q -> {
+                                    q.setQuiz(subSection.getQuiz());
+                                    normalizeQuestionCorrection(q);
+                                });
                             }
                         }
                     });
@@ -60,10 +63,28 @@ public class CourseService {
         }
         if (course.getFinalExam() != null) {
             if (course.getFinalExam().getQuestions() != null) {
-                course.getFinalExam().getQuestions().forEach(q -> q.setQuiz(course.getFinalExam()));
+                course.getFinalExam().getQuestions().forEach(q -> {
+                    q.setQuiz(course.getFinalExam());
+                    normalizeQuestionCorrection(q);
+                });
             }
         }
         return repository.save(course);
+    }
+
+    private void normalizeQuestionCorrection(com.certiflow.formateur.model.Question q) {
+        // Ensure correctionType defaults to manual for OPEN questions
+        if ("OPEN".equals(q.getType()) && (q.getCorrectionType() == null || q.getCorrectionType().isBlank())) {
+            q.setCorrectionType("manual");
+        }
+        // Ensure criteria is never null
+        if (q.getCriteria() == null) {
+            q.setCriteria(new java.util.ArrayList<>());
+        }
+        // If correction is manual, clear any leftover criteria
+        if ("manual".equals(q.getCorrectionType())) {
+            q.getCriteria().clear();
+        }
     }
 
     public Course updateCourse(Long id, Course course) {

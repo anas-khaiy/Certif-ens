@@ -41,7 +41,7 @@ import api from '../api/api-client';
 import type { Course, Quiz, Question } from '../types';
 import { YoloDetector } from '../utils/yoloDetector';
 import type { YoloDetection } from '../utils/yoloDetector';
-import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, AI_GRADE_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 interface StudentAnswer {
     questionId: string;
@@ -50,6 +50,7 @@ interface StudentAnswer {
     isCorrect?: boolean;
     score?: number;
     feedback?: string;
+    gradedBy?: 'ai' | 'manual' | 'teacher';
 }
 
 const CourseStudyPage: React.FC = () => {
@@ -66,6 +67,8 @@ const CourseStudyPage: React.FC = () => {
     const [quizAnswers, setQuizAnswers] = useState<Record<string, any>>({});
     const [quizSubmitted, setQuizSubmitted] = useState(false);
     const [quizScore, setQuizScore] = useState(0);
+    const [aiGrading, setAiGrading] = useState(false);
+    const [aiGradingMessage, setAiGradingMessage] = useState<string | null>(null);
     const [showScrollTop, setShowScrollTop] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -1430,10 +1433,39 @@ const CourseStudyPage: React.FC = () => {
         setQuizAnswers(prev => ({ ...prev, [questionId]: answer }));
     };
 
-    const handleSubmitQuiz = (quiz: Quiz) => {
-        let score = 0;
+    const handleSubmitQuiz = async (quiz: Quiz) => {
         const questions = isExamActive ? activeExamQuestions : activeQuizQuestions;
         const answersData: StudentAnswer[] = [];
+        let score = 0;
+
+        const aiOpenQuestions = questions.filter(q => q.type === 'OPEN' && q.correctionType === 'ai');
+        const aiGradingResults: Record<string, { is_correct: number; feedback: string }> = {};
+
+        if (aiOpenQuestions.length > 0) {
+            setAiGrading(true);
+            setAiGradingMessage(`L'IA analyse les réponses... (${aiOpenQuestions.length} question(s) ouverte(s))`);
+
+            for (const q of aiOpenQuestions) {
+                const currentAnswers = isExamActive ? examAnswers : quizAnswers;
+                const answer = currentAnswers[q.id] || "";
+                try {
+                    const response = await fetch(AI_GRADE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question: q.text, answer, criteria: q.criteria || [] })
+                    });
+                    if (response.ok) {
+                        const result = await response.json();
+                        aiGradingResults[q.id] = result;
+                    }
+                } catch (err) {
+                    console.error(`AI grading failed for question ${q.id}:`, err);
+                }
+            }
+
+            setAiGrading(false);
+            setAiGradingMessage(null);
+        }
 
         questions.forEach(q => {
             const currentAnswers = isExamActive ? examAnswers : quizAnswers;
@@ -1446,7 +1478,6 @@ const CourseStudyPage: React.FC = () => {
                 isCorrect = answer === correctOption;
                 if (isCorrect) score++;
 
-                // For QCU, store the index of the answer for consistency
                 const answerIndex = q.options.indexOf(answer);
                 answersData.push({
                     questionId: q.id,
@@ -1460,7 +1491,6 @@ const CourseStudyPage: React.FC = () => {
                 isCorrect = correctOptions.length === answerArray.length && correctOptions.every(opt => answerArray.includes(opt));
                 if (isCorrect) score++;
 
-                // For QCM, store indices of answers
                 const answerIndices = (answerArray as any[]).map(ans => q.options.indexOf(ans)).filter(idx => idx !== -1);
                 answersData.push({
                     questionId: q.id,
@@ -1469,14 +1499,29 @@ const CourseStudyPage: React.FC = () => {
                     isCorrect
                 });
             } else if (q.type === 'OPEN') {
-                isCorrect = answer && answer.trim().length > 0;
-                if (isCorrect) score++;
-                answersData.push({
-                    questionId: q.id,
-                    type: 'OPEN',
-                    learnerAnswer: answer || "",
-                    isCorrect
-                });
+                if (q.correctionType === 'ai' && aiGradingResults[q.id]) {
+                    const aiResult = aiGradingResults[q.id];
+                    isCorrect = aiResult.is_correct === 1;
+                    if (isCorrect) score++;
+                    answersData.push({
+                        questionId: q.id,
+                        type: 'OPEN',
+                        learnerAnswer: answer || "",
+                        isCorrect,
+                        score: aiResult.is_correct,
+                        feedback: aiResult.feedback || (aiResult.is_correct === 1 ? "Réponse correcte" : "Réponse incorrecte")
+                    });
+                } else {
+                    // Manual OPEN: NOT auto-corrected — the formateur decides
+                    isCorrect = false;
+                    answersData.push({
+                        questionId: q.id,
+                        type: 'OPEN',
+                        learnerAnswer: answer || "",
+                        isCorrect,
+                        gradedBy: 'manual'
+                    });
+                }
             }
         });
 
@@ -1485,15 +1530,23 @@ const CourseStudyPage: React.FC = () => {
         const userScorePercent = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
         const roundedUserScore = Math.round(userScorePercent);
 
-        // Special case: If quiz has OPEN questions, allow passing without constraint
         const hasOpenQuestions = questions.some(q => q.type === 'OPEN');
-        const isPassed = hasOpenQuestions || (totalQuestions > 0 && roundedUserScore >= passingScorePercent);
+        const hasAiOpenQuestions = aiOpenQuestions.length > 0;
+        const hasManualOpenQuestions = questions.some(q => q.type === 'OPEN' && q.correctionType !== 'ai');
+        let isPassed: boolean;
+        if (hasManualOpenQuestions) {
+            // Manual OPEN: formateur must validate — learner cannot self-pass
+            isPassed = false;
+        } else if (hasAiOpenQuestions) {
+            isPassed = totalQuestions > 0 && roundedUserScore >= passingScorePercent;
+        } else {
+            isPassed = hasOpenQuestions || (totalQuestions > 0 && roundedUserScore >= passingScorePercent);
+        }
 
         if (isExamActive) {
             setExamResult({ score, total: totalQuestions });
             setExamSubmitted(true);
 
-            // Persist Final Exam Result
             if (id) {
                 api.post(`/progress/${id}/quiz/final_exam`, {
                     score: roundedUserScore,
@@ -1510,7 +1563,6 @@ const CourseStudyPage: React.FC = () => {
             setQuizScore(score);
             setQuizSubmitted(true);
 
-            // Persist regular quiz result
             if (id && activeSubSection?.quiz) {
                 const quizId = activeSubSection.quiz.id || 'default';
                 api.post(`/progress/${id}/quiz/${quizId}`, {
@@ -1519,7 +1571,6 @@ const CourseStudyPage: React.FC = () => {
                     answers: answersData
                 })
                     .then(res => {
-                        // Update local quiz results state
                         setQuizResults(prev => [...prev, res.data]);
                     })
                     .catch(err => console.error("Failed to save quiz result:", err));
@@ -1528,7 +1579,6 @@ const CourseStudyPage: React.FC = () => {
             if (isPassed) {
                 if (activeSubSectionId && !completedSubSections.includes(activeSubSectionId)) {
                     setCompletedSubSections(prev => [...prev, activeSubSectionId]);
-                    // Update progress in backend too
                     api.post(`/progress/${id}`, {
                         completedId: activeSubSectionId
                     }).catch(err => console.error("Failed to update progress after quiz:", err));
@@ -2169,10 +2219,10 @@ const CourseStudyPage: React.FC = () => {
                                                         ))}
                                                         <button
                                                             onClick={() => activeSubSection.quiz && handleSubmitQuiz(activeSubSection.quiz)}
-                                                            disabled={Object.keys(quizAnswers).length === 0}
-                                                            className="px-10 py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg"
+                                                            disabled={Object.keys(quizAnswers).length === 0 || aiGrading}
+                                                            className="px-10 py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg disabled:opacity-60"
                                                         >
-                                                            Valider mes réponses
+                                                            {aiGrading ? (aiGradingMessage || 'Correction IA en cours...') : 'Valider mes réponses'}
                                                         </button>
                                                     </div>
                                                 ) : (
@@ -2875,7 +2925,7 @@ const CourseStudyPage: React.FC = () => {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="flex justify-center"><button onClick={() => course?.finalExam && handleSubmitQuiz(course.finalExam)} className="px-16 py-5 bg-primary text-white rounded-2xl font-black text-xl shadow-2xl">Soumettre l'Examen</button></div>
+                                            <div className="flex justify-center"><button onClick={() => course?.finalExam && handleSubmitQuiz(course.finalExam)} disabled={aiGrading} className="px-16 py-5 bg-primary text-white rounded-2xl font-black text-xl shadow-2xl disabled:opacity-60">{aiGrading ? (aiGradingMessage || 'Correction IA en cours...') : "Soumettre l'Examen"}</button></div>
                                         </>
                                     ) : examFailed ? (
                                         <div className="max-w-md mx-auto mt-20 p-10 bg-surface rounded-[2.5rem] border border-error/30 text-center shadow-2xl">

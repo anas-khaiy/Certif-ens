@@ -47,7 +47,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=ENS@Secure#2026!
       - OLLAMA_URL=http://ollama:11434
-      - OLLAMA_MODEL=llama3.2:3b
+      - OLLAMA_MODEL=mistral
       - LIVEKIT_HOST=http://livekit:7880
     dns:
       - 8.8.8.8
@@ -85,6 +85,11 @@ services:
     build: 
       context: ./AI-Detection-Service
     container_name: certiflow-ai-service
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=mistral
     # ports: intentionally not exposed to host — Docker-internal only
 
   # Ollama LLM (Mistral 7B)

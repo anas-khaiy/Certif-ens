@@ -99,6 +99,13 @@ public class CourseController {
         if (updatedResult.getAnswers() != null) {
             existing.setAnswers(updatedResult.getAnswers());
         }
+        // Status: frontend sends 'GRADED' when all OPEN answers are corrected,
+        // or 'PENDING_MANUAL' when some are still ungraded
+        if (updatedResult.getStatus() != null) {
+            existing.setStatus(updatedResult.getStatus());
+        } else {
+            existing.setStatus("GRADED");
+        }
 
         QuizResult saved = quizResultRepository.save(existing);
         return ResponseEntity.ok(saved);
