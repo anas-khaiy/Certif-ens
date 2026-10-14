@@ -1909,17 +1909,14 @@ const QuizEditorModal: React.FC<{
                                                         <div key={item.key} className="flex items-center justify-between p-3 bg-surface/50 rounded-xl border border-glass-border/50 hover:border-primary/20 transition-all">
                                                             <div className="flex items-center gap-3">
                                                                 <span className="text-lg">{item.icon}</span>
-                                                                <div className={item.key === 'detectSound' && settings.isAiDetectionEnabled ? 'opacity-40' : ''}>
+                                                                <div>
                                                                     <p className="text-sm font-bold text-text">{item.label}</p>
-                                                                    <p className="text-[10px] text-text-muted font-medium">
-                                                                        {item.key === 'detectSound' && settings.isAiDetectionEnabled ? 'Indisponible avec la surveillance par IA caméra' : item.desc}
-                                                                    </p>
+                                                                    <p className="text-[10px] text-text-muted font-medium">{item.desc}</p>
                                                                 </div>
                                                             </div>
                                                             <button
-                                                                onClick={() => { if (item.key !== 'detectSound' || !settings.isAiDetectionEnabled) setSettings({ ...settings, [item.key]: !settings[item.key] }); }}
-                                                                disabled={item.key === 'detectSound' && settings.isAiDetectionEnabled}
-                                                                className={`w-12 h-6 flex items-center rounded p-1 transition-all duration-300 shrink-0 border ${settings[item.key] !== false ? 'bg-gradient-to-r from-emerald-500 to-teal-500 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-surface border-glass-border shadow-inner'} ${item.key === 'detectSound' && settings.isAiDetectionEnabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                                onClick={() => setSettings({ ...settings, [item.key]: !settings[item.key] })}
+                                                                className={`w-12 h-6 flex items-center rounded p-1 cursor-pointer transition-all duration-300 shrink-0 border ${settings[item.key] !== false ? 'bg-gradient-to-r from-emerald-500 to-teal-500 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-surface border-glass-border shadow-inner'}`}
                                                             >
                                                                 <div className={`bg-white w-4 h-4 rounded-sm shadow-sm transform transition-transform duration-300 ${settings[item.key] !== false ? 'translate-x-6' : 'translate-x-0 opacity-40'}`} />
                                                             </button>
