@@ -1896,6 +1896,7 @@ const CoursePreviewPage: React.FC = () => {
                                 {(() => {
                                     const examResult = quizResults.find(r => String(r.quizId) === 'final_exam');
                                     const isCompleted = !!examResult;
+                                    const isPendingManual = examResult?.status === 'PENDING_MANUAL';
 
                                     return (
                                         <button
@@ -1911,31 +1912,33 @@ const CoursePreviewPage: React.FC = () => {
                                             }}
                                             disabled={isCompleted}
                                             className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group/exam ${isCompleted
-                                                ? (examResult?.passed ? 'bg-success/5 border-success/20' : 'bg-error/5 border-error/20') + ' cursor-default opacity-80'
+                                                ? (isPendingManual ? 'bg-orange-500/5 border-orange-500/20' : (examResult?.passed ? 'bg-success/5 border-success/20' : 'bg-error/5 border-error/20')) + ' cursor-default opacity-80'
                                                 : deadlinePassed ? 'bg-error/5 border-error/20 cursor-not-allowed opacity-60' : 'bg-primary/5 border border-primary/20 hover:border-primary/40 hover:bg-primary/10 transition-all duration-300 group/exam'
                                                 }`}
                                         >
                                             <div className={`flex-shrink-0 w-12 h-12 rounded-xl shadow-lg flex items-center justify-center transition-transform ${isCompleted 
-                                                ? (examResult?.passed ? 'bg-success text-white shadow-success/20' : 'bg-error text-white shadow-error/20') 
+                                                ? (isPendingManual ? 'bg-orange-500 text-white shadow-orange-500/20' : (examResult?.passed ? 'bg-success text-white shadow-success/20' : 'bg-error text-white shadow-error/20')) 
                                                 : 'bg-primary text-white shadow-primary/20 group-hover/exam:scale-110'
                                                 }`}>
-                                                {isCompleted ? (examResult?.passed ? <CheckCircle size={24} /> : <X size={24} />) : <Shield size={24} />}
+                                                {isCompleted ? (isPendingManual ? <Clock size={24} /> : (examResult?.passed ? <CheckCircle size={24} /> : <X size={24} />)) : <Shield size={24} />}
                                             </div>
                                             <div className="flex-1 min-w-0 text-left">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${isCompleted 
-                                                        ? (examResult?.passed ? 'bg-success/10 text-success' : 'bg-error/10 text-error') 
+                                                        ? (isPendingManual ? 'bg-orange-500/10 text-orange-500' : (examResult?.passed ? 'bg-success/10 text-success' : 'bg-error/10 text-error')) 
                                                         : 'bg-primary/10 text-primary'
                                                         }`}>
-                                                        {isCompleted ? (examResult?.passed ? 'Complété' : 'Échoué') : 'Certifiant'}
+                                                        {isPendingManual ? 'En attente' : (isCompleted ? (examResult?.passed ? 'Complété' : 'Échoué') : 'Certifiant')}
                                                     </span>
                                                 </div>
-                                                <h4 className={`font-black text-sm truncate ${isCompleted ? (examResult?.passed ? 'text-text/70' : 'text-error/70') : 'text-text'}`}>
-                                                    {isCompleted ? (examResult?.passed ? 'Examen Déjà Passé' : 'Examen Échoué') : (deadlinePassed ? 'Examen Expiré' : 'Examen Final')}
+                                                <h4 className={`font-black text-sm truncate ${isCompleted ? (isPendingManual ? 'text-orange-500/70' : (examResult?.passed ? 'text-text/70' : 'text-error/70')) : 'text-text'}`}>
+                                                    {isPendingManual ? 'Examen à corriger' : (isCompleted ? (examResult?.passed ? 'Examen Déjà Passé' : 'Examen Échoué') : (deadlinePassed ? 'Examen Expiré' : 'Examen Final'))}
                                                 </h4>
                                                 <div className="flex items-center gap-3 mt-1 opacity-70">
-                                                    <div className={`flex items-center gap-1 text-[10px] font-bold ${isCompleted ? (examResult?.passed ? 'text-success' : 'text-error') : ''}`}>
-                                                        {isCompleted ? (
+                                                    <div className={`flex items-center gap-1 text-[10px] font-bold ${isCompleted ? (isPendingManual ? 'text-orange-500' : (examResult?.passed ? 'text-success' : 'text-error')) : ''}`}>
+                                                        {isPendingManual ? (
+                                                            <>En attente de correction</>
+                                                        ) : isCompleted ? (
                                                             <>Note: {examResult.score}%</>
                                                         ) : (
                                                             <>
