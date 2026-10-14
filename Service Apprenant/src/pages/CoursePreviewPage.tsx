@@ -1581,7 +1581,8 @@ const CoursePreviewPage: React.FC = () => {
                 api.post(`/progress/${id}/quiz/final_exam`, {
                     score: roundedUserScore,
                     passed: isPassed,
-                    answers: answersData
+                    answers: answersData,
+                    status: hasManualOpenQuestions ? 'PENDING_MANUAL' : 'GRADED'
                 }).then(() => {
                     setQuizResults(prev => {
                         const already = prev.some(r => String(r.quizId) === 'final_exam');
@@ -3035,18 +3036,36 @@ const CoursePreviewPage: React.FC = () => {
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="max-w-2xl mx-auto mt-20 p-12 bg-surface rounded-[3rem] border border-glass-border text-center shadow-2xl relative overflow-hidden text-text">
-                                            <div className="absolute top-0 inset-x-0 h-2 bg-primary"></div>
-                                            <div className="w-28 h-28 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-8 animate-bounce"><CheckCircle size={56} /></div>
-                                            <h2 className="text-4xl font-black mb-4">Examen Terminé</h2>
-                                            <div className="py-6 mb-8 rounded-3xl bg-primary/5 border border-primary/10">
-                                                <p className="text-text-muted font-bold uppercase tracking-widest text-xs mb-1">Votre Note Finale</p>
-                                                <div className="text-6xl font-black text-primary">{Math.round((examResult?.score || 0) / (examResult?.total || 1) * 100)}%</div>
-                                                <p className="text-sm font-bold text-text-muted mt-2">{examResult?.score} / {examResult?.total} réponses correctes</p>
-                                            </div>
-                                            <p className="text-text-muted mb-10 text-lg">Vos résultats ont été transmis à l'administration.</p>
-                                            <button onClick={() => { setIsExamActive(false); setExamSubmitted(false); try { document.exitFullscreen(); } catch (e) { } }} className="btn-primary w-full py-5 rounded-2xl text-xl font-black shadow-xl">Terminer et quitter</button>
-                                        </div>
+                                        (() => {
+                                            const examHasManualOpen = (course?.finalExam?.questions || []).some((q: any) => q.type === 'OPEN' && q.correctionType !== 'ai');
+                                            return (
+                                                <div className="max-w-2xl mx-auto mt-20 p-12 bg-surface rounded-[3rem] border border-glass-border text-center shadow-2xl relative overflow-hidden text-text">
+                                                    <div className={`absolute top-0 inset-x-0 h-2 ${examHasManualOpen ? 'bg-orange-500' : 'bg-primary'}`}></div>
+                                                    {examHasManualOpen ? (
+                                                        <>
+                                                            <div className="w-28 h-28 bg-orange-500/10 text-orange-500 rounded-[2rem] flex items-center justify-center mx-auto mb-8"><Clock size={56} /></div>
+                                                            <h2 className="text-4xl font-black mb-4">En attente de correction</h2>
+                                                            <div className="py-6 mb-8 rounded-3xl bg-orange-500/5 border border-orange-500/20">
+                                                                <p className="text-orange-500 font-bold uppercase tracking-widest text-xs mb-2">Correction manuelle requise</p>
+                                                                <p className="text-sm font-medium text-text-muted leading-relaxed px-4">Votre examen contient des questions ouvertes qui doivent être corrigées par votre formateur. Votre note finale sera affichée après validation.</p>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="w-28 h-28 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-8 animate-bounce"><CheckCircle size={56} /></div>
+                                                            <h2 className="text-4xl font-black mb-4">Examen Terminé</h2>
+                                                            <div className="py-6 mb-8 rounded-3xl bg-primary/5 border border-primary/10">
+                                                                <p className="text-text-muted font-bold uppercase tracking-widest text-xs mb-1">Votre Note Finale</p>
+                                                                <div className="text-6xl font-black text-primary">{Math.round((examResult?.score || 0) / (examResult?.total || 1) * 100)}%</div>
+                                                                <p className="text-sm font-bold text-text-muted mt-2">{examResult?.score} / {examResult?.total} réponses correctes</p>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    <p className="text-text-muted mb-10 text-lg">Vos résultats ont été transmis à l'administration.</p>
+                                                    <button onClick={() => { setIsExamActive(false); setExamSubmitted(false); try { document.exitFullscreen(); } catch (e) { } }} className="btn-primary w-full py-5 rounded-2xl text-xl font-black shadow-xl">Terminer et quitter</button>
+                                                </div>
+                                            );
+                                        })()
                                     )}
                                 </div>
                             </div>

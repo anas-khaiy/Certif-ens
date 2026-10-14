@@ -1551,7 +1551,8 @@ const CourseStudyPage: React.FC = () => {
                 api.post(`/progress/${id}/quiz/final_exam`, {
                     score: roundedUserScore,
                     passed: isPassed,
-                    answers: answersData
+                    answers: answersData,
+                    status: hasManualOpenQuestions ? 'PENDING_MANUAL' : 'GRADED'
                 }).then(() => {
                     setQuizResults(prev => {
                         const already = prev.some(r => String(r.quizId) === 'final_exam');
