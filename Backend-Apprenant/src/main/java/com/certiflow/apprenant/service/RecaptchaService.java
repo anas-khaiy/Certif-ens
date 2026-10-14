@@ -11,13 +11,16 @@ import java.net.http.HttpResponse;
 @Service
 public class RecaptchaService {
 
-    @Value("${recaptcha.secret.key:6LeaZu8tAAAAANsQzrTQO4eGM_y96rpksu0u3}")
+    @Value("${recaptcha.secret.key:6LeaZu8tAAAAANsQzrTQO4eGM_y96rpksu0u3-Oa}")
     private String secretKey;
 
     private static final String VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
     public boolean verify(String token) {
-        if (token == null || token.isBlank()) return false;
+        if (token == null || token.isBlank()) {
+            System.out.println("[reCAPTCHA] token is null or blank");
+            return false;
+        }
         try {
             String body = "secret=" + secretKey + "&response=" + token;
             HttpRequest request = HttpRequest.newBuilder()
@@ -27,9 +30,10 @@ public class RecaptchaService {
                     .build();
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("[reCAPTCHA] verify response: " + response.body());
             return response.body().contains("\"success\":true");
         } catch (Exception e) {
-            System.err.println("reCAPTCHA verification failed: " + e.getMessage());
+            System.err.println("[reCAPTCHA] verification failed: " + e.getMessage());
             return false;
         }
     }
