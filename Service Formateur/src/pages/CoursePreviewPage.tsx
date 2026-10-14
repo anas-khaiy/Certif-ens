@@ -2070,29 +2070,29 @@ const CoursePreviewPage: React.FC = () => {
                                                 const examQuestions = course?.finalExam?.questions || [];
                                                 const totalQuestions = examQuestions.length;
 
-                                                const items = (course?.sections || []).map(section => {
-                                                    const sectionQuizIds = new Set(
-                                                        (section.subSections || []).flatMap(ss =>
-                                                            (ss.quiz?.questions || []).map((q: any) => String(q.id))
-                                                        )
-                                                    );
-                                                    const count = examQuestions.filter((q: any) => sectionQuizIds.has(String(q.id))).length;
-                                                    return { section, count };
-                                                }).filter(item => item.count > 0);
-
-                                                if (items.length === 0 || totalQuestions === 0) {
+                                                if (totalQuestions === 0) {
                                                     return <div className="py-8 text-center text-text-muted text-[10px] sm:text-xs font-bold uppercase italic opacity-60">Aucune question définie</div>;
                                                 }
+
+                                                const qcuCount = examQuestions.filter((q: any) => q.type === 'QCU').length;
+                                                const qcmCount = examQuestions.filter((q: any) => q.type === 'QCM').length;
+                                                const openCount = examQuestions.filter((q: any) => q.type === 'OPEN').length;
+
+                                                const items = [
+                                                    qcuCount > 0 && { key: 'qcu', icon: '◉', label: 'Choix Unique', count: qcuCount },
+                                                    qcmCount > 0 && { key: 'qcm', icon: '☑', label: 'Choix Multiples', count: qcmCount },
+                                                    openCount > 0 && { key: 'open', icon: '✎', label: 'Question Ouverte', count: openCount },
+                                                ].filter(Boolean) as { key: string; icon: string; label: string; count: number }[];
 
                                                 return (
                                                     <div className="divide-y divide-glass-border/10">
                                                         {/* Mobile View: Cards */}
                                                         <div className="sm:hidden flex flex-col p-4 gap-3">
                                                             {items.map(item => (
-                                                                <div key={item.section.id} className="flex flex-col gap-1 p-3 bg-background/50 rounded-xl border border-glass-border/50">
-                                                                    <p className="text-[10px] font-black text-text/80 truncate">{item.section.title}</p>
+                                                                <div key={item.key} className="flex flex-col gap-1 p-3 bg-background/50 rounded-xl border border-glass-border/50">
+                                                                    <p className="text-[10px] font-black text-text/80 truncate">{item.icon} {item.label}</p>
                                                                     <div className="flex justify-between items-center">
-                                                                        <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">{Math.round((item.count / totalQuestions) * 100)}% du parcours</span>
+                                                                        <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">{Math.round((item.count / totalQuestions) * 100)}% du total</span>
                                                                         <span className="text-xs font-black text-text">{item.count} <small className="text-[8px] opacity-60 uppercase">Questions</small></span>
                                                                     </div>
                                                                 </div>
@@ -2103,15 +2103,15 @@ const CoursePreviewPage: React.FC = () => {
                                                         <table className="hidden sm:table w-full text-left border-collapse">
                                                             <thead>
                                                                 <tr className="bg-surface/50 text-[9px] font-black uppercase tracking-widest text-text-muted/60 border-b border-glass-border/30">
-                                                                    <th className="py-3 pl-6">Chapitre</th>
+                                                                    <th className="py-3 pl-6">Type de question</th>
                                                                     <th className="py-3 text-right">Poids</th>
                                                                     <th className="py-3 text-right pr-6">Nb. Questions</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody className="divide-y divide-glass-border/10">
                                                                 {items.map(item => (
-                                                                    <tr key={item.section.id} className="text-[11px] font-bold text-text hover:bg-primary/5 transition-colors">
-                                                                        <td className="py-3 pl-6 truncate max-w-[200px]" title={item.section.title}>{item.section.title}</td>
+                                                                    <tr key={item.key} className="text-[11px] font-bold text-text hover:bg-primary/5 transition-colors">
+                                                                        <td className="py-3 pl-6">{item.icon} {item.label}</td>
                                                                         <td className="py-3 text-right text-primary font-black">{Math.round((item.count / totalQuestions) * 100)}%</td>
                                                                         <td className="py-3 text-right pr-6 font-black text-xs">{item.count}</td>
                                                                     </tr>
