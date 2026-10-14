@@ -2530,39 +2530,21 @@ const CourseStudyPage: React.FC = () => {
 
                                         <div className="p-0">
                                             {(() => {
-                                                const parseMH = (str?: string) => {
-                                                    if (!str) return 1;
-                                                    const val = parseFloat(str.replace(/[^\d.]/g, '').replace(',', '.'));
-                                                    return val > 0 ? val : 1;
-                                                };
-                                                const sectionsWithWeight = (course?.sections || []).filter(s => s.subSections?.some(ss => ss.quiz?.questions?.length || ss.quiz?.settings?.generatedPool?.length));
-                                                const totalMH = sectionsWithWeight.reduce((sum, s) => sum + parseMH(s.masseHoraire), 0);
-                                                const totalQuestions = course?.finalExam?.settings?.totalQuestions || 20;
+                                                const examQuestions = course?.finalExam?.questions || [];
+                                                const totalQuestions = examQuestions.length;
 
-                                                const items = sectionsWithWeight.map(section => {
-                                                    const mh = parseMH(section.masseHoraire);
-                                                    const ideal = totalMH > 0 ? (mh / totalMH) * totalQuestions : 0;
-                                                    return {
-                                                        section,
-                                                        ideal,
-                                                        floor: Math.floor(ideal),
-                                                        remainder: ideal - Math.floor(ideal),
-                                                        weight: totalMH > 0 ? (mh / totalMH) * 100 : 0
-                                                    };
-                                                });
+                                                const items = (course?.sections || []).map(section => {
+                                                    const sectionQuizIds = new Set(
+                                                        (section.subSections || []).flatMap(ss =>
+                                                            (ss.quiz?.questions || []).map((q: any) => String(q.id))
+                                                        )
+                                                    );
+                                                    const count = examQuestions.filter((q: any) => sectionQuizIds.has(String(q.id))).length;
+                                                    return { section, count };
+                                                }).filter(item => item.count > 0);
 
-                                                if (items.length === 0) {
-                                                    return <div className="py-8 text-center text-text-muted text-[10px] sm:text-xs font-bold uppercase italic opacity-60">Aucun chapitre avec quiz détecté</div>;
-                                                }
-
-                                                let currentTotal = items.reduce((sum, item) => sum + item.floor, 0);
-                                                const remaining = totalQuestions - currentTotal;
-                                                if (remaining > 0) {
-                                                    const sortedByRemainder = [...items].map((item, index) => ({ ...item, originalIndex: index })).sort((a, b) => b.remainder - a.remainder);
-                                                    const toDistribute = Math.min(remaining, sortedByRemainder.length);
-                                                    for (let i = 0; i < toDistribute; i++) {
-                                                        items[sortedByRemainder[i].originalIndex].floor += 1;
-                                                    }
+                                                if (items.length === 0 || totalQuestions === 0) {
+                                                    return <div className="py-8 text-center text-text-muted text-[10px] sm:text-xs font-bold uppercase italic opacity-60">Aucune question définie</div>;
                                                 }
 
                                                 return (
@@ -2573,8 +2555,8 @@ const CourseStudyPage: React.FC = () => {
                                                                 <div key={item.section.id} className="flex flex-col gap-1 p-3 bg-background/50 rounded-xl border border-glass-border/50">
                                                                     <p className="text-[10px] font-black text-text/80 truncate">{item.section.title}</p>
                                                                     <div className="flex justify-between items-center">
-                                                                        <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">{Math.round(item.weight)}% du parcours</span>
-                                                                        <span className="text-xs font-black text-text">{item.floor} <small className="text-[8px] opacity-60 uppercase">Questions</small></span>
+                                                                        <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">{Math.round((item.count / totalQuestions) * 100)}% du parcours</span>
+                                                                        <span className="text-xs font-black text-text">{item.count} <small className="text-[8px] opacity-60 uppercase">Questions</small></span>
                                                                     </div>
                                                                 </div>
                                                             ))}
@@ -2593,8 +2575,8 @@ const CourseStudyPage: React.FC = () => {
                                                                 {items.map(item => (
                                                                     <tr key={item.section.id} className="text-[11px] font-bold text-text hover:bg-primary/5 transition-colors">
                                                                         <td className="py-3 pl-6 truncate max-w-[200px]" title={item.section.title}>{item.section.title}</td>
-                                                                        <td className="py-3 text-right text-primary font-black">{Math.round(item.weight)}%</td>
-                                                                        <td className="py-3 text-right pr-6 font-black text-xs">{item.floor}</td>
+                                                                        <td className="py-3 text-right text-primary font-black">{Math.round((item.count / totalQuestions) * 100)}%</td>
+                                                                        <td className="py-3 text-right pr-6 font-black text-xs">{item.count}</td>
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
