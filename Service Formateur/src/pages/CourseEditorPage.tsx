@@ -1786,9 +1786,12 @@ const QuizEditorModal: React.FC<{
                                             </div>
                                             <button
                                                 onClick={() => setSettings({ ...settings, isRandom: !settings.isRandom })}
-                                                className={`w-14 h-8 rounded-full relative transition-all duration-300 ${settings.isRandom ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-surface-hover border border-glass-border'}`}
+                                                className={`relative w-16 h-9 flex items-center rounded-full cursor-pointer transition-all duration-300 shrink-0 border-2 ${settings.isRandom ? 'bg-blue-600 border-blue-400 shadow-lg shadow-blue-500/40' : 'bg-gray-300 border-gray-400 shadow-inner'}`}
                                             >
-                                                <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 ${settings.isRandom ? 'left-7' : 'left-1'}`} />
+                                                <span className={`absolute text-[8px] font-black uppercase tracking-wider transition-all duration-300 ${settings.isRandom ? 'left-3 text-white' : 'right-3 text-gray-600'}`}>
+                                                    {settings.isRandom ? 'ON' : 'OFF'}
+                                                </span>
+                                                <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${settings.isRandom ? 'translate-x-8' : 'translate-x-1'}`} />
                                             </button>
                                         </div>
 
