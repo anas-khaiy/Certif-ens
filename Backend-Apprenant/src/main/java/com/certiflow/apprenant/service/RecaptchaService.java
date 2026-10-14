@@ -7,6 +7,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class RecaptchaService {
@@ -22,16 +24,19 @@ public class RecaptchaService {
             return false;
         }
         try {
-            String body = "secret=" + secretKey + "&response=" + token;
+            String body = "secret=" + URLEncoder.encode(secretKey, StandardCharsets.UTF_8)
+                    + "&response=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(VERIFY_URL))
                     .header("Content-Type", "application/x-www-form-urlencoded")
                     .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .timeout(java.time.Duration.ofSeconds(10))
                     .build();
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("[reCAPTCHA] verify response: " + response.body());
-            return response.body().contains("\"success\":true");
+            String json = response.body().replaceAll("\\s+", "");
+            System.out.println("[reCAPTCHA] verify response: " + json);
+            return json.contains("\"success\":true");
         } catch (Exception e) {
             System.err.println("[reCAPTCHA] verification failed: " + e.getMessage());
             return false;
