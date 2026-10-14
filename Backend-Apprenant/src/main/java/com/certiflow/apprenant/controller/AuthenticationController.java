@@ -90,6 +90,9 @@ public class AuthenticationController {
         if (email.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("message", "L'email est requis."));
         }
+        if (!recaptchaService.verify(body.get("recaptchaToken"))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Échec de la vérification reCAPTCHA."));
+        }
         passwordResetService.generateAndSendCode(email);
         return ResponseEntity.ok(Map.of("message", "Un code de vérification a été envoyé à votre adresse email."));
     }

@@ -10,6 +10,7 @@ const LoginPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const [resetRecaptchaToken, setResetRecaptchaToken] = useState<string | null>(null);
     
     // --- Password Reset State ---
     const [viewState, setViewState] = useState<'LOGIN' | 'RESET_EMAIL' | 'RESET_CODE' | 'RESET_PASSWORD'>('LOGIN');
@@ -85,8 +86,13 @@ const LoginPage = () => {
         setIsLoading(true);
         setError('');
         setSuccessMsg('');
+        if (!resetRecaptchaToken) {
+            setError('Veuillez compléter la vérification reCAPTCHA.');
+            setIsLoading(false);
+            return;
+        }
         try {
-            const res = await api.post('/auth/forgot-password', { email: resetEmail });
+            const res = await api.post('/auth/forgot-password', { email: resetEmail, recaptchaToken: resetRecaptchaToken });
             setSuccessMsg(res.data.message || 'Code envoyé.');
             setViewState('RESET_CODE');
         } catch (err: any) {
@@ -273,6 +279,9 @@ const LoginPage = () => {
                                 </div>
                                 <p className="text-xs text-text-muted text-center mt-4">Entrez votre adresse email pour recevoir un code.</p>
                             </div>
+                        </div>
+                        <div className="flex justify-center">
+                            <RecaptchaWidget onChange={setResetRecaptchaToken} />
                         </div>
                         <div className="flex flex-col gap-4">
                             <button type="submit" disabled={isLoading} className="w-full h-14 primary flex items-center justify-center gap-3 text-lg font-bold rounded-xl shadow-xl transition-all">
