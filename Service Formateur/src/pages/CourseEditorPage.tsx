@@ -1884,7 +1884,10 @@ const QuizEditorModal: React.FC<{
                                                     </p>
                                                 </div>
                                                 <button
-                                                    onClick={() => setSettings({ ...settings, isAiDetectionEnabled: !settings.isAiDetectionEnabled, aiDetectionType: 'backend' })}
+                                                    onClick={() => {
+                                                        const next = !settings.isAiDetectionEnabled;
+                                                        setSettings({ ...settings, isAiDetectionEnabled: next, aiDetectionType: 'backend', ...(next ? { detectSound: false } : {}) });
+                                                    }}
                                                     className={`w-14 h-8 flex items-center rounded p-1 cursor-pointer transition-all duration-400 shrink-0 border ${settings.isAiDetectionEnabled ? 'bg-gradient-to-r from-blue-500 to-indigo-600 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-surface-hover border-glass-border shadow-inner'}`}
                                                 >
                                                     <div className={`bg-white w-6 h-6 rounded-sm shadow border border-white/20 transform transition-transform duration-400 ${settings.isAiDetectionEnabled ? 'translate-x-6' : 'translate-x-0 opacity-40'}`} />
@@ -1906,14 +1909,17 @@ const QuizEditorModal: React.FC<{
                                                         <div key={item.key} className="flex items-center justify-between p-3 bg-surface/50 rounded-xl border border-glass-border/50 hover:border-primary/20 transition-all">
                                                             <div className="flex items-center gap-3">
                                                                 <span className="text-lg">{item.icon}</span>
-                                                                <div>
+                                                                <div className={item.key === 'detectSound' && settings.isAiDetectionEnabled ? 'opacity-40' : ''}>
                                                                     <p className="text-sm font-bold text-text">{item.label}</p>
-                                                                    <p className="text-[10px] text-text-muted font-medium">{item.desc}</p>
+                                                                    <p className="text-[10px] text-text-muted font-medium">
+                                                                        {item.key === 'detectSound' && settings.isAiDetectionEnabled ? 'Indisponible avec la surveillance par IA caméra' : item.desc}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                             <button
-                                                                onClick={() => setSettings({ ...settings, [item.key]: !settings[item.key] })}
-                                                                className={`w-12 h-6 flex items-center rounded p-1 cursor-pointer transition-all duration-300 shrink-0 border ${settings[item.key] !== false ? 'bg-gradient-to-r from-emerald-500 to-teal-500 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-surface border-glass-border shadow-inner'}`}
+                                                                onClick={() => { if (item.key !== 'detectSound' || !settings.isAiDetectionEnabled) setSettings({ ...settings, [item.key]: !settings[item.key] }); }}
+                                                                disabled={item.key === 'detectSound' && settings.isAiDetectionEnabled}
+                                                                className={`w-12 h-6 flex items-center rounded p-1 transition-all duration-300 shrink-0 border ${settings[item.key] !== false ? 'bg-gradient-to-r from-emerald-500 to-teal-500 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-surface border-glass-border shadow-inner'} ${item.key === 'detectSound' && settings.isAiDetectionEnabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                                                             >
                                                                 <div className={`bg-white w-4 h-4 rounded-sm shadow-sm transform transition-transform duration-300 ${settings[item.key] !== false ? 'translate-x-6' : 'translate-x-0 opacity-40'}`} />
                                                             </button>
