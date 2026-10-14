@@ -1888,9 +1888,12 @@ const QuizEditorModal: React.FC<{
                                                         const next = !settings.isAiDetectionEnabled;
                                                         setSettings({ ...settings, isAiDetectionEnabled: next, aiDetectionType: 'backend', ...(next ? { detectSound: false } : {}) });
                                                     }}
-                                                    className={`w-14 h-8 flex items-center rounded p-1 cursor-pointer transition-all duration-400 shrink-0 border ${settings.isAiDetectionEnabled ? 'bg-gradient-to-r from-blue-500 to-indigo-600 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-surface-hover border-glass-border shadow-inner'}`}
+                                                    className={`relative w-16 h-9 flex items-center rounded-full cursor-pointer transition-all duration-300 shrink-0 border-2 ${settings.isAiDetectionEnabled ? 'bg-blue-600 border-blue-400 shadow-lg shadow-blue-500/40' : 'bg-gray-300 border-gray-400 shadow-inner'}`}
                                                 >
-                                                    <div className={`bg-white w-6 h-6 rounded-sm shadow border border-white/20 transform transition-transform duration-400 ${settings.isAiDetectionEnabled ? 'translate-x-6' : 'translate-x-0 opacity-40'}`} />
+                                                    <span className={`absolute text-[8px] font-black uppercase tracking-wider transition-all duration-300 ${settings.isAiDetectionEnabled ? 'left-3 text-white' : 'right-3 text-gray-600'}`}>
+                                                        {settings.isAiDetectionEnabled ? 'ON' : 'OFF'}
+                                                    </span>
+                                                    <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${settings.isAiDetectionEnabled ? 'translate-x-8' : 'translate-x-1'}`} />
                                                 </button>
                                             </div>
 
@@ -1916,9 +1919,12 @@ const QuizEditorModal: React.FC<{
                                                             </div>
                                                             <button
                                                                 onClick={() => setSettings({ ...settings, [item.key]: !settings[item.key] })}
-                                                                className={`w-12 h-6 flex items-center rounded p-1 cursor-pointer transition-all duration-300 shrink-0 border ${settings[item.key] !== false ? 'bg-gradient-to-r from-emerald-500 to-teal-500 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-surface border-glass-border shadow-inner'}`}
+                                                                className={`relative w-14 h-7 flex items-center rounded-full cursor-pointer transition-all duration-300 shrink-0 border-2 ${settings[item.key] !== false ? 'bg-emerald-500 border-emerald-400 shadow-md shadow-emerald-500/40' : 'bg-gray-300 border-gray-400 shadow-inner'}`}
                                                             >
-                                                                <div className={`bg-white w-4 h-4 rounded-sm shadow-sm transform transition-transform duration-300 ${settings[item.key] !== false ? 'translate-x-6' : 'translate-x-0 opacity-40'}`} />
+                                                                <span className={`absolute text-[7px] font-black uppercase tracking-wider transition-all duration-300 ${settings[item.key] !== false ? 'left-2.5 text-white' : 'right-2.5 text-gray-600'}`}>
+                                                                    {settings[item.key] !== false ? 'ON' : 'OFF'}
+                                                                </span>
+                                                                <div className={`bg-white w-5 h-5 rounded-full shadow-sm transform transition-transform duration-300 ${settings[item.key] !== false ? 'translate-x-7' : 'translate-x-1'}`} />
                                                             </button>
                                                         </div>
                                                     ))}
@@ -1971,9 +1977,12 @@ const QuizEditorModal: React.FC<{
                                                         </div>
                                                         <button
                                                             onClick={() => setSettings({ ...settings, [item.key]: !settings[item.key] })}
-                                                            className={`w-12 h-6 flex items-center rounded p-1 cursor-pointer transition-all duration-300 shrink-0 border ${settings[item.key] !== false ? 'bg-gradient-to-r from-emerald-500 to-teal-500 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-surface border-glass-border shadow-inner'}`}
+                                                            className={`relative w-14 h-7 flex items-center rounded-full cursor-pointer transition-all duration-300 shrink-0 border-2 ${settings[item.key] !== false ? 'bg-emerald-500 border-emerald-400 shadow-md shadow-emerald-500/40' : 'bg-gray-300 border-gray-400 shadow-inner'}`}
                                                         >
-                                                            <div className={`bg-white w-4 h-4 rounded-sm shadow-sm transform transition-transform duration-300 ${settings[item.key] !== false ? 'translate-x-6' : 'translate-x-0 opacity-40'}`} />
+                                                            <span className={`absolute text-[7px] font-black uppercase tracking-wider transition-all duration-300 ${settings[item.key] !== false ? 'left-2.5 text-white' : 'right-2.5 text-gray-600'}`}>
+                                                                {settings[item.key] !== false ? 'ON' : 'OFF'}
+                                                            </span>
+                                                            <div className={`bg-white w-5 h-5 rounded-full shadow-sm transform transition-transform duration-300 ${settings[item.key] !== false ? 'translate-x-7' : 'translate-x-1'}`} />
                                                         </button>
                                                     </div>
                                                 ))}
