@@ -3,6 +3,7 @@ package com.certiflow.admin.dto;
 public class AuthenticationRequest {
     private String email;
     private String password;
+    private String recaptchaToken;
 
     public AuthenticationRequest() {
     }
@@ -26,5 +27,13 @@ public class AuthenticationRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRecaptchaToken() {
+        return recaptchaToken;
+    }
+
+    public void setRecaptchaToken(String recaptchaToken) {
+        this.recaptchaToken = recaptchaToken;
     }
 }

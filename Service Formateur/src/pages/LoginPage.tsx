@@ -4,12 +4,14 @@ import { Lock, Mail, ChevronRight, Moon, Sun, AlertCircle, Home } from 'lucide-r
 import { motion } from 'framer-motion';
 import '../login.css';
 import api from '../api/api-client';
+import RecaptchaWidget from '../components/RecaptchaWidget';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     
     // --- Password Reset State ---
     const [viewState, setViewState] = useState<'LOGIN' | 'RESET_EMAIL' | 'RESET_CODE' | 'RESET_PASSWORD'>('LOGIN');
@@ -42,8 +44,14 @@ const LoginPage = () => {
         setIsLoading(true);
         setError('');
 
+        if (!recaptchaToken) {
+            setError('Veuillez compléter la vérification reCAPTCHA.');
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            const response = await api.post('/auth/authenticate', { email, password });
+            const response = await api.post('/auth/authenticate', { email, password, recaptchaToken });
             const data = response.data;
 
             // Store JWT token and user info
@@ -274,6 +282,16 @@ const LoginPage = () => {
                                 </div>
                             </motion.div>
                         </div>
+
+                        {/* reCAPTCHA */}
+                        <motion.div
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.55 }}
+                            className="flex justify-center"
+                        >
+                            <RecaptchaWidget onChange={setRecaptchaToken} />
+                        </motion.div>
 
                         {/* Login Button */}
                         <motion.div

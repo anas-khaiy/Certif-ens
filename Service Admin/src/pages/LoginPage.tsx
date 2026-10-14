@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, ChevronRight, Moon, Sun, Home } from 'lucide-react';
 import api from '../api/api-client';
+import RecaptchaWidget from '../components/RecaptchaWidget';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     
     // --- Password Reset State ---
     const [viewState, setViewState] = useState<'LOGIN' | 'RESET_EMAIL' | 'RESET_CODE' | 'RESET_PASSWORD'>('LOGIN');
@@ -45,10 +47,17 @@ const LoginPage = () => {
         setIsLoading(true);
         setError('');
 
+        if (!recaptchaToken) {
+            setError('Veuillez compléter la vérification reCAPTCHA.');
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const response = await api.post('/auth/authenticate', {
                 email,
-                password
+                password,
+                recaptchaToken
             });
 
             const { token, role, nom, prenom } = response.data;
@@ -227,6 +236,11 @@ const LoginPage = () => {
                             </div>
                         </div>
 
+                    </div>
+
+                    {/* reCAPTCHA */}
+                    <div className="flex justify-center">
+                        <RecaptchaWidget onChange={setRecaptchaToken} />
                     </div>
 
                     <button

@@ -27,6 +27,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=ENS@Secure#2026!
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -49,6 +50,7 @@ services:
       - OLLAMA_URL=http://ollama:11434
       - OLLAMA_MODEL=mistral
       - LIVEKIT_HOST=http://livekit:7880
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -71,6 +73,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=ENS@Secure#2026!
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -157,6 +160,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/certif_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=ENS@Secure#2026!
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
     dns:
       - 8.8.8.8
       - 8.8.4.4

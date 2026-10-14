@@ -4,6 +4,7 @@ import com.certiflow.coordinateur.dto.AuthenticationRequest;
 import com.certiflow.coordinateur.dto.AuthenticationResponse;
 import com.certiflow.coordinateur.service.AuthenticationService;
 import com.certiflow.coordinateur.service.PasswordResetService;
+import com.certiflow.coordinateur.service.RecaptchaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,15 +18,21 @@ public class AuthenticationController {
 
     private final AuthenticationService service;
     private final PasswordResetService passwordResetService;
+    private final RecaptchaService recaptchaService;
 
     public AuthenticationController(AuthenticationService service,
-                                    PasswordResetService passwordResetService) {
+                                    PasswordResetService passwordResetService,
+                                    RecaptchaService recaptchaService) {
         this.service = service;
         this.passwordResetService = passwordResetService;
+        this.recaptchaService = recaptchaService;
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
+    public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request) {
+        if (!recaptchaService.verify(request.getRecaptchaToken())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Échec de la vérification reCAPTCHA."));
+        }
         return ResponseEntity.ok(service.authenticate(request));
     }
 
