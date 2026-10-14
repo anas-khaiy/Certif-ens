@@ -3694,9 +3694,29 @@ const CourseEditorPage: React.FC = () => {
                                                                             </div>
 
                                                                             <div className="flex-1 space-y-3">
-                                                                                <h5 className="text-[13px] font-bold text-text leading-snug tracking-tight">
-                                                                                    {question?.text ?? <span className="text-text-muted italic opacity-50">Référence question #{ans.questionId} manquante</span>}
-                                                                                </h5>
+                                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                                    <h5 className="text-[13px] font-bold text-text leading-snug tracking-tight">
+                                                                                        {question?.text ?? <span className="text-text-muted italic opacity-50">Référence question #{ans.questionId} manquante</span>}
+                                                                                    </h5>
+                                                                                    {ans.type === 'QCM' && (
+                                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 text-[9px] font-black uppercase whitespace-nowrap">
+                                                                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12l2 2 4-4"/></svg>
+                                                                                            Choix Multiples
+                                                                                        </span>
+                                                                                    )}
+                                                                                    {ans.type === 'QCU' && (
+                                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 text-[9px] font-black uppercase whitespace-nowrap">
+                                                                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+                                                                                            Choix Unique
+                                                                                        </span>
+                                                                                    )}
+                                                                                    {ans.type === 'OPEN' && (
+                                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-black uppercase whitespace-nowrap">
+                                                                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                                                                            Ouverte
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
 
                                                                                 <div className="space-y-1.5">
                                                                                     {isOpen ? (

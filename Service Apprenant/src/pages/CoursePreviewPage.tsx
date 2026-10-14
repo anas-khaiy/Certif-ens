@@ -2236,7 +2236,27 @@ const CoursePreviewPage: React.FC = () => {
                                                             <div key={q.id} className="space-y-4">
                                                                 <div className="flex gap-3">
                                                                     <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">{qIdx + 1}</span>
-                                                                    <h3 className="font-bold text-lg">{q.text}</h3>
+                                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                                        <h3 className="font-bold text-lg">{q.text}</h3>
+                                                                        {q.type === 'QCM' && (
+                                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 text-[9px] font-black uppercase whitespace-nowrap">
+                                                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12l2 2 4-4"/></svg>
+                                                                                Choix Multiples
+                                                                            </span>
+                                                                        )}
+                                                                        {q.type === 'QCU' && (
+                                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 text-[9px] font-black uppercase whitespace-nowrap">
+                                                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+                                                                                Choix Unique
+                                                                            </span>
+                                                                        )}
+                                                                        {q.type === 'OPEN' && (
+                                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-black uppercase whitespace-nowrap">
+                                                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                                                                Ouverte
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-0 sm:pl-9">
                                                                     {q.type === 'OPEN' ? (
@@ -2958,7 +2978,27 @@ const CoursePreviewPage: React.FC = () => {
                                                     <div key={q.id} className="space-y-6 bg-surface p-8 rounded-3xl border border-glass-border shadow-sm">
                                                         <div className="flex gap-4">
                                                             <span className="flex-shrink-0 w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-lg">{qIdx + 1}</span>
-                                                            <h3 className="font-extrabold text-xl leading-snug">{q.text}</h3>
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <h3 className="font-extrabold text-xl leading-snug">{q.text}</h3>
+                                                                {q.type === 'QCM' && (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 text-[9px] font-black uppercase whitespace-nowrap">
+                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12l2 2 4-4"/></svg>
+                                                                        Choix Multiples
+                                                                    </span>
+                                                                )}
+                                                                {q.type === 'QCU' && (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 text-[9px] font-black uppercase whitespace-nowrap">
+                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+                                                                        Choix Unique
+                                                                    </span>
+                                                                )}
+                                                                {q.type === 'OPEN' && (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-black uppercase whitespace-nowrap">
+                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                                                        Ouverte
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <div className="grid grid-cols-1 gap-3 pl-14">
                                                             {q.type === 'OPEN' ? (
