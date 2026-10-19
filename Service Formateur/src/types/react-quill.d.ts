@@ -6,6 +6,8 @@ declare module 'react-quill-new' {
         formats?: string[];
         value?: string;
         onChange?: (value: string, delta: any, source: string, editor: any) => void;
+        onBlur?: (previousSelection: any, source: any, editor: any) => void;
+        onFocus?: (range: any, source: any, editor: any) => void;
         placeholder?: string;
         readOnly?: boolean;
         bounds?: string | HTMLElement;

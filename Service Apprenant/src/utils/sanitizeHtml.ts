@@ -55,5 +55,34 @@ const normalizeSpaces = (html: string): string => {
     }).join('');
 };
 
+/**
+ * Normalise les listes Quill (Quill 2 utilise <ol><li data-list="bullet"> pour les puces)
+ * en balises HTML standard <ul><li> et <ol><li> afin qu'elles soient parfaitement reconnues
+ * par le navigateur et affichent les puces et numéros.
+ */
+const cleanQuillLists = (html: string): string => {
+    if (!html) return '';
+    const parts = html.split(/(<pre[\s\S]*?<\/pre>)/gi);
+    return parts.map((part, index) => {
+        if (index % 2 === 1) return part; // Conserver les blocs de code intacts
+
+        let res = part;
+        // Supprimer les spans de support visuel interne à Quill s'ils existent
+        res = res.replace(/<span\s+class="ql-ui"[^>]*><\/span>/gi, '');
+
+        // Convertir les <ol> qui contiennent data-list="bullet" en <ul>
+        res = res.replace(/<ol\b([^>]*)>([\s\S]*?)<\/ol>/gi, (match, attrs, inner) => {
+            if (/data-list=["']bullet["']/i.test(inner)) {
+                const cleanedInner = inner.replace(/\s*data-list=["']bullet["']/gi, '');
+                return `<ul${attrs}>${cleanedInner}</ul>`;
+            }
+            const cleanedInner = inner.replace(/\s*data-list=["']ordered["']/gi, '');
+            return `<ol${attrs}>${cleanedInner}</ol>`;
+        });
+
+        return res;
+    }).join('');
+};
+
 export const sanitizeRichHtml = (html: string): string =>
-    cleanStyleAttr(stripInvisible(normalizeSpaces(rejoinHyphenatedWords(html || ''))));
+    cleanStyleAttr(stripInvisible(normalizeSpaces(rejoinHyphenatedWords(cleanQuillLists(html || '')))));

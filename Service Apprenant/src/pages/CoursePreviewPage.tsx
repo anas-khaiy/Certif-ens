@@ -3115,8 +3115,37 @@ const CoursePreviewPage: React.FC = () => {
                 .rich-content-area h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; margin-top: 3rem; color: var(--text); }
                 .rich-content-area h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.25rem; margin-top: 2.5rem; color: var(--text); }
                 .rich-content-area p { margin-bottom: 1.5rem; }
-                .rich-content-area ul, .rich-content-area ol { margin-left: 1.5rem; margin-bottom: 2rem; list-style-position: outside; }
-                .rich-content-area li { margin-bottom: 0.75rem; }
+                .rich-content-area ul {
+                    list-style-type: disc !important;
+                    list-style-position: outside !important;
+                    margin-left: 1.5rem !important;
+                    padding-left: 1rem !important;
+                    margin-bottom: 2rem !important;
+                    display: block !important;
+                }
+                .rich-content-area ol {
+                    list-style-type: decimal !important;
+                    list-style-position: outside !important;
+                    margin-left: 1.5rem !important;
+                    padding-left: 1rem !important;
+                    margin-bottom: 2rem !important;
+                    display: block !important;
+                }
+                .rich-content-area li {
+                    display: list-item !important;
+                    margin-bottom: 0.75rem !important;
+                    padding-left: 0.25rem !important;
+                }
+                .rich-content-area li[data-list="bullet"] {
+                    list-style-type: disc !important;
+                }
+                .rich-content-area li[data-list="ordered"] {
+                    list-style-type: decimal !important;
+                }
+                .rich-content-area ul ul { list-style-type: circle !important; }
+                .rich-content-area ul ul ul { list-style-type: square !important; }
+                .rich-content-area ol ol { list-style-type: lower-alpha !important; }
+                .rich-content-area ol ol ol { list-style-type: lower-roman !important; }
                 .rich-content-area strong { color: var(--text); font-weight: 800; }
                 
                 .rich-content-area img { 

@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api-client';
 import learnerApi from '../api/learner-api-client';
 import type { Course, BackendSpecialite, Formation } from '../types';
+import { sanitizeRichHtml } from '../utils/sanitizeHtml';
 
 const CourseCatalogPage: React.FC = () => {
     const navigate = useNavigate();
@@ -447,7 +448,7 @@ const CourseCatalogPage: React.FC = () => {
                                         <BookOpen className="text-primary" size={20} strokeWidth={3} />
                                         Description
                                     </h4>
-                                    <div className="text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: selectedCourse.description }} />
+                                    <div className="html-content text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(selectedCourse.description) }} />
                                 </div>
 
                                 {selectedCourse.prerequisites && (
@@ -456,7 +457,7 @@ const CourseCatalogPage: React.FC = () => {
                                             <AlertCircle className="text-warning" size={20} strokeWidth={3} />
                                             Prérequis
                                         </h4>
-                                        <div className="text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: selectedCourse.prerequisites }} />
+                                        <div className="html-content text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(selectedCourse.prerequisites) }} />
                                     </div>
                                 )}
                             </div>

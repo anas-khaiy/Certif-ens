@@ -1360,5 +1360,65 @@ td {
   }
 }
 
+/* ==========================================================================
+   HTML CONTENT & LIST STYLING FIX (DESCRIPTION, PREREQUISITES, RICH TEXT)
+   ========================================================================== */
+.html-content {
+  overflow-wrap: break-word;
+  word-break: normal;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.html-content p {
+  margin-bottom: 1rem;
+}
+
+.html-content p:last-child {
+  margin-bottom: 0;
+}
+
+.html-content ul {
+  list-style-type: disc !important;
+  list-style-position: outside !important;
+  margin-left: 1.5rem !important;
+  padding-left: 1rem !important;
+  margin-bottom: 1rem !important;
+  display: block !important;
+}
+
+.html-content ol {
+  list-style-type: decimal !important;
+  list-style-position: outside !important;
+  margin-left: 1.5rem !important;
+  padding-left: 1rem !important;
+  margin-bottom: 1rem !important;
+  display: block !important;
+}
+
+.html-content li {
+  display: list-item !important;
+  margin-bottom: 0.35rem !important;
+}
+
+.html-content li[data-list="bullet"] {
+  list-style-type: disc !important;
+}
+
+.html-content li[data-list="ordered"] {
+  list-style-type: decimal !important;
+}
+
+.html-content b,
+.html-content strong {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.html-content ul ul { list-style-type: circle !important; }
+.html-content ul ul ul { list-style-type: square !important; }
+.html-content ol ol { list-style-type: lower-alpha !important; }
+.html-content ol ol ol { list-style-type: lower-roman !important; }
+
 
 

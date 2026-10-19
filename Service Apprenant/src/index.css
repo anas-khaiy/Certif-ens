@@ -1274,14 +1274,35 @@ svg {
   margin-bottom: 0;
 }
 
-.html-content ul,
+.html-content ul {
+  list-style-type: disc !important;
+  list-style-position: outside !important;
+  margin-left: 1.5rem !important;
+  padding-left: 1rem !important;
+  margin-bottom: 1rem !important;
+  display: block !important;
+}
+
 .html-content ol {
-  margin-left: 1.5rem;
-  margin-bottom: 1rem;
+  list-style-type: decimal !important;
+  list-style-position: outside !important;
+  margin-left: 1.5rem !important;
+  padding-left: 1rem !important;
+  margin-bottom: 1rem !important;
+  display: block !important;
 }
 
 .html-content li {
-  margin-bottom: 0.5rem;
+  display: list-item !important;
+  margin-bottom: 0.35rem !important;
+}
+
+.html-content li[data-list="bullet"] {
+  list-style-type: disc !important;
+}
+
+.html-content li[data-list="ordered"] {
+  list-style-type: decimal !important;
 }
 
 .html-content b,
@@ -1289,6 +1310,11 @@ svg {
   font-weight: 700;
   color: var(--text);
 }
+
+.html-content ul ul { list-style-type: circle !important; }
+.html-content ul ul ul { list-style-type: square !important; }
+.html-content ol ol { list-style-type: lower-alpha !important; }
+.html-content ol ol ol { list-style-type: lower-roman !important; }
 /* ── LiveKit UNIVERSEL MOBILE FIX ──────────────────────────────────────── */
 @media (max-width: 768px) {
   /* On force le conteneur racine à remplir TOUT l'écran */

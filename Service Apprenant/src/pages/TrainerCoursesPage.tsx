@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCourses } from '../hooks/useCourses';
 import api from '../api/api-client';
 import type { Course } from '../types';
+import { sanitizeRichHtml } from '../utils/sanitizeHtml';
 
 const TrainerCoursesPage: React.FC = () => {
     const { name } = useParams<{ name: string }>();
@@ -395,7 +396,7 @@ const TrainerCoursesPage: React.FC = () => {
                                     </h4>
                                     <div
                                         className="text-text-muted leading-relaxed html-content"
-                                        dangerouslySetInnerHTML={{ __html: selectedCourse.description || "Aucune description disponible." }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(selectedCourse.description || "Aucune description disponible.") }}
                                     />
                                 </div>
 
@@ -406,7 +407,7 @@ const TrainerCoursesPage: React.FC = () => {
                                     </h4>
                                     <div
                                         className="text-text-muted leading-relaxed html-content"
-                                        dangerouslySetInnerHTML={{ __html: selectedCourse.prerequisites || "Aucun prérequis spécifié." }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(selectedCourse.prerequisites || "Aucun prérequis spécifié.") }}
                                     />
                                 </div>
                             </div>

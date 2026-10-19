@@ -365,6 +365,16 @@ const MockQuill: React.FC<{
         }
     }, []);
 
+    const handleBlur = React.useCallback(() => {
+        if (lastExternalValue.current) {
+            const sanitized = sanitizeRichHtml(lastExternalValue.current);
+            if (sanitized !== lastExternalValue.current) {
+                lastExternalValue.current = sanitized;
+                onChangeRef.current(sanitized);
+            }
+        }
+    }, []);
+
     // ── Image Resize Overlay ─────────────────────────────────────────────────
     const wrapperRef = React.useRef<HTMLDivElement>(null);
     const [selectedImg, setSelectedImg] = React.useState<HTMLImageElement | null>(null);
@@ -528,6 +538,7 @@ const MockQuill: React.FC<{
                 theme="snow"
                 value={value}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder={placeholder}
                 modules={modules}
             />
@@ -2739,8 +2750,8 @@ const CourseEditorPage: React.FC = () => {
             // Process all sub-section content fields
             const processedCourse = {
                 ...course,
-                description: course.description ? await uploadBase64ImagesInHtml(course.description) : course.description,
-                prerequisites: course.prerequisites ? await uploadBase64ImagesInHtml(course.prerequisites) : course.prerequisites,
+                description: course.description ? sanitizeRichHtml(await uploadBase64ImagesInHtml(course.description)) : course.description,
+                prerequisites: course.prerequisites ? sanitizeRichHtml(await uploadBase64ImagesInHtml(course.prerequisites)) : course.prerequisites,
                 sections: await Promise.all(course.sections.map(async (section, sIdx) => ({
                     ...section,
                     orderIndex: sIdx,

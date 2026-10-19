@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api-client';
 import type { BackendSpecialite } from '../types';
+import { sanitizeRichHtml } from '../utils/sanitizeHtml';
 import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 interface Bundle {
@@ -430,7 +431,7 @@ const CourseBundleCatalogPage: React.FC = () => {
                                         <Layers className="text-primary" size={20} strokeWidth={3} />
                                         Description du parcours
                                     </h4>
-                                    <div className="text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: selectedBundle.description }} />
+                                    <div className="html-content text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(selectedBundle.description) }} />
                                 </div>
 
                                 <div className="space-y-4">
