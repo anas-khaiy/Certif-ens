@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import com.certiflow.formateur.model.SystemSetting;
 import com.certiflow.formateur.repository.SystemSettingRepository;
@@ -28,31 +26,7 @@ public class QuizAIService {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(10_000);   // 10 s to connect
         factory.setReadTimeout(300_000);     // 5 min to read response
-        RestTemplate rt = new RestTemplate(factory);
-        rt.getMessageConverters().removeIf(c -> c instanceof StringHttpMessageConverter);
-        rt.getMessageConverters().add(new StringHttpMessageConverter(StandardCharsets.UTF_8));
-        return rt;
-    }
-
-    /**
-     * Recolleur de mots scindés par un tiret ou soft-hyphen suivi d'un retour à la ligne
-     * (ex: "autom-\nated" -> "automated", "trigge-<br>ring" -> "triggering", "autom-</p><p>ated" -> "automated").
-     */
-    static String rejoinHyphenatedWords(String text) {
-        if (text == null || text.isEmpty()) return "";
-        return text.replaceAll("(?U)(\\b\\p{L}{2,})[-\\x{00AD}]\\s*(?:<br\\s*/?>|\\r?\\n|</p>\\s*<p[^>]*>|</div[^>]*>\\s*<div[^>]*>)+\\s*(\\p{L}{2,}\\b)", "$1$2")
-                   .replaceAll("(?i)(\\b[a-zA-ZÀ-ÿ]{2,})&shy;\\s*(?:<br\\s*/?>|\\r?\\n|</p>\\s*<p[^>]*>|</div[^>]*>\\s*<div[^>]*>)+\\s*([a-zA-ZÀ-ÿ]{2,}\\b)", "$1$2");
-    }
-
-    /**
-     * Supprime les caractères Unicode invisibles (zero-width, bidi, etc.)
-     * que les modèles LLM insèrent parfois dans le texte.
-     */
-    static String stripInvisibleChars(String text) {
-        if (text == null || text.isEmpty()) return "";
-        String rejoined = rejoinHyphenatedWords(text);
-        return rejoined.replaceAll("[\\p{Cf}\\p{Cc}&&[^\\r\\n\\t]]", "")
-                       .replace("­", "");
+        return new RestTemplate(factory);
     }
 
     private String getModelName() {
@@ -113,7 +87,7 @@ public class QuizAIService {
                     jsonContent = objectMapper.writeValueAsString(responseNode);
                 }
 
-                jsonContent = extractJsonBlock(stripInvisibleChars(jsonContent));
+                jsonContent = extractJsonBlock(jsonContent);
                 objectMapper.readTree(jsonContent);
                 return jsonContent;
             } else {
@@ -162,7 +136,7 @@ public class QuizAIService {
             if (response.getStatusCode() == HttpStatus.OK) {
                 JsonNode root = objectMapper.readTree(response.getBody());
                 JsonNode responseNode = root.get("response");
-                return stripInvisibleChars(responseNode != null ? responseNode.asText() : "");
+                return responseNode != null ? responseNode.asText() : "";
             } else {
                 return "Erreur du modèle IA: HTTP " + response.getStatusCode();
             }
