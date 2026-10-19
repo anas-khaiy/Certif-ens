@@ -465,7 +465,7 @@ const CoursesPage: React.FC = () => {
                                 </button>
                             </div>
 
-                            <div className="flex-1 p-8 space-y-8 overflow-y-auto custom-scrollbar">
+                            <div className="flex-1 p-8 space-y-8 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                 <div>
                                     <div className="text-xs font-bold text-primary mb-2 uppercase tracking-wider">{selectedCourse.category}</div>
                                     <h2 className="text-3xl font-bold mb-4">{selectedCourse.title}</h2>
