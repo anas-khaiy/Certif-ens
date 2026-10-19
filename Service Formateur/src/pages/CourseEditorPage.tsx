@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import { sanitizeRichHtml } from '../utils/sanitizeHtml';
 
 const Q = (ReactQuill as any).Quill;
 if (Q) {
@@ -78,6 +79,15 @@ const PAGE_STYLES = `
 
 * {
     box-sizing: border-box;
+}
+
+.exam-total-input::-webkit-outer-spin-button,
+.exam-total-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.exam-total-input {
+    -moz-appearance: textfield;
 }
 
 .ce-card-shadow {
@@ -1445,12 +1455,26 @@ const QuizEditorModal: React.FC<{
                                                         <p className="text-xs text-text-muted">L'algorithme suggérera une répartition basée sur ce volume total.</p>
                                                     </div>
                                                     <div className="flex items-center gap-4">
-                                                        <input 
-                                                            type="number" 
+                                                        <input
+                                                            type="number"
                                                             value={targetTotalQuestions}
                                                             onChange={(e) => setTargetTotalQuestions(Math.max(1, parseInt(e.target.value) || 1))}
-                                                            className="w-24 form-input h-12 text-center text-xl font-black text-text border-primary/20 bg-background shadow-inner outline-none relative z-10"
                                                             min="1"
+                                                            style={{
+                                                                width: '7rem',
+                                                                height: '3rem',
+                                                                textAlign: 'center',
+                                                                fontSize: '1.25rem',
+                                                                fontWeight: 900,
+                                                                color: 'var(--text)',
+                                                                background: 'var(--surface)',
+                                                                border: '2px solid var(--primary)',
+                                                                borderRadius: '0.75rem',
+                                                                outline: 'none',
+                                                                appearance: 'textfield',
+                                                                MozAppearance: 'textfield',
+                                                            }}
+                                                            className="exam-total-input"
                                                         />
                                                     </div>
                                                 </div>
@@ -2723,7 +2747,7 @@ const CourseEditorPage: React.FC = () => {
                     subSections: await Promise.all(section.subSections.map(async (ss, ssIdx) => ({
                         ...ss,
                         orderIndex: ssIdx,
-                        content: ss.content ? await uploadBase64ImagesInHtml(ss.content) : ss.content,
+                        content: ss.content ? sanitizeRichHtml(await uploadBase64ImagesInHtml(ss.content)) : ss.content,
                     })))
                 })))
             };
@@ -3357,7 +3381,7 @@ const CourseEditorPage: React.FC = () => {
                                                                     body: JSON.stringify({ prompt: aiContentPrompt })
                                                                 });
                                                                 if (!res.ok) throw new Error(`Erreur ${res.status}`);
-                                                                const html = await res.text();
+                                                                const html = sanitizeRichHtml(await res.text());
                                                                 const currentContent = selectedData?.subSection?.content || '';
                                                                 updateSubSection(selectedData!.section!.id, selectedData!.subSection!.id, { content: currentContent ? currentContent + html : html });
                                                                 setShowAiContentModal(false);

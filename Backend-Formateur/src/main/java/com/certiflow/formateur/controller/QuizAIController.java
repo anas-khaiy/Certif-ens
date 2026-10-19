@@ -8,6 +8,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
+
 @RestController
 @RequestMapping("/api/v1/ai")
 @RequiredArgsConstructor
@@ -37,7 +39,7 @@ public class QuizAIController {
         }
     }
 
-    @PostMapping(value = "/generate-content", produces = MediaType.TEXT_PLAIN_VALUE)
+    @PostMapping(value = "/generate-content", produces = "text/plain;charset=UTF-8")
     public ResponseEntity<String> generateContent(@RequestBody java.util.Map<String, String> payload) {
         String prompt = payload.getOrDefault("prompt", "");
         if (prompt.trim().isEmpty()) {
@@ -45,6 +47,9 @@ public class QuizAIController {
         }
 
         String markdownContent = quizAIService.generateContent(prompt);
-        return ResponseEntity.ok(markdownContent);
+        return ResponseEntity
+                .ok()
+                .contentType(new MediaType("text", "plain", StandardCharsets.UTF_8))
+                .body(markdownContent);
     }
 }

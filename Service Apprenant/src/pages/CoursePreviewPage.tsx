@@ -41,6 +41,7 @@ import api from '../api/api-client';
 import type { Course, Quiz, Question } from '../types';
 import { YoloDetector } from '../utils/yoloDetector';
 import type { YoloDetection } from '../utils/yoloDetector';
+import { sanitizeRichHtml } from '../utils/sanitizeHtml';
 import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, AI_GRADE_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 interface StudentAnswer {
@@ -2071,7 +2072,7 @@ const CoursePreviewPage: React.FC = () => {
                                         <div className="bg-surface border border-glass-border rounded-[2.5rem] shadow-xl overflow-hidden min-h-[100px]">
                                             <div 
                                                 className="p-8 sm:p-12 text-text rich-content-area" 
-                                                dangerouslySetInnerHTML={{ __html: activeSubSection.content }} 
+                                                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(activeSubSection.content) }}
                                                 onClick={(e) => {
                                                     const target = e.target as HTMLElement;
                                                     if (target.tagName === 'IMG') {
@@ -3104,7 +3105,11 @@ const CoursePreviewPage: React.FC = () => {
                     font-size: 1.125rem;
                     line-height: 1.8;
                     overflow-wrap: break-word;
-                    word-break: break-word;
+                    word-break: normal;
+                }
+                .rich-content-area, .rich-content-area * {
+                    word-break: normal !important;
+                    overflow-wrap: break-word;
                 }
                 .rich-content-area h1 { font-size: 2.5rem; font-weight: 900; margin-bottom: 2rem; color: var(--text); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; }
                 .rich-content-area h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; margin-top: 3rem; color: var(--text); }
