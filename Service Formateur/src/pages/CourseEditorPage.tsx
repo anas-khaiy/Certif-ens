@@ -681,6 +681,44 @@ const stripHtml = (html: string) => {
     return doc.body.textContent || "";
 };
 
+// Converts HTML to plain text PRESERVING structure: line breaks, paragraphs,
+// list bullets/numbering, spaces within lines. Used to prefill the AI topic.
+const htmlToTextPreserve = (html: string): string => {
+    if (!html) return "";
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const BLOCK_TAGS = new Set(['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'TR', 'PRE', 'BLOCKQUOTE', 'UL', 'OL']);
+
+    const walk = (node: Node): string => {
+        if (node.nodeType === Node.TEXT_NODE) return node.textContent || "";
+        if (node.nodeType !== Node.ELEMENT_NODE) return "";
+        const el = node as HTMLElement;
+        const tag = el.tagName;
+        if (tag === 'BR') return "\n";
+        let out = "";
+        if (tag === 'LI') {
+            const parent = el.parentElement;
+            if (parent && parent.tagName === 'OL') {
+                const idx = Array.from(parent.children).indexOf(el) + 1;
+                out += `${idx}. `;
+            } else {
+                out += "• ";
+            }
+        }
+        for (const child of Array.from(el.childNodes)) out += walk(child);
+        if (BLOCK_TAGS.has(tag)) out += "\n";
+        return out;
+    };
+
+    let text = walk(doc.body);
+    text = text
+        .split("\n")
+        .map(line => line.replace(/[ \t]+/g, ' ').trim())
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    return text;
+};
+
 // --- NEW QUIZ EDITOR ---
 const QuizEditorModal: React.FC<{
     initialQuiz?: Quiz | null;
@@ -898,8 +936,8 @@ const QuizEditorModal: React.FC<{
 
     const [aiTopic, setAiTopic] = useState<string>(() => {
         if (isExam) return title || "";
-        // Extract raw text from HTML content and normalize spaces
-        const rawText = stripHtml(lessonContent).replace(/\s+/g, ' ').trim();
+        // Extract text from HTML content PRESERVING line breaks, lists and numbering
+        const rawText = htmlToTextPreserve(lessonContent);
         return rawText || title || "";
     });
 
@@ -927,7 +965,7 @@ const QuizEditorModal: React.FC<{
         setIsGenerating(true);
         try {
             const rawText = await streamAI('/ai/generate-quiz/stream', {
-                topic: stripHtml(aiTopic).trim(),
+                topic: aiTopic.trim(),
                 count: settings.aiGeneratedCount
             });
 
