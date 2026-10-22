@@ -66,6 +66,66 @@ import {
     User
 } from 'lucide-react';
 
+// --- SSE AI streaming helper ---
+// Streams from the backend's text/event-stream endpoint, keeping the connection
+// alive (no proxy/firewall 504) while Ollama generates on CPU.
+async function streamAI(
+    endpoint: string,
+    body: unknown,
+    onToken?: (accumulated: string) => void,
+    signal?: AbortSignal
+): Promise<string> {
+    const res = await fetch(`${API_FORMATEUR}${endpoint}`, {
+        method: 'POST',
+        signal,
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream',
+            ...(localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {})
+        },
+        body: JSON.stringify(body)
+    });
+    if (!res.ok || !res.body) throw new Error(`Erreur ${res.status}`);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let full = '';
+
+    const handleEvent = (rawEvent: string) => {
+        let eventName = 'message';
+        const dataLines: string[] = [];
+        for (const line of rawEvent.split('\n')) {
+            if (line.startsWith('event:')) eventName = line.slice(6).trim();
+            else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+        }
+        if (dataLines.length === 0) return;
+        let data: string;
+        try { data = JSON.parse(dataLines.join('\n')); } catch { data = dataLines.join('\n'); }
+        if (eventName === 'token') {
+            full += data;
+            onToken?.(full);
+        } else if (eventName === 'done') {
+            full = data;
+        } else if (eventName === 'error') {
+            throw new Error(data);
+        }
+    };
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx: number;
+        while ((idx = buffer.indexOf('\n\n')) !== -1) {
+            handleEvent(buffer.slice(0, idx));
+            buffer = buffer.slice(idx + 2);
+        }
+    }
+    if (buffer.trim()) handleEvent(buffer);
+    return full;
+}
+
 // --- STYLES INJECTÉS ---
 // Map CourseEditor-specific variables to global theme variables
 const PAGE_STYLES = `
@@ -866,15 +926,13 @@ const QuizEditorModal: React.FC<{
 
         setIsGenerating(true);
         try {
-            const response = await api.post('/ai/generate-quiz', {
+            const rawText = await streamAI('/ai/generate-quiz/stream', {
                 topic: stripHtml(aiTopic).trim(),
                 count: settings.aiGeneratedCount
-            }, {
-                timeout: 300000 // 5 minutes timeout
             });
 
             // L'API renvoie du JSON. On gère les différents formats possibles (Array ou Object)
-            let rawData = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+            let rawData = typeof rawText === 'string' ? JSON.parse(rawText) : rawText;
 
             let questionsArray: any[] = [];
             if (Array.isArray(rawData)) {
@@ -3385,20 +3443,11 @@ const CourseEditorPage: React.FC = () => {
                                                             setAiContentLoading(true);
                                                             setAiContentError('');
                                                             const controller = new AbortController();
-                                                            const abortTimeout = setTimeout(() => controller.abort(), 300000); // 5 min timeout
+                                                            const abortTimeout = setTimeout(() => controller.abort(), 600000); // 10 min timeout
                                                             try {
-                                                                const res = await fetch(`${API_FORMATEUR}/ai/generate-content`, {
-                                                                    method: 'POST',
-                                                                    signal: controller.signal,
-                                                                    headers: {
-                                                                        'Content-Type': 'application/json',
-                                                                        ...(localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {})
-                                                                    },
-                                                                    body: JSON.stringify({ prompt: aiContentPrompt })
-                                                                });
+                                                                const fullHtml = await streamAI('/ai/generate-content/stream', { prompt: aiContentPrompt }, undefined, controller.signal);
                                                                 clearTimeout(abortTimeout);
-                                                                if (!res.ok) throw new Error(`Erreur ${res.status}`);
-                                                                const html = sanitizeRichHtml(await res.text());
+                                                                const html = sanitizeRichHtml(fullHtml);
                                                                 const currentContent = selectedData?.subSection?.content || '';
                                                                 updateSubSection(selectedData!.section!.id, selectedData!.subSection!.id, { content: currentContent ? currentContent + html : html });
                                                                 setShowAiContentModal(false);

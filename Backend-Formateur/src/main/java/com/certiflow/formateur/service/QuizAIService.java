@@ -7,7 +7,11 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Consumer;
 import com.certiflow.formateur.model.SystemSetting;
 import com.certiflow.formateur.repository.SystemSettingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,6 +147,90 @@ public class QuizAIService {
         } catch (Exception e) {
             return "Une erreur est survenue lors de la communication avec l'IA: " + e.getMessage();
         }
+    }
+
+    /**
+     * Streams quiz generation from Ollama token-by-token.
+     * onToken receives each raw text delta; returns the full accumulated text
+     * (the raw JSON string produced by the model).
+     */
+    public String generateQuestionsStream(String topic, int count, Consumer<String> onToken) {
+        String prompt = String.format(
+                "Tu es un expert pédagogique. Génère un quiz de %d questions techniques basé UNIQUEMENT sur ce contenu : '%s'.\n"
+                        + "FORMAT DE RÉPONSE OBLIGATOIRE (JSON pur, sans texte avant ni après) :\n"
+                        + "{\n"
+                        + "  \"questions\": [\n"
+                        + "    {\n"
+                        + "      \"type\": \"QCU\" ou \"QCM\",\n"
+                        + "      \"text\": \"énoncé de la question\",\n"
+                        + "      \"options\": [\"Choix 1\", \"Choix 2\", \"Choix 3\", \"Choix 4\"],\n"
+                        + "      \"correctAnswers\": [0]\n"
+                        + "    }\n"
+                        + "  ]\n"
+                        + "}\n"
+                        + "RÈGLES :\n"
+                        + "- correctAnswers doit contenir UNIQUEMENT des entiers (indices commençant par 0).\n"
+                        + "- Si plusieurs réponses sont correctes, type = \"QCM\". Sinon, type = \"QCU\".\n"
+                        + "- NE DONNE RIEN d'autre que l'objet JSON.",
+                count, topic);
+        return streamFromOllama(prompt, true, onToken);
+    }
+
+    /**
+     * Streams lesson content generation from Ollama token-by-token.
+     * Returns the full accumulated HTML text.
+     */
+    public String generateContentStream(String query, Consumer<String> onToken) {
+        String prompt = String.format(
+                "Tu es un expert pédagogique. Rédige le contenu détaillé d'une leçon sur le sujet suivant: '%s'. "
+                        + "Fournis UNIQUEMENT le contenu final formaté en balises HTML valides (utilise <h1>, <h2>, <p>, <ul>, <li>, <strong>, et <pre><code> pour les extraits de code). "
+                        + "NE DONNE SURTOUT PAS de Markdown (n'utilise pas # ou ```). Ne mets pas de balises <html>, <head> ou <body>, donne uniquement le contenu. "
+                        + "Ne dis pas 'Voici le contenu' ou de phrases d'introduction. Renvoie strictement l'HTML pur prêt à être affiché.",
+                query);
+        return streamFromOllama(prompt, false, onToken);
+    }
+
+    private String streamFromOllama(String prompt, boolean jsonFormat, Consumer<String> onToken) {
+        String ollamaBase = System.getenv("OLLAMA_URL") != null
+                ? System.getenv("OLLAMA_URL")
+                : "http://localhost:11434";
+        String url = ollamaBase + "/api/generate";
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("model", getModelName());
+        body.put("prompt", prompt);
+        body.put("stream", true);
+        if (jsonFormat) {
+            body.put("format", "json");
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        StringBuilder full = new StringBuilder();
+        restTemplate.execute(url, HttpMethod.POST, requestCallback -> {
+            requestCallback.getHeaders().putAll(headers);
+            requestCallback.getBody().write(objectMapper.writeValueAsBytes(body));
+        }, response -> {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(response.getBody(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.isBlank()) continue;
+                    JsonNode node = objectMapper.readTree(line);
+                    if (node.has("error")) {
+                        throw new RuntimeException("Ollama error: " + node.get("error").asText());
+                    }
+                    JsonNode token = node.get("response");
+                    if (token != null && token.isTextual() && !token.asText().isEmpty()) {
+                        full.append(token.asText());
+                        onToken.accept(token.asText());
+                    }
+                }
+            }
+            return null;
+        });
+        return full.toString();
     }
 
     /**
