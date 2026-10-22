@@ -869,6 +869,8 @@ const QuizEditorModal: React.FC<{
             const response = await api.post('/ai/generate-quiz', {
                 topic: stripHtml(aiTopic).trim(),
                 count: settings.aiGeneratedCount
+            }, {
+                timeout: 300000 // 5 minutes timeout
             });
 
             // L'API renvoie du JSON. On gère les différents formats possibles (Array ou Object)
@@ -3382,15 +3384,19 @@ const CourseEditorPage: React.FC = () => {
                                                             if (!aiContentPrompt.trim()) return;
                                                             setAiContentLoading(true);
                                                             setAiContentError('');
+                                                            const controller = new AbortController();
+                                                            const abortTimeout = setTimeout(() => controller.abort(), 300000); // 5 min timeout
                                                             try {
                                                                 const res = await fetch(`${API_FORMATEUR}/ai/generate-content`, {
                                                                     method: 'POST',
+                                                                    signal: controller.signal,
                                                                     headers: {
                                                                         'Content-Type': 'application/json',
                                                                         ...(localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {})
                                                                     },
                                                                     body: JSON.stringify({ prompt: aiContentPrompt })
                                                                 });
+                                                                clearTimeout(abortTimeout);
                                                                 if (!res.ok) throw new Error(`Erreur ${res.status}`);
                                                                 const html = sanitizeRichHtml(await res.text());
                                                                 const currentContent = selectedData?.subSection?.content || '';
