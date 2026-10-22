@@ -40,7 +40,8 @@ import type { Course, Quiz, Question } from '../types';
 import { YoloDetector } from '../utils/yoloDetector';
 import type { YoloDetection } from '../utils/yoloDetector';
 import { sanitizeRichHtml } from '../utils/sanitizeHtml';
-import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, AI_GRADE_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
+import { streamAI } from '../utils/streamAI';
+import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, AI_GRADE_STREAM_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 interface StudentAnswer {
     questionId: string;
@@ -1056,19 +1057,21 @@ const CoursePreviewPage: React.FC = () => {
 
         if (aiOpenQuestions.length > 0) {
             setAiGrading(true);
-            setAiGradingMessage(`L'IA analyse les réponses... (${aiOpenQuestions.length} question(s) ouverte(s))`);
+            setAiGradingMessage(`L'IA analyse les réponses... (0/${aiOpenQuestions.length})`);
 
-            for (const q of aiOpenQuestions) {
+            for (let i = 0; i < aiOpenQuestions.length; i++) {
+                const q = aiOpenQuestions[i];
                 const currentAnswers = isExamActive ? examAnswers : quizAnswers;
                 const answer = currentAnswers[q.id] || "";
+                const baseMsg = `L'IA analyse la réponse... (${i + 1}/${aiOpenQuestions.length})`;
                 try {
-                    const response = await fetch(AI_GRADE_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ question: q.text, answer, criteria: q.criteria || [] })
-                    });
-                    if (response.ok) {
-                        const result = await response.json();
+                    // SSE streaming: keeps proxies alive, no 504 during slow CPU inference
+                    const result = await streamAI(
+                        AI_GRADE_STREAM_URL,
+                        { question: q.text, answer, criteria: q.criteria || [] },
+                        (analysis) => setAiGradingMessage(`${baseMsg} « ${analysis.slice(-70)} »`)
+                    );
+                    if (result && typeof result === 'object') {
                         aiGradingResults[q.id] = result;
                     }
                 } catch (err) {

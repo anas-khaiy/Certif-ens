@@ -1,10 +1,13 @@
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List
 import requests as http_requests
 import os
 import re
+import json
+import threading
 from ultralytics import YOLO
 import cv2
 import numpy as np
@@ -652,9 +655,7 @@ def _fallback_grading(question: str, answer: str, criteria: List[str]) -> int:
     return 1 if overlap >= max(1, len(q_keywords) // 4) else 0
 
 
-def _grade_with_llm(question: str, answer: str, criteria: List[str]) -> tuple:
-    """Use Ollama LLM to evaluate if the answer is correct given the question.
-    Returns (is_correct: int, feedback: str)."""
+def _build_grading_prompt(question: str, answer: str, criteria: List[str]) -> str:
     criteria_section = ""
     if criteria:
         criteria_list = "\n".join([f"  - {c}" for c in criteria])
@@ -663,7 +664,7 @@ Key criteria to check in the answer:
 {criteria_list}
 """
 
-    prompt = f"""You are an automatic quiz grader. Read the question and the student's answer carefully.
+    return f"""You are an automatic quiz grader. Read the question and the student's answer carefully.
 
 QUESTION:
 {question}
@@ -682,6 +683,71 @@ or
 FINAL ANSWER: 1
 Do NOT output anything after that line."""
 
+
+def _parse_grading_response(text: str) -> tuple:
+    """Parse the LLM grading text into (is_correct: int, feedback: str).
+    Raises ValueError if no valid 0/1 verdict can be extracted."""
+    text = text.strip()
+    print(f"[LLM RAW] {text[:500]}")
+
+    # Extract feedback: everything before FINAL ANSWER line, cleaned up
+    feedback = ""
+    fb_match = re.split(r'FINAL\s+ANSWER:\s*[01]', text, flags=re.IGNORECASE)
+    if fb_match:
+        raw_fb = fb_match[0].strip()
+        # Remove "Let's analyze" / step-by-step preamble, keep the explanation
+        # Take the last 2-3 sentences before FINAL ANSWER
+        sentences = re.split(r'(?<=[.!?])\s+', raw_fb)
+        # Filter out analysis steps (numbered lists, "Let me", etc.)
+        meaningful = [s for s in sentences if s.strip() and not re.match(r'^[\d\*\-]', s.strip()) and 'step' not in s.lower()[:20]]
+        if meaningful:
+            feedback = ' '.join(meaningful[-3:]).strip()
+        else:
+            feedback = raw_fb[-300:].strip()
+
+    # 1. Look for explicit FINAL ANSWER marker (most reliable)
+    is_correct = None
+    m = re.search(r'FINAL\s+ANSWER:\s*([01])\b', text, re.IGNORECASE)
+    if m:
+        is_correct = int(m.group(1))
+
+    # 2. Semantic fallback: look for conclusion patterns
+    if is_correct is None:
+        conclusions = re.findall(r'(?:answer|response)\s+is\s+(correct|incorrect)\b', text, re.IGNORECASE)
+        if conclusions:
+            is_correct = 1 if conclusions[-1].lower() == 'correct' else 0
+
+    # 3. Last standalone 0 or 1 in the response
+    if is_correct is None:
+        matches = re.findall(r'\b([01])\b', text)
+        if matches:
+            is_correct = int(matches[-1])
+    # 4. Fallback: find any 0 or 1
+    if is_correct is None:
+        match = re.search(r'([01])', text)
+        if match:
+            is_correct = int(match.group(1))
+    if is_correct is None:
+        raise ValueError("No valid 0/1 in LLM response")
+
+    # Build final feedback
+    if is_correct == 1:
+        default_fb = "La réponse est correcte et pertinente."
+    else:
+        default_fb = "La réponse est incorrecte ou hors sujet."
+    if feedback and len(feedback) > 20:
+        feedback = f"{default_fb} {feedback}"
+    else:
+        feedback = default_fb
+
+    return (is_correct, feedback)
+
+
+def _grade_with_llm(question: str, answer: str, criteria: List[str]) -> tuple:
+    """Use Ollama LLM to evaluate if the answer is correct given the question.
+    Returns (is_correct: int, feedback: str)."""
+    prompt = _build_grading_prompt(question, answer, criteria)
+
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -697,64 +763,59 @@ Do NOT output anything after that line."""
             )
             resp.raise_for_status()
             text = resp.json().get("response", "").strip()
-            print(f"[LLM RAW] {text[:500]}")
-
-            # Extract feedback: everything before FINAL ANSWER line, cleaned up
-            feedback = ""
-            fb_match = re.split(r'FINAL\s+ANSWER:\s*[01]', text, flags=re.IGNORECASE)
-            if fb_match:
-                raw_fb = fb_match[0].strip()
-                # Remove "Let's analyze" / step-by-step preamble, keep the explanation
-                # Take the last 2-3 sentences before FINAL ANSWER
-                sentences = re.split(r'(?<=[.!?])\s+', raw_fb)
-                # Filter out analysis steps (numbered lists, "Let me", etc.)
-                meaningful = [s for s in sentences if s.strip() and not re.match(r'^[\d\*\-]', s.strip()) and 'step' not in s.lower()[:20]]
-                if meaningful:
-                    feedback = ' '.join(meaningful[-3:]).strip()
-                else:
-                    feedback = raw_fb[-300:].strip()
-
-            # 1. Look for explicit FINAL ANSWER marker (most reliable)
-            is_correct = None
-            m = re.search(r'FINAL\s+ANSWER:\s*([01])\b', text, re.IGNORECASE)
-            if m:
-                is_correct = int(m.group(1))
-
-            # 2. Semantic fallback: look for conclusion patterns
-            if is_correct is None:
-                conclusions = re.findall(r'(?:answer|response)\s+is\s+(correct|incorrect)\b', text, re.IGNORECASE)
-                if conclusions:
-                    is_correct = 1 if conclusions[-1].lower() == 'correct' else 0
-
-            # 3. Last standalone 0 or 1 in the response
-            if is_correct is None:
-                matches = re.findall(r'\b([01])\b', text)
-                if matches:
-                    is_correct = int(matches[-1])
-            # 4. Fallback: find any 0 or 1
-            if is_correct is None:
-                match = re.search(r'([01])', text)
-                if match:
-                    is_correct = int(match.group(1))
-            if is_correct is None:
-                raise ValueError("No valid 0/1 in LLM response")
-
-            # Build final feedback
-            if is_correct == 1:
-                default_fb = "La réponse est correcte et pertinente."
-            else:
-                default_fb = "La réponse est incorrecte ou hors sujet."
-            if feedback and len(feedback) > 20:
-                feedback = f"{default_fb} {feedback}"
-            else:
-                feedback = default_fb
-
-            return (is_correct, feedback)
+            return _parse_grading_response(text)
         except Exception as e:
             print(f"LLM attempt {attempt + 1}/{max_retries} failed: {e}")
             if attempt < max_retries - 1:
                 import time
                 time.sleep(1.5 * (attempt + 1))  # backoff: 1.5s, 3s
+            else:
+                print(f"LLM grading failed after {max_retries} attempts, falling back to keyword matching")
+                fb = "Correction automatique par mots-clés (IA indisponible)."
+                return (_fallback_grading(question, answer, criteria), fb)
+
+
+def _grade_with_llm_stream(question: str, answer: str, criteria: List[str], on_token) -> tuple:
+    """Streaming variant of _grade_with_llm: on_token receives each text delta
+    as the model generates (keeps proxies/firewalls alive). Returns (is_correct, feedback)."""
+    prompt = _build_grading_prompt(question, answer, criteria)
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            resp = http_requests.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={
+                    "model": OLLAMA_MODEL,
+                    "prompt": prompt,
+                    "stream": True,
+                    "options": {"temperature": 0.2}
+                },
+                stream=True,
+                timeout=120
+            )
+            resp.raise_for_status()
+            chunks = []
+            for line in resp.iter_lines(decode_unicode=True):
+                if not line:
+                    continue
+                try:
+                    node = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if "error" in node:
+                    raise RuntimeError(f"Ollama error: {node['error']}")
+                token = node.get("response", "")
+                if token:
+                    chunks.append(token)
+                    on_token(token)
+            text = "".join(chunks).strip()
+            return _parse_grading_response(text)
+        except Exception as e:
+            print(f"LLM stream attempt {attempt + 1}/{max_retries} failed: {e}")
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(1.5 * (attempt + 1))
             else:
                 print(f"LLM grading failed after {max_retries} attempts, falling back to keyword matching")
                 fb = "Correction automatique par mots-clés (IA indisponible)."
@@ -814,6 +875,89 @@ async def grade_open_answer(request: GradeOpenAnswerRequest):
     except Exception as e:
         print(f"Error in grade_open_answer: {e}")
         return {"error": f"Erreur de correction IA: {str(e)}", "is_correct": 0}
+
+
+@app.post("/grade-open-answer/stream")
+async def grade_open_answer_stream(request: GradeOpenAnswerRequest):
+    """
+    SSE streaming variant of /grade-open-answer.
+    Streams the LLM's analysis token-by-token (event: token) so intermediate
+    proxies/firewalls never idle-timeout (504), then sends the final result
+    as event: done with the same JSON body as the non-streaming endpoint.
+    """
+
+    def sse(name: str, payload) -> str:
+        return f"event: {name}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    async def event_stream():
+        question = request.question.strip()
+        answer = request.answer.strip()
+        criteria = [c.strip() for c in request.criteria if c.strip()]
+
+        if not answer:
+            yield sse("done", {
+                "is_correct": 0, "score": 0, "graded_by": "none", "feedback": "Réponse vide"
+            })
+            return
+
+        if not question:
+            yield sse("done", {
+                "is_correct": 0, "score": 0, "graded_by": "none", "feedback": "Question non définie"
+            })
+            return
+
+        if _is_gibberish(answer):
+            yield sse("done", {
+                "is_correct": 0, "score": 0, "graded_by": "ai",
+                "feedback": "Réponse incorrecte (texte non compréhensible)"
+            })
+            return
+
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue = asyncio.Queue()
+
+        def on_token(token: str):
+            asyncio.run_coroutine_threadsafe(queue.put(("token", token)), loop)
+
+        def produce():
+            try:
+                # Serialize calls — Ollama 7B can't handle concurrent generate
+                is_correct, feedback = _grade_with_llm_stream(question, answer, criteria, on_token)
+                result = {
+                    "is_correct": is_correct,
+                    "score": is_correct,
+                    "feedback": feedback,
+                    "graded_by": "ai"
+                }
+                asyncio.run_coroutine_threadsafe(queue.put(("done", result)), loop)
+            except Exception as e:
+                print(f"Error in grade_open_answer_stream: {e}")
+                asyncio.run_coroutine_threadsafe(
+                    queue.put(("error", f"Erreur de correction IA: {str(e)}")),
+                    loop
+                )
+            finally:
+                asyncio.run_coroutine_threadsafe(queue.put(("end", None)), loop)
+
+        async with _llm_semaphore:
+            threading.Thread(target=produce, daemon=True).start()
+            while True:
+                kind, payload = await queue.get()
+                if kind == "end":
+                    break
+                yield sse(kind, payload)
+
+            print(f"[AI GRADING STREAM] Q='{question[:60]}...' | A='{answer[:60]}...'")
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 if __name__ == "__main__":

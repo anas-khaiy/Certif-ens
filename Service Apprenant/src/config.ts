@@ -19,3 +19,4 @@ export const VERIFY_URL_APPRENANT = `${window.location.origin}/verify`;
 // ── AI detection service ──────────────────────────────────────────────────────
 export const AI_DETECT_URL = '/api/ai/detect';
 export const AI_GRADE_URL = '/api/ai/grade-open-answer';
+export const AI_GRADE_STREAM_URL = '/api/ai/grade-open-answer/stream';
