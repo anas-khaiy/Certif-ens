@@ -319,6 +319,12 @@ const parseCheatingReason = (reason: string): { icon: string; label: string; col
         return { icon: '🔄', label: 'Fermeture de page', color: 'red' };
     return { icon: '🚫', label: 'Activité suspecte', color: 'red' };
 };
+// Convert a percentage score (0-100) into a mark out of 20 (e.g. 80 -> "16", 73 -> "14.6")
+const toOutOf20 = (percent?: number | null): string => {
+    const v = ((percent ?? 0) * 20) / 100;
+    return Number.isInteger(v) ? String(v) : v.toFixed(1);
+};
+
 const isTempId = (id: any) => !id || (typeof id === 'string' && (id.startsWith('temp-') || id === 'new'));
 
 const stripTempIds = (obj: any): any => {
@@ -2249,7 +2255,7 @@ const TrainerCorrectionModal: React.FC<{
                                     <h4 className="text-xl sm:text-2xl font-black">{submission.quizTitle}</h4>
                                     {submission.totalScore !== undefined && (
                                         <div className="text-left sm:text-right">
-                                            <div className="text-2xl sm:text-3xl font-black text-primary">{submission.totalScore}%</div>
+                                            <div className="text-2xl sm:text-3xl font-black text-primary">{toOutOf20(submission.totalScore)}/20 <span className="text-xs font-bold opacity-60">({submission.totalScore}%)</span></div>
                                             <div className="text-[10px] font-bold uppercase text-text-muted">Score Final</div>
                                         </div>
                                     )}
@@ -2613,6 +2619,11 @@ const CourseEditorPage: React.FC = () => {
                                 }
                             });
                         });
+                        // Supervised course quizzes: use the title given by the formateur
+                        const courseQuiz = (courseToUse.courseQuizzes || []).find((cq: any) => String(cq.id) === String(r.quizId));
+                        if (courseQuiz) {
+                            quizTitle = courseQuiz.title || 'Quiz';
+                        }
 
                         let answers: StudentAnswer[] = [];
                         if (r.answers) {
@@ -3705,7 +3716,7 @@ const CourseEditorPage: React.FC = () => {
                                 <div className="flex flex-wrap justify-center md:justify-start gap-3">
                                     <div className="px-4 py-2 rounded-2xl bg-background/50 border border-glass-border backdrop-blur-sm">
                                         <div className="text-[9px] uppercase font-black text-text-muted mb-0.5 tracking-widest">Moyenne</div>
-                                        <div className="text-xl font-black text-primary">{learner.totalQuizScore}%</div>
+                                        <div className="text-xl font-black text-primary">{toOutOf20(learner.totalQuizScore)}/20 <span className="text-xs font-bold opacity-50">({learner.totalQuizScore}%)</span></div>
                                     </div>
                                     <div className="px-4 py-2 rounded-2xl bg-background/50 border border-glass-border backdrop-blur-sm">
                                         <div className="text-[9px] uppercase font-black text-text-muted mb-0.5 tracking-widest">Leçons</div>
@@ -3834,7 +3845,7 @@ const CourseEditorPage: React.FC = () => {
                                                                             ? 'bg-white/20 text-white'
                                                                             : 'bg-primary/10 text-primary'
                                                                             }`}>
-                                                                            {(sub.totalScore ?? 0)}%
+                                                                            {toOutOf20(sub.totalScore)}/20
                                                                         </span>
                                                                     </div>
                                                                 </div>
@@ -3851,6 +3862,7 @@ const CourseEditorPage: React.FC = () => {
                                                 const sub = learner.submissions[selectedSubmissionIndex];
                                                 const allQuestions = [
                                                     ...(course.finalExam?.questions || []),
+                                                    ...(course.courseQuizzes || []).flatMap((cq: any) => cq.questions || []),
                                                     ...course.sections.flatMap((s: any) => s.subSections.flatMap((ss: any) => ss.quiz?.questions || []))
                                                 ];
 
@@ -3870,7 +3882,7 @@ const CourseEditorPage: React.FC = () => {
                                                             <div className="flex items-center gap-4">
                                                                 <div className="text-center bg-background/40 backdrop-blur-sm border border-glass-border px-4 py-2 rounded-2xl">
                                                                     <div className="text-[9px] font-black text-text-muted uppercase tracking-widest">Score Final</div>
-                                                                    <div className={`text-3xl font-black ${(sub.totalScore ?? 0) >= 50 ? 'text-green-500' : 'text-error'}`}>{sub.totalScore ?? 0}%</div>
+                                                                    <div className={`text-3xl font-black ${(sub.totalScore ?? 0) >= 50 ? 'text-green-500' : 'text-error'}`}>{toOutOf20(sub.totalScore)}/20 <span className="text-xs font-bold opacity-60">({sub.totalScore ?? 0}%)</span></div>
                                                                 </div>
                                                                 <div className={`p-4 rounded-2xl ${(sub.totalScore ?? 0) >= 50 ? 'bg-green-500/10 text-green-500' : 'bg-error/10 text-error'} shadow-inner`}>
                                                                     {(sub.totalScore ?? 0) >= 50 ? <CheckCircle2 size={32} /> : <AlertTriangle size={32} />}
@@ -4197,7 +4209,7 @@ const CourseEditorPage: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="bg-surface-hover/30 py-4">
-                                            <div className="font-black text-lg text-primary">{learner.totalQuizScore}%</div>
+                                            <div className="font-black text-lg text-primary">{toOutOf20(learner.totalQuizScore)}/20</div>
                                             <div className="text-[10px] uppercase font-bold text-text-muted">Moyenne</div>
                                         </td>
                                         <td className="bg-surface-hover/30 py-4">
@@ -4672,8 +4684,8 @@ const CourseEditorPage: React.FC = () => {
                     onClose={() => setShowFinalExamEditor(false)}
                 />
             )}
-            {quizTitleDraft && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" style={{ zIndex: 10000 }}>
+            {quizTitleDraft && createPortal(
+                <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 m-0" style={{ zIndex: 10000, top: 0, left: 0, width: '100vw', height: '100vh' }}>
                     <div className="bg-surface border border-glass-border rounded-3xl shadow-2xl w-full max-w-md p-6 space-y-5">
                         <h3 className="text-lg font-black">{quizTitleDraft.index === null ? 'Nouveau quiz' : 'Renommer le quiz'}</h3>
                         <div>
@@ -4709,7 +4721,8 @@ const CourseEditorPage: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
             {quizEditorTarget && (
                 <QuizEditorModal
