@@ -60,6 +60,9 @@ public class VerificationService {
                                                 });
                                         }
 
+                                        // Supervised course quizzes (if any) also count in the final average
+                                        validRegularQuizIds.addAll(enrollment.getCourse().courseQuizIds());
+
                                         // 2. Identify and calculate best scores per quiz
                                         java.util.Map<String, Integer> quizBestScores = new java.util.HashMap<>();
                                         Integer bestFinalExamScore = 0;

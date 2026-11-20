@@ -150,8 +150,11 @@ const CompletedCoursesPage = () => {
                             r.passed === true
                         );
 
-                        const totalItems = uniqueSubSectionIds.size + (hasFinalExam ? 1 : 0);
-                        const completedItems = uniqueCompletedIds.size + (hasFinalExam && finalExamResult ? 1 : 0);
+                        // Supervised course quizzes (if any) are required like the final exam
+                        const courseQuizList: any[] = (course as any).courseQuizzes || [];
+                        const courseQuizzesPassed = courseQuizList.filter((cq: any) => quizResults.some((r: any) => String(r.quizId) === String(cq.id) && r.passed === true)).length;
+                        const totalItems = uniqueSubSectionIds.size + (hasFinalExam ? 1 : 0) + courseQuizList.length;
+                        const completedItems = uniqueCompletedIds.size + (hasFinalExam && finalExamResult ? 1 : 0) + courseQuizzesPassed;
 
                         const percentage = totalItems > 0
                             ? Math.round((completedItems / totalItems) * 100)
@@ -188,6 +191,8 @@ const CompletedCoursesPage = () => {
                                     }
                                 });
                             });
+
+                            courseQuizList.forEach((cq: any) => validRegularQuizIds.add(String(cq.id)));
 
                             const quizBestScores = new Map<string, number>();
                             quizResults.forEach((r: any) => {

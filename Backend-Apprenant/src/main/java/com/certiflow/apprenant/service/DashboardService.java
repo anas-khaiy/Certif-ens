@@ -71,6 +71,8 @@ public class DashboardService {
             if (course.getFinalExam() != null && course.getExamEnabled() != Boolean.FALSE) {
                 totalItems += 1;
             }
+            // Supervised course quizzes (if any) are required like the final exam
+            totalItems += course.courseQuizIds().size();
 
             long completedItems = 0;
             java.util.Set<String> allSubSectionIds = new java.util.HashSet<>();
@@ -98,6 +100,7 @@ public class DashboardService {
             if (examPassed && course.getExamEnabled() != Boolean.FALSE && course.getFinalExam() != null) {
                 completedItems += 1;
             }
+            completedItems += course.passedCourseQuizCount(results);
 
             if (totalItems > 0) {
                 progressPercent = (int) Math.min(100, Math.round((completedItems * 100.0) / totalItems));

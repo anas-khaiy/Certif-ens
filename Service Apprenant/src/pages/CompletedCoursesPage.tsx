@@ -154,8 +154,11 @@ const CompletedCoursesPage = () => {
 
                         // 4. Calculate Progress Percentage
                         // totalItems = number of unique sub-sections + 1 for exam (if applicable)
-                        const totalItems = uniqueSubSectionIds.size + (hasFinalExam ? 1 : 0);
-                        const completedItems = uniqueCompletedIds.size + (hasFinalExam && finalExamResult ? 1 : 0);
+                        // Supervised course quizzes (if any) are required like the final exam
+                        const courseQuizList: any[] = (course as any).courseQuizzes || [];
+                        const courseQuizzesPassed = courseQuizList.filter((cq: any) => quizResults.some((r: any) => String(r.quizId) === String(cq.id) && r.passed === true)).length;
+                        const totalItems = uniqueSubSectionIds.size + (hasFinalExam ? 1 : 0) + courseQuizList.length;
+                        const completedItems = uniqueCompletedIds.size + (hasFinalExam && finalExamResult ? 1 : 0) + courseQuizzesPassed;
 
                         // A course with no lessons and no exam is NOT considered completed (progress = 0%)
                         const percentage = totalItems > 0
@@ -196,6 +199,8 @@ const CompletedCoursesPage = () => {
                                     }
                                 });
                             });
+
+                            courseQuizList.forEach((cq: any) => validRegularQuizIds.add(String(cq.id)));
 
                             // 2. Get best scores for each regular quiz
                             const quizBestScores = new Map<string, number>();

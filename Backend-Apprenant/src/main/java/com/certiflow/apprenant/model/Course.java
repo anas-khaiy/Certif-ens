@@ -102,4 +102,26 @@ public class Course {
     // Not persisted — populated at runtime by CourseService for filtering/display
     @Transient
     private String specialiteNom;
+
+    // ---- Helpers for supervised course quizzes (not getters => not serialized) ----
+    public java.util.Set<String> courseQuizIds() {
+        java.util.Set<String> ids = new java.util.LinkedHashSet<>();
+        if (courseQuizzes != null) {
+            for (Quiz q : courseQuizzes) {
+                if (q != null && q.getId() != null) ids.add(String.valueOf(q.getId()));
+            }
+        }
+        return ids;
+    }
+
+    /** Number of distinct supervised quizzes of this course passed in the given results. */
+    public long passedCourseQuizCount(java.util.Collection<QuizResult> results) {
+        java.util.Set<String> ids = courseQuizIds();
+        if (ids.isEmpty() || results == null) return 0;
+        return results.stream()
+                .filter(r -> r != null && r.getQuizId() != null && ids.contains(r.getQuizId()) && Boolean.TRUE.equals(r.getPassed()))
+                .map(QuizResult::getQuizId)
+                .distinct()
+                .count();
+    }
 }

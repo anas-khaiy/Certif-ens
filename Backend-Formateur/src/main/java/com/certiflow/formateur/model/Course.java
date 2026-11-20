@@ -98,4 +98,37 @@ public class Course {
     @org.hibernate.annotations.UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // ---- Helpers for supervised course quizzes (not getters => not serialized) ----
+    public java.util.Set<String> courseQuizIds() {
+        java.util.Set<String> ids = new java.util.LinkedHashSet<>();
+        if (courseQuizzes != null) {
+            for (Quiz q : courseQuizzes) {
+                if (q != null && q.getId() != null) ids.add(String.valueOf(q.getId()));
+            }
+        }
+        return ids;
+    }
+
+    public String courseQuizTitle(String quizId) {
+        if (courseQuizzes != null && quizId != null) {
+            for (Quiz q : courseQuizzes) {
+                if (q != null && q.getId() != null && quizId.equals(String.valueOf(q.getId()))) {
+                    return q.getTitle() != null ? q.getTitle() : "Quiz";
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Number of distinct supervised quizzes of this course passed in the given results. */
+    public long passedCourseQuizCount(java.util.Collection<QuizResult> results) {
+        java.util.Set<String> ids = courseQuizIds();
+        if (ids.isEmpty() || results == null) return 0;
+        return results.stream()
+                .filter(r -> r != null && r.getQuizId() != null && ids.contains(r.getQuizId()) && Boolean.TRUE.equals(r.getPassed()))
+                .map(QuizResult::getQuizId)
+                .distinct()
+                .count();
+    }
 }

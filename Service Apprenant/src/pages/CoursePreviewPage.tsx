@@ -45,6 +45,10 @@ import { sanitizeRichHtml } from '../utils/sanitizeHtml';
 import { streamAI } from '../utils/streamAI';
 import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, AI_GRADE_STREAM_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
+
+// Convertit un pourcentage en note sur 20
+const toOutOf20 = (percent: number) => (Math.round(((percent || 0) / 5) * 10) / 10).toString().replace('.', ',');
+
 interface StudentAnswer {
     questionId: string;
     type: 'QCU' | 'QCM' | 'OPEN';
@@ -1939,7 +1943,7 @@ const CoursePreviewPage: React.FC = () => {
                                                 <div className="font-black text-xs truncate">{cq.title || `Quiz ${cqIdx + 1}`}</div>
                                                 <div className="flex items-center gap-2 mt-0.5 text-[10px] font-bold opacity-70">
                                                     {cqDone ? (
-                                                        cqPending ? <>En attente de correction</> : <>Note: {cqResult.score}%</>
+                                                        cqPending ? <>En attente de correction</> : <>Note: {toOutOf20(cqResult.score)}/20 <span className="opacity-70">({cqResult.score}%)</span></>
                                                     ) : (
                                                         <>
                                                             <Clock size={10} /> {cq.settings?.timeLimit ?? 60} min
@@ -2005,7 +2009,7 @@ const CoursePreviewPage: React.FC = () => {
                                                         {isPendingManual ? (
                                                             <>En attente de correction</>
                                                         ) : isCompleted ? (
-                                                            <>Note: {examResult.score}%</>
+                                                            <>Note: {toOutOf20(examResult.score)}/20 <span className="opacity-70">({examResult.score}%)</span></>
                                                         ) : (
                                                             <>
                                                                 <Clock size={10} />
@@ -2094,7 +2098,7 @@ const CoursePreviewPage: React.FC = () => {
                                                                 <div className={`px-8 py-4 rounded-2xl font-black text-xl flex items-center gap-4 shadow-sm border ${examResult?.passed 
                                                                     ? 'bg-success/10 border-success/20 text-success' 
                                                                     : 'bg-error/10 border-error/20 text-error'}`}>
-                                                                    Note obtenue: {examResult.score}%
+                                                                    Note obtenue: {toOutOf20(examResult.score)}/20 ({examResult.score}%)
                                                                 </div>
                                                             </div>
                                                         )}
@@ -2268,7 +2272,7 @@ const CoursePreviewPage: React.FC = () => {
                                                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                                                                 <div className="p-5 rounded-2xl bg-surface border border-glass-border shadow-sm">
                                                                     <p className="text-[10px] font-black uppercase text-text-muted tracking-widest mb-1">Meilleur Score</p>
-                                                                    <p className="text-3xl font-black text-primary">{Math.round(bestResult.score)}%</p>
+                                                                    <p className="text-3xl font-black text-primary">{toOutOf20(bestResult.score)}/20 <span className="text-base font-bold text-text-muted">({Math.round(bestResult.score)}%)</span></p>
                                                                     <p className="text-sm font-bold text-text-muted">({allResults.length} tentative{allResults.length > 1 ? 's' : ''})</p>
                                                                 </div>
                                                                 <div className="p-5 rounded-2xl bg-surface border border-glass-border shadow-sm">
@@ -2377,12 +2381,12 @@ const CoursePreviewPage: React.FC = () => {
                                                         <Trophy size={64} className="text-primary ml-0 mb-4" />
                                                         <h3 className="text-2xl font-black mb-2">Quiz Terminé !</h3>
                                                         <div className="space-y-1 mb-4">
-                                                            <p className="text-lg font-bold">Score obtenu : <span className="text-primary">{Math.round((quizScore / (activeQuizQuestions.length || 1)) * 100)}%</span> <span className="text-sm text-text-muted">({quizScore} / {activeQuizQuestions.length})</span></p>
+                                                            <p className="text-lg font-bold">Score obtenu : <span className="text-primary">{toOutOf20((quizScore / (activeQuizQuestions.length || 1)) * 100)}/20</span> <span className="text-sm text-text-muted">({Math.round((quizScore / (activeQuizQuestions.length || 1)) * 100)}%)</span> <span className="text-sm text-text-muted">({quizScore} / {activeQuizQuestions.length})</span></p>
                                                             {(() => {
                                                                 const results = quizResults.filter(r => String(r.quizId) === String(activeSubSection.quiz?.id));
                                                                 if (results.length > 0) {
                                                                     const bestPercent = Math.max(...results.map(r => r.score || 0));
-                                                                    return <p className="text-sm font-bold text-success/80 flex items-center gap-2"><Trophy size={14} /> Votre meilleur score historique : {Math.round(bestPercent)}%</p>;
+                                                                    return <p className="text-sm font-bold text-success/80 flex items-center gap-2"><Trophy size={14} /> Votre meilleur score historique : {toOutOf20(bestPercent)}/20</p>;
                                                                 }
                                                                 return null;
                                                             })()}
@@ -3126,7 +3130,7 @@ const CoursePreviewPage: React.FC = () => {
                                                             <h2 className="text-4xl font-black mb-4">Examen Terminé</h2>
                                                             <div className="py-6 mb-8 rounded-3xl bg-primary/5 border border-primary/10">
                                                                 <p className="text-text-muted font-bold uppercase tracking-widest text-xs mb-1">Votre Note Finale</p>
-                                                                <div className="text-6xl font-black text-primary">{Math.round((examResult?.score || 0) / (examResult?.total || 1) * 100)}%</div>
+                                                                <div className="text-6xl font-black text-primary">{toOutOf20(Math.round((examResult?.score || 0) / (examResult?.total || 1) * 100))}<span className="text-3xl text-text-muted">/20</span></div>
                                                                 <p className="text-sm font-bold text-text-muted mt-2">{examResult?.score} / {examResult?.total} réponses correctes</p>
                                                             </div>
                                                         </>

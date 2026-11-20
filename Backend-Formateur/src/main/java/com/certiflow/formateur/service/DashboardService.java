@@ -36,7 +36,7 @@ public class DashboardService {
                     .flatMap(s -> s.getSubSections().stream())
                     .count() : 0;
             boolean examEnabled = course.getFinalExam() != null && course.getExamEnabled() != Boolean.FALSE;
-            courseTotalItems.put(course.getId(), subSectionsCount + (examEnabled ? 1 : 0));
+            courseTotalItems.put(course.getId(), subSectionsCount + (examEnabled ? 1 : 0) + course.courseQuizIds().size());
             if (examEnabled) courseFinalExamIds.put(course.getId(), course.getFinalExam().getId().toString());
         }
 
@@ -55,7 +55,7 @@ public class DashboardService {
             Set<String> subIds = new HashSet<>();
             if (course.getSections() != null) course.getSections().stream().filter(s -> s != null && s.getSubSections() != null).flatMap(s -> s.getSubSections().stream()).forEach(ss -> subIds.add(String.valueOf(ss.getId())));
             boolean examEnabled = course.getFinalExam() != null && course.getExamEnabled() != Boolean.FALSE;
-            long totalItems = subIds.size() + (examEnabled ? 1 : 0);
+            long totalItems = subIds.size() + (examEnabled ? 1 : 0) + course.courseQuizIds().size();
             if (totalItems == 0) continue;
 
             long completed = 0;
@@ -66,6 +66,7 @@ public class DashboardService {
             String feId = (course.getFinalExam() != null) ? course.getFinalExam().getId().toString() : null;
             Optional<QuizResult> eRes = allResults.stream().filter(r -> r.getApprenantId().equals(apprenantId) && r.getCourseId().equals(courseId)).filter(r -> ("final_exam".equals(r.getQuizId()) || (feId != null && feId.equals(r.getQuizId())))).filter(r -> Boolean.TRUE.equals(r.getPassed())).max(Comparator.comparing(QuizResult::getAttemptedAt));
             if (eRes.isPresent() && examEnabled) completed += 1;
+            completed += course.passedCourseQuizCount(allResults.stream().filter(r -> r.getApprenantId().equals(apprenantId) && r.getCourseId().equals(courseId)).collect(Collectors.toList()));
             if (completed >= totalItems) {
                 totalCertifications++;
                 java.time.LocalDateTime date = eRes.isPresent() ? eRes.get().getAttemptedAt() : (enrollment.getProcessedAt() != null ? enrollment.getProcessedAt() : enrollment.getRequestedAt());
@@ -124,7 +125,7 @@ public class DashboardService {
             Set<String> subIds = new HashSet<>();
             if (course.getSections() != null) course.getSections().stream().filter(s -> s != null && s.getSubSections() != null).flatMap(s -> s.getSubSections().stream()).forEach(ss -> subIds.add(String.valueOf(ss.getId())));
             boolean examEnabled = course.getFinalExam() != null && course.getExamEnabled() != Boolean.FALSE;
-            long totalItems = subIds.size() + (examEnabled ? 1 : 0);
+            long totalItems = subIds.size() + (examEnabled ? 1 : 0) + course.courseQuizIds().size();
             String feId = (course.getFinalExam() != null) ? course.getFinalExam().getId().toString() : null;
 
             long courseCerts = 0;
@@ -146,6 +147,7 @@ public class DashboardService {
                         .anyMatch(r -> Boolean.TRUE.equals(r.getPassed()));
 
                 if (passed && examEnabled) comp += 1;
+                comp += course.passedCourseQuizCount(quizResultRepository.findByCourseId(course.getId()).stream().filter(r -> r.getApprenantId().equals(apprenantId)).collect(Collectors.toList()));
                 double pPerc = totalItems > 0 ? (comp * 100.0 / totalItems) : 0;
                 courseSumProgress += pPerc;
 
@@ -224,7 +226,7 @@ public class DashboardService {
                     .forEach(ss -> subIds.add(String.valueOf(ss.getId())));
             }
             boolean examEnabled = course.getFinalExam() != null && course.getExamEnabled() != Boolean.FALSE;
-            long totalItems = subIds.size() + (examEnabled ? 1 : 0);
+            long totalItems = subIds.size() + (examEnabled ? 1 : 0) + course.courseQuizIds().size();
             String feId = (course.getFinalExam() != null) ? course.getFinalExam().getId().toString() : null;
 
             List<QuizResult> courseResults = quizResultRepository.findByCourseId(course.getId());
@@ -249,6 +251,7 @@ public class DashboardService {
                         .anyMatch(r -> Boolean.TRUE.equals(r.getPassed()));
 
                 if (passedExam && examEnabled) comp += 1;
+                comp += course.passedCourseQuizCount(learnerResults);
                 
                 double pPerc = totalItems > 0 ? (comp * 100.0 / totalItems) : 0;
                 sumProgressMap.merge(apprenantId, pPerc, (v1, v2) -> v1 + v2);
@@ -348,6 +351,8 @@ public class DashboardService {
                 String feId = (c.getFinalExam() != null) ? c.getFinalExam().getId().toString() : null;
                 if ("final_exam".equals(r.getQuizId()) || (feId != null && feId.equals(r.getQuizId()))) {
                     quizName = "Examen Final: " + c.getTitle();
+                } else if (c.courseQuizTitle(r.getQuizId()) != null) {
+                    quizName = c.courseQuizTitle(r.getQuizId());
                 } else if (c.getSections() != null) {
                     // Try to find section name
                     for (var sec : c.getSections()) {

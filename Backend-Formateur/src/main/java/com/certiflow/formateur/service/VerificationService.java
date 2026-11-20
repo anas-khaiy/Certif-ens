@@ -77,6 +77,9 @@ public class VerificationService {
                     }
                 }
 
+                // Supervised course quizzes (if any) also count in the final average
+                validRegularQuizIds.addAll(enrollment.getCourse().courseQuizIds());
+
                 Map<String, Integer> quizBestScores = new HashMap<>();
                 Integer bestFinalExamScore = 0;
                 if (results != null) {
@@ -180,6 +183,7 @@ public class VerificationService {
                                 }
                             }
                         }
+                        validRegularQuizIds.addAll(course.courseQuizIds());
                         Map<String, Integer> quizBestScores = new HashMap<>();
                         Integer bestFinalExamScore = 0;
                         if (results != null) {

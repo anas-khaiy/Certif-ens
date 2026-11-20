@@ -734,15 +734,16 @@ const QuizEditorModal: React.FC<{
     title?: string;
     description?: string;
     isExam?: boolean;
+    hidePool?: boolean;
     lessonContent?: string;
     courseSections?: Section[];
     openConfirmModal?: (title: string, message: string, onConfirm: () => void, type?: 'danger' | 'success' | 'warning', onCancel?: () => void, confirmText?: string) => void;
     closeConfirmModal?: () => void;
-}> = ({ initialQuiz, onSave, onClose, maxPoolSize = 60, title = "Éditeur de Quiz", description, isExam = false, lessonContent = "", courseSections = [], openConfirmModal, closeConfirmModal }) => {
-    const [quizMode, setQuizMode] = useState<'manual' | 'dynamic' | 'settings'>(initialQuiz?.settings?.mode || 'manual');
+}> = ({ initialQuiz, onSave, onClose, maxPoolSize = 60, title = "Éditeur de Quiz", description, isExam = false, hidePool = false, lessonContent = "", courseSections = [], openConfirmModal, closeConfirmModal }) => {
+    const [quizMode, setQuizMode] = useState<'manual' | 'dynamic' | 'settings'>(hidePool ? 'manual' : (initialQuiz?.settings?.mode || 'manual'));
     const [isGenerating, setIsGenerating] = useState(false);
     const [settings, setSettings] = useState<QuizSettings>(() => {
-        const baseSettings = initialQuiz?.settings || {
+        let baseSettings = initialQuiz?.settings || {
             mode: 'manual',
             aiGeneratedCount: 10,
             totalQuestions: 5,
@@ -768,6 +769,8 @@ const QuizEditorModal: React.FC<{
         if (!baseSettings.mode) {
             baseSettings.mode = initialQuiz?.questions && initialQuiz.questions.length > 0 ? 'manual' : 'manual';
         }
+
+        if (hidePool) baseSettings = { ...baseSettings, mode: 'manual' };
 
         if ((baseSettings.mode === 'dynamic' || isExam) && initialQuiz?.questions && (!baseSettings.generatedPool || baseSettings.generatedPool.length === 0)) {
             baseSettings.generatedPool = initialQuiz.questions;
@@ -1212,7 +1215,7 @@ const QuizEditorModal: React.FC<{
                             >
                                 Manuel
                             </button>
-                            <button
+                            {!hidePool && <button
                                 onClick={() => {
                                     setQuizMode('dynamic');
                                     setSettings(prev => ({ ...prev, mode: 'dynamic' }));
@@ -1223,7 +1226,7 @@ const QuizEditorModal: React.FC<{
                                     {isExam ? <Library size={14} /> : <Sparkles size={14} />}
                                     <span className="hidden xs:inline">{isExam ? "" : "IA / "}</span> {isExam ? "Pool du Cours" : "Dynamique"}
                                 </span>
-                            </button>
+                            </button>}
                             <button
                                 onClick={() => setQuizMode('settings')}
                                 className={`flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-lg sm:rounded-xl text-xs font-bold transition-all ${quizMode === 'settings' ? 'bg-primary text-white shadow-lg' : 'text-text-muted hover:text-text'}`}
@@ -4731,6 +4734,7 @@ const CourseEditorPage: React.FC = () => {
                     maxPoolSize={300}
                     initialQuiz={quizEditorTarget.index !== null ? (course.courseQuizzes || [])[quizEditorTarget.index] : null}
                     isExam={true}
+                    hidePool={true}
                     openConfirmModal={openConfirmModal}
                     closeConfirmModal={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
                     courseSections={course.sections}
