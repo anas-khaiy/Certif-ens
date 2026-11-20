@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   GraduationCap, 
   UserCheck, 
@@ -29,7 +29,43 @@ import {
   Users
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useSpring, useInView, animate } from 'framer-motion';
+
+// Animated counter used in the stats strip
+function CountUp({ to, suffix = '' }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(0, to, { duration: 1.8, ease: 'easeOut', onUpdate: (v) => setVal(Math.round(v)) });
+    return () => controls.stop();
+  }, [inView, to]);
+  return <span ref={ref}>{val}{suffix}</span>;
+}
+
+// Keyframes & helper classes for the animated home page (scoped by the hp- prefix)
+const HOME_ANIM_CSS = `
+@keyframes hp-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+@keyframes hp-float-slow { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,-40px) scale(1.12); } }
+@keyframes hp-gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes hp-shine { 0% { transform: translateX(-120%) skewX(-20deg); } 60%,100% { transform: translateX(220%) skewX(-20deg); } }
+@keyframes hp-ring { 0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.45); } 70% { box-shadow: 0 0 0 14px rgba(99,102,241,0); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); } }
+.hp-gradient-text { background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #6366f1); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: hp-gradient 6s ease infinite; }
+.hp-float { animation: hp-float 6s ease-in-out infinite; }
+.hp-float-delay { animation: hp-float 7s ease-in-out 1.2s infinite; }
+.hp-orb { position: absolute; border-radius: 50%; pointer-events: none; animation: hp-float-slow 14s ease-in-out infinite; }
+.hp-btn-shine { position: relative; overflow: hidden; }
+.hp-btn-shine::after { content: ''; position: absolute; top: 0; left: 0; width: 40%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent); animation: hp-shine 3.2s ease-in-out infinite; }
+.hp-btn-lift { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.hp-btn-lift:hover { transform: translateY(-3px) scale(1.03); }
+.hp-pulse-ring { animation: hp-ring 2.2s ease-out infinite; }
+.hp-feat-card img { transition: transform 0.7s ease; }
+.hp-feat-card:hover img { transform: scale(1.1); }
+.hp-hero-frame { position: relative; border-radius: 20px; padding: 2px; background: linear-gradient(120deg, #6366f1, #a855f7, #ec4899, #6366f1); background-size: 300% 300%; animation: hp-gradient 8s ease infinite; }
+@media (prefers-reduced-motion: reduce) { .hp-float, .hp-float-delay, .hp-orb, .hp-gradient-text, .hp-btn-shine::after, .hp-pulse-ring, .hp-hero-frame { animation: none !important; } }
+`;
+
 type PortalRole = 'student' | 'teacher' | 'coordinator' | 'admin';
 
 interface PortalData {
@@ -77,6 +113,8 @@ export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePortalDropdown, setActivePortalDropdown] = useState(false);
   const [activeCategory, setActiveCategory] = useState<'all' | 'formateur' | 'apprenant'>('all');
+  const { scrollYProgress } = useScroll();
+  const scrollBar = useSpring(scrollYProgress, { stiffness: 120, damping: 24, restDelta: 0.001 });
   
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
@@ -216,16 +254,21 @@ export default function HomePage() {
       color: 'var(--text)', 
       minHeight: '100vh',
       fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-      transition: 'background-color 0.3s ease, color 0.3s ease'
+      transition: 'background-color 0.3s ease, color 0.3s ease',
+      position: 'relative', overflowX: 'hidden', isolation: 'isolate'
     }}>
       
-      {/* Background Orbs */}
-      {isDark && (
-        <>
-          <div style={{ position: 'absolute', top: 0, left: '25%', width: 500, height: 500, background: 'rgba(99,102,241,0.08)', borderRadius: '50%', filter: 'blur(120px)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', top: 800, right: '25%', width: 600, height: 600, background: 'rgba(168,85,247,0.04)', borderRadius: '50%', filter: 'blur(150px)', pointerEvents: 'none' }} />
-        </>
-      )}
+      <style>{HOME_ANIM_CSS}</style>
+
+      {/* Scroll progress bar */}
+      <motion.div style={{ scaleX: scrollBar, transformOrigin: '0% 50%', position: 'fixed', top: 0, left: 0, right: 0, height: 3, zIndex: 60, background: 'linear-gradient(90deg, #6366f1, #a855f7, #ec4899)' }} />
+
+      {/* Background Orbs (animated) */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -1 }}>
+        <div className="hp-orb" style={{ top: 0, left: '20%', width: 520, height: 520, background: isDark ? 'rgba(99,102,241,0.16)' : 'rgba(99,102,241,0.12)', filter: 'blur(120px)' }} />
+        <div className="hp-orb" style={{ top: 700, right: '15%', width: 620, height: 620, background: isDark ? 'rgba(168,85,247,0.10)' : 'rgba(168,85,247,0.10)', filter: 'blur(150px)', animationDelay: '-5s' }} />
+        <div className="hp-orb" style={{ top: 1500, left: '5%', width: 480, height: 480, background: isDark ? 'rgba(236,72,153,0.07)' : 'rgba(236,72,153,0.08)', filter: 'blur(140px)', animationDelay: '-9s' }} />
+      </div>
 
       {/* ─── Navbar ─── */}
       <header style={{
@@ -405,6 +448,15 @@ export default function HomePage() {
           
           {/* Left: Description */}
           <div className="hp-hero-left">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="hp-pulse-ring"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 999, marginBottom: 20, fontSize: 12, fontWeight: 700, color: isDark ? '#c7d2fe' : '#4338ca', backgroundColor: isDark ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.08)', border: `1px solid ${isDark ? 'rgba(99,102,241,0.35)' : 'rgba(99,102,241,0.3)'}` }}
+            >
+              <Sparkles style={{ width: 14, height: 14, color: '#a855f7' }} /> Propulsé par l'IA • Examens surveillés • Certificats vérifiables
+            </motion.div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
               <img src="/ens_logo_new.png" alt="ENS Logo" style={{ height: 64, width: 'auto', objectFit: 'contain', backgroundColor: '#fff', borderRadius: 8, padding: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0' }} />
               <div>
@@ -413,9 +465,15 @@ export default function HomePage() {
               </div>
             </div>
 
-            <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.15, color: 'var(--text)', marginBottom: 8 }}>
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="hp-gradient-text"
+              style={{ fontSize: 'clamp(2.4rem, 6vw, 4rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 8 }}
+            >
               ENS-Learning
-            </h1>
+            </motion.h1>
             <h2 style={{ fontSize: 'clamp(1rem, 2.5vw, 1.25rem)', fontWeight: 600, color: '#6366f1', marginBottom: 24 }}>
               Plateforme Intelligente de Certification Numérique et d'Apprentissage Assisté par IA
             </h2>
@@ -430,11 +488,11 @@ export default function HomePage() {
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, paddingTop: 24 }}>
-              <button onClick={() => scrollToSection('portals')}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 24px', borderRadius: 12, backgroundColor: '#4f46e5', color: '#fff', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 4px 15px rgba(79,70,229,0.35)', transition: 'all 0.2s' }}>
+              <button onClick={() => scrollToSection('portals')} className="hp-btn-shine hp-btn-lift"
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 24px', borderRadius: 12, background: 'linear-gradient(90deg, #4f46e5, #7c3aed)', color: '#fff', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 4px 15px rgba(79,70,229,0.35)', transition: 'all 0.2s' }}>
                 <span>Accéder aux Portails</span><ArrowRight style={{ width: 16, height: 16 }} />
               </button>
-              <button onClick={() => scrollToSection('tutorials')}
+              <button onClick={() => scrollToSection('tutorials')} className="hp-btn-lift"
                 style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 24px', borderRadius: 12, backgroundColor: isDark ? 'rgba(15,23,42,1)' : '#e2e8f0', color: 'var(--text)', fontSize: 14, fontWeight: 600, border: `1px solid ${isDark ? 'rgba(51,65,85,0.8)' : '#cbd5e1'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
                 <Tv style={{ width: 16, height: 16, color: '#a855f7' }} /><span>Tutoriels Vidéo</span>
               </button>
@@ -442,8 +500,16 @@ export default function HomePage() {
           </div>
 
           {/* Right: ENS Gate photo */}
-          <div className="hp-hero-right" style={{ position: 'relative' }}>
-            <div style={{ borderRadius: 16, overflow: 'hidden', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`, boxShadow: isDark ? '0 20px 50px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.08)', backgroundColor: 'var(--surface)', padding: 8 }}>
+          <div className="hp-hero-right hp-float" style={{ position: 'relative' }}>
+            {/* Floating info chips */}
+            <div className="hp-float-delay" style={{ position: 'absolute', top: -14, left: -10, zIndex: 2, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 12, fontSize: 11, fontWeight: 700, color: 'var(--text)', backgroundColor: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.95)', border: `1px solid ${isDark ? 'rgba(99,102,241,0.35)' : '#e2e8f0'}`, boxShadow: '0 10px 30px rgba(0,0,0,0.18)' }}>
+              <Shield style={{ width: 14, height: 14, color: '#6366f1' }} /> Surveillance IA
+            </div>
+            <div className="hp-float" style={{ position: 'absolute', bottom: 40, right: -10, zIndex: 2, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 12, fontSize: 11, fontWeight: 700, color: 'var(--text)', backgroundColor: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.95)', border: `1px solid ${isDark ? 'rgba(16,185,129,0.35)' : '#e2e8f0'}`, boxShadow: '0 10px 30px rgba(0,0,0,0.18)' }}>
+              <Award style={{ width: 14, height: 14, color: '#10b981' }} /> Certificat QR-Code
+            </div>
+            <div className="hp-hero-frame">
+            <div style={{ borderRadius: 18, overflow: 'hidden', backgroundColor: 'var(--surface)', padding: 8, boxShadow: isDark ? '0 20px 50px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.08)' }}>
               <img src="/ens_gate.png" alt="École Normale Supérieure de Marrakech"
                 style={{ width: '100%', height: 'auto', borderRadius: 12, objectFit: 'cover', aspectRatio: '4/3' }} />
               <div style={{ marginTop: 8, padding: '4px 8px', textAlign: 'center' }}>
@@ -452,8 +518,35 @@ export default function HomePage() {
                 </span>
               </div>
             </div>
+            </div>
           </div>
         </motion.div>
+      </section>
+
+      {/* ─── Animated stats strip ─── */}
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px 40px', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+          {[
+            { n: 12, s: '', label: 'Fonctionnalités', icon: <Sparkles style={{ width: 20, height: 20 }} />, c: '#6366f1' },
+            { n: 4, s: '', label: 'Portails dédiés', icon: <Layers style={{ width: 20, height: 20 }} />, c: '#a855f7' },
+            { n: 10, s: '+', label: 'Tutoriels vidéo', icon: <Tv style={{ width: 20, height: 20 }} />, c: '#ec4899' },
+            { n: 100, s: '%', label: 'IA locale & sécurisée', icon: <Brain style={{ width: 20, height: 20 }} />, c: '#10b981' },
+          ].map((st, i) => (
+            <motion.div
+              key={st.label}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              whileHover={{ y: -6, scale: 1.03 }}
+              style={{ padding: '20px 16px', borderRadius: 16, textAlign: 'center', backgroundColor: isDark ? 'rgba(15,23,42,0.55)' : '#fff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#e2e8f0'}`, boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.25)' : '0 4px 14px rgba(0,0,0,0.05)', backdropFilter: 'blur(8px)' }}
+            >
+              <div style={{ width: 40, height: 40, margin: '0 auto 10px', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: st.c, backgroundColor: st.c + '1f' }}>{st.icon}</div>
+              <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}><CountUp to={st.n} suffix={st.s} /></div>
+              <div style={{ marginTop: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{st.label}</div>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       {/* ─── Video Demo Section ─── */}
@@ -497,6 +590,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.05 }}
               key={i} 
+              className="hp-feat-card"
               style={{
               borderRadius: 16,
               backgroundColor: isDark ? 'rgba(15,23,42,0.4)' : '#fff',
@@ -549,6 +643,7 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
                 key={portal.id} 
+                whileHover={{ y: -8, scale: 1.02 }}
                 style={{
                 borderRadius: 16, border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`,
                 backgroundColor: isDark ? 'rgba(15,23,42,0.2)' : '#fff', padding: 24,
