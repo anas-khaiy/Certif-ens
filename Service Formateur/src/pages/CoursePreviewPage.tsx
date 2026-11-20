@@ -76,6 +76,10 @@ const CoursePreviewPage: React.FC = () => {
     });
 
     const [isExamActive, setIsExamActive] = useState(false);
+    // Supervised course quiz currently being taken (null => final exam)
+    const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+    const examQuiz: Quiz | null | undefined = selectedQuiz ?? course?.finalExam;
+    const examKey = selectedQuiz ? String(selectedQuiz.id) : 'final_exam';
     const [examTimeLeft, setExamTimeLeft] = useState(3600);
     const [examFailed, setExamFailed] = useState<{ reason: string } | null>(null);
     const [examSubmitted, setExamSubmitted] = useState(false);
@@ -518,8 +522,8 @@ const CoursePreviewPage: React.FC = () => {
 
     // Handle Exam Question Selection
     useEffect(() => {
-        if (isExamActive && course?.finalExam) {
-            const quiz = course.finalExam;
+        if (isExamActive && examQuiz) {
+            const quiz = examQuiz;
             let questions = [...(quiz.questions || quiz.settings?.generatedPool || [])];
 
             if (quiz.settings?.isRandom) {
@@ -532,7 +536,7 @@ const CoursePreviewPage: React.FC = () => {
             }
             setActiveExamQuestions(questions);
         }
-    }, [isExamActive, course?.finalExam?.id]);
+    }, [isExamActive, examQuiz?.id]);
 
     const isSubSectionLocked = (subSectionId: string) => {
         if (!subSectionId) return true;
@@ -580,7 +584,7 @@ const CoursePreviewPage: React.FC = () => {
     const saveFailedExamResult = useCallback((reason?: string) => {
         if (!id) return;
         // Use api.post with auth headers (sendBeacon doesn't carry auth tokens → 403)
-        learnerApi.post(`/progress/${id}/quiz/final_exam`, {
+        learnerApi.post(`/progress/${id}/quiz/${examKey}`, {
             score: 0,
             passed: false,
             answers: [],
@@ -588,10 +592,10 @@ const CoursePreviewPage: React.FC = () => {
         }).catch(() => { });
         // Also update local state so the UI reflects the attempt
         setQuizResults(prev => {
-            const already = prev.some(r => String(r.quizId) === 'final_exam');
-            return already ? prev : [...prev, { quizId: 'final_exam', score: 0, passed: false }];
+            const already = prev.some(r => String(r.quizId) === examKey);
+            return already ? prev : [...prev, { quizId: examKey, score: 0, passed: false }];
         });
-    }, [id]);
+    }, [id, examKey]);
 
     // --- AI Cheating Detection (Phone) ---
     const startAIDetection = async (triggerCheatingFail: (r: string, imm?: boolean) => void) => {
@@ -613,7 +617,7 @@ const CoursePreviewPage: React.FC = () => {
             detectionIntervalRef.current = setInterval(async () => {
                 // Use Refs to avoid stale closure issues
                 if (!videoRef.current || examFailedRef.current || examSubmittedRef.current) return;
-                const settings = course?.finalExam?.settings;
+                const settings = examQuiz?.settings;
                 if (settings?.detectPhone === false) return; // Skip if disabled
 
                 try {
@@ -668,7 +672,7 @@ const CoursePreviewPage: React.FC = () => {
                 if (!examActiveRef.current || examFailedRef.current || examSubmittedRef.current || !videoRef.current) {
                     return;
                 }
-                const settings = course?.finalExam?.settings;
+                const settings = examQuiz?.settings;
                 if (settings?.detectPhone === false) {
                   // Schedule next frame to keep loop going if settings change
                   if (examActiveRef.current && !examFailedRef.current && !examSubmittedRef.current) {
@@ -755,7 +759,7 @@ const CoursePreviewPage: React.FC = () => {
                                     body: formData
                                 });
                                 const data = await response.json();
-                                const settings = course?.finalExam?.settings;
+                                const settings = examQuiz?.settings;
 
                                 // Filter detections based on settings
                                 const isPhoneCheat = data.phone_detected && settings?.detectPhone !== false;
@@ -866,7 +870,7 @@ const CoursePreviewPage: React.FC = () => {
     }, [saveFailedExamResult]);
 
     useEffect(() => {
-        const settings = course?.finalExam?.settings;
+        const settings = examQuiz?.settings;
         if (isExamActive && settings?.isAiDetectionEnabled && !examSubmittedRef.current && !examFailedRef.current) {
             if (detectionEngine === 'yolo') {
                 startYoloAIDetection(triggerCheatingFailAction);
@@ -894,7 +898,7 @@ const CoursePreviewPage: React.FC = () => {
     // Exam Anti-Cheat System
     useEffect(() => {
         if (!isExamActive || examSubmitted || !!examFailed) return;
-        const settings = course?.finalExam?.settings;
+        const settings = examQuiz?.settings;
 
         // Initial check for fullscreen status
         const currentFsElement = document.fullscreenElement || (document as any).webkitFullscreenElement || (document as any).mozFullScreenElement || (document as any).msFullscreenElement;
@@ -1160,14 +1164,14 @@ const CoursePreviewPage: React.FC = () => {
             setExamSubmitted(true);
 
             if (id) {
-                learnerApi.post(`/progress/${id}/quiz/final_exam`, {
+                learnerApi.post(`/progress/${id}/quiz/${examKey}`, {
                     score: roundedUserScore,
                     passed: isPassed,
                     answers: answersData
                 }).then(() => {
                     setQuizResults(prev => {
-                        const already = prev.some(r => String(r.quizId) === 'final_exam');
-                        return already ? prev : [...prev, { quizId: 'final_exam', score: roundedUserScore, passed: isPassed }];
+                        const already = prev.some(r => String(r.quizId) === examKey);
+                        return already ? prev : [...prev, { quizId: examKey, score: roundedUserScore, passed: isPassed }];
                     });
                 }).catch(err => console.error("Failed to save exam result:", err));
             }
@@ -1202,8 +1206,17 @@ const CoursePreviewPage: React.FC = () => {
         }
     };
 
+    // Open the supervised setup screen for one of the course quizzes
+    const openQuizSetup = (quiz: Quiz) => {
+        closeExamSetup();
+        setSelectedQuiz(quiz);
+        setShowExamSetup(true);
+        if (quiz.settings?.isAiDetectionEnabled) setDetectionEngine('python');
+        if (isMobile) setIsSidebarOpen(false);
+    };
+
     const startExam = async () => {
-        const alreadyAttempted = quizResults.some(r => String(r.quizId) === 'final_exam');
+        const alreadyAttempted = quizResults.some(r => String(r.quizId) === examKey);
         if (alreadyAttempted) return;
 
         setShowExamSetup(false);
@@ -1214,7 +1227,7 @@ const CoursePreviewPage: React.FC = () => {
         setViolationCount(0);
         setViolationWarning(null);
         hasEnteredFullscreenRef.current = false;
-        const limit = course?.finalExam?.settings?.timeLimit ?? 60;
+        const limit = examQuiz?.settings?.timeLimit ?? 60;
         setExamTimeLeft(limit * 60);
         setIsExamActive(true);
 
@@ -1462,6 +1475,51 @@ const CoursePreviewPage: React.FC = () => {
                             ))}
                         </div>
 
+                        {/* Sidebar: supervised course quizzes */}
+                        {(course?.courseQuizzes || []).length > 0 && (
+                            <div className="p-4 border-t border-glass-border bg-surface relative z-10 space-y-2 max-h-72 overflow-y-auto custom-scrollbar">
+                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-muted px-1">
+                                    <Shield size={12} /> Quiz du cours ({(course?.courseQuizzes || []).length})
+                                </div>
+                                {(course?.courseQuizzes || []).map((cq, cqIdx) => {
+                                    const cqResult = quizResults.find(r => String(r.quizId) === String(cq.id));
+                                    const cqDone = !!cqResult;
+                                    const cqPending = cqResult?.status === 'PENDING_MANUAL';
+                                    const cqPassed = !!cqResult?.passed;
+                                    return (
+                                        <button
+                                            key={String(cq.id ?? cqIdx)}
+                                            disabled={cqDone}
+                                            onClick={() => { if (!cqDone) openQuizSetup(cq); }}
+                                            className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all ${cqDone
+                                                ? (cqPending ? 'bg-orange-500/5 border-orange-500/20' : (cqPassed ? 'bg-success/5 border-success/20' : 'bg-error/5 border-error/20')) + ' cursor-default opacity-80'
+                                                : 'bg-primary/5 border-primary/20 hover:border-primary/40 hover:bg-primary/10'}`}
+                                        >
+                                            <div className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white ${cqDone
+                                                ? (cqPending ? 'bg-orange-500' : (cqPassed ? 'bg-success' : 'bg-error'))
+                                                : 'bg-primary'}`}>
+                                                {cqDone ? (cqPending ? <Clock size={16} /> : (cqPassed ? <CheckCircle size={16} /> : <X size={16} />)) : <Shield size={16} />}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-black text-xs truncate">{cq.title || `Quiz ${cqIdx + 1}`}</div>
+                                                <div className="flex items-center gap-2 mt-0.5 text-[10px] font-bold opacity-70">
+                                                    {cqDone ? (
+                                                        cqPending ? <>En attente de correction</> : <>Note: {cqResult.score}%</>
+                                                    ) : (
+                                                        <>
+                                                            <Clock size={10} /> {cq.settings?.timeLimit ?? 60} min
+                                                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase tracking-wider">{cq.settings?.isAiDetectionEnabled ? 'Surveillance IA' : 'Sans IA'}</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {!cqDone && <ChevronRight size={16} className="text-primary shrink-0" />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+
                         {/* Sidebar Exam Footer */}
                         {course?.finalExam && course?.examEnabled !== false && (
                             <div className="p-4 border-t border-glass-border bg-surface shadow-[0_-10px_30px_rgba(0,0,0,0.05)] relative z-10">
@@ -1473,6 +1531,7 @@ const CoursePreviewPage: React.FC = () => {
                                         <button
                                             onClick={() => {
                                                 if (!isCompleted) {
+                                                    if (selectedQuiz) setSelectedQuiz(null);
                                                     const settings = course.finalExam?.settings;
                                                     setShowExamSetup(true);
                                                     if (settings?.isAiDetectionEnabled) {
@@ -1580,6 +1639,7 @@ const CoursePreviewPage: React.FC = () => {
                                                         {!isCompleted && !deadlinePassed && (
                                                             <button
                                                                 onClick={() => {
+                                                                    if (selectedQuiz) setSelectedQuiz(null);
                                                                     const settings = course.finalExam?.settings;
                                                                     setShowExamSetup(true);
                                                                     if (settings?.isAiDetectionEnabled) {
@@ -1947,7 +2007,7 @@ const CoursePreviewPage: React.FC = () => {
 
                 {showExamSetup && createPortal(
                     <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-0 sm:p-6 overflow-y-auto">
-                        <div className={`w-full h-full sm:h-auto ${course?.finalExam?.settings?.isAiDetectionEnabled ? 'max-w-5xl' : 'max-w-xl'} bg-surface sm:rounded-[3rem] border-x border-glass-border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-x-hidden animate-slide-up flex flex-col lg:flex-row min-h-screen sm:min-h-[500px] relative`}>
+                        <div className={`w-full h-full sm:h-auto ${examQuiz?.settings?.isAiDetectionEnabled ? 'max-w-5xl' : 'max-w-xl'} bg-surface sm:rounded-[3rem] border-x border-glass-border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-x-hidden animate-slide-up flex flex-col lg:flex-row min-h-screen sm:min-h-[500px] relative`}>
                             {/* Close Button */}
                             <button
                                 onClick={closeExamSetup}
@@ -1957,7 +2017,7 @@ const CoursePreviewPage: React.FC = () => {
                             </button>
 
                             {/* Left: Camera Verification Section - Only visible if AI needed */}
-                            {course?.finalExam?.settings?.isAiDetectionEnabled && (
+                            {examQuiz?.settings?.isAiDetectionEnabled && (
                                 <div className="w-full lg:w-[45%] p-6 sm:p-12 bg-black flex flex-col items-center justify-center relative border-b lg:border-b-0 lg:border-r border-white/10">
                                     <div className="absolute top-6 left-6 flex items-center gap-3">
                                         <div className={`w-2 h-2 rounded-full ${isCameraReady ? 'bg-success animate-pulse' : 'bg-amber-500'}`} />
@@ -2031,7 +2091,7 @@ const CoursePreviewPage: React.FC = () => {
                             )}
 
                             {/* Right: Rules & Final Action Section */}
-                            <div className={`w-full ${course?.finalExam?.settings?.isAiDetectionEnabled ? 'lg:w-[55%]' : 'w-full'} p-6 sm:p-16 flex flex-col justify-between text-text bg-surface relative`}>
+                            <div className={`w-full ${examQuiz?.settings?.isAiDetectionEnabled ? 'lg:w-[55%]' : 'w-full'} p-6 sm:p-16 flex flex-col justify-between text-text bg-surface relative`}>
                                 <div>
                                     <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-10">
                                         <div className="p-3 sm:p-4 bg-primary/10 text-primary rounded-2xl shadow-inner border border-primary/10"><Shield size={24} className="sm:w-8 sm:h-8" /></div>
@@ -2049,11 +2109,11 @@ const CoursePreviewPage: React.FC = () => {
                                             </div>
                                             <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2">
                                                 <Monitor size={12} className="text-primary sm:w-3.5 sm:h-3.5" />
-                                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">{course?.finalExam?.settings?.isAiDetectionEnabled ? 'Surveillance IA' : 'Sans Caméra'}</span>
+                                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">{examQuiz?.settings?.isAiDetectionEnabled ? 'Surveillance IA' : 'Sans Caméra'}</span>
                                             </div>
                                             <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2">
                                                 <Clock size={12} className="text-primary sm:w-3.5 sm:h-3.5" />
-                                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">{course?.finalExam?.settings?.timeLimit || 60} min</span>
+                                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">{examQuiz?.settings?.timeLimit || 60} min</span>
                                             </div>
                                         </div>
                                         <div className="hidden sm:block w-24 h-1 bg-gradient-to-l from-primary to-transparent rounded-full opacity-30 mt-1" />
@@ -2071,7 +2131,7 @@ const CoursePreviewPage: React.FC = () => {
 
                                         <div className="p-0">
                                             {(() => {
-                                                const examQuestions = course?.finalExam?.questions || [];
+                                                const examQuestions = examQuiz?.questions || [];
                                                 const totalQuestions = examQuestions.length;
 
                                                 if (totalQuestions === 0) {
@@ -2148,7 +2208,7 @@ const CoursePreviewPage: React.FC = () => {
                                             <Check size={12} className="sm:w-[14px] sm:h-[14px] absolute left-0.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
                                         </div>
                                         <p className="text-[9px] sm:text-[11px] font-bold leading-normal text-text-muted group-hover/terms:text-text transition-colors">
-                                            {course?.finalExam?.settings?.isAiDetectionEnabled 
+                                            {examQuiz?.settings?.isAiDetectionEnabled 
                                                 ? <>Je certifie avoir lu les consignes. J'accepte l'utilisation de ma <strong className="text-primary">caméra pour la surveillance</strong> et je valide l'intégrité de cet examen.</>
                                                 : <>Je certifie avoir lu les consignes. J'accepte le règlement de l'épreuve et les mesures <strong className="text-primary">anti-triche</strong>.</>
                                             }
@@ -2163,11 +2223,11 @@ const CoursePreviewPage: React.FC = () => {
                                         </button>
                                         <button
                                             onClick={() => {
-                                                const settings = course?.finalExam?.settings;
+                                                const settings = examQuiz?.settings;
                                                 const needsCamera = settings?.isAiDetectionEnabled;
                                                 if ((!needsCamera || isCameraReady) && isAgreedToTerms) startExam();
                                             }}
-                                            disabled={(course?.finalExam?.settings?.isAiDetectionEnabled && !isCameraReady) || !isAgreedToTerms}
+                                            disabled={(examQuiz?.settings?.isAiDetectionEnabled && !isCameraReady) || !isAgreedToTerms}
                                             className="flex-[2] btn-primary py-4 sm:py-5 rounded-xl sm:rounded-2xl text-base sm:text-lg font-black shadow-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed group active:scale-95"
                                         >
                                             Lancer <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform sm:w-[22px] sm:h-[22px]" />
@@ -2222,12 +2282,12 @@ const CoursePreviewPage: React.FC = () => {
                                     {!examSubmitted && !examFailed ? (
                                         <>
                                             <div className="text-center space-y-4">
-                                                <h1 className="text-4xl font-black">{course?.finalExam?.title || "Examen Final"}</h1>
+                                                <h1 className="text-4xl font-black">{examQuiz?.title || "Examen Final"}</h1>
                                                 <p className="text-text-muted">Répondez à toutes les questions pour valider votre certification.</p>
                                             </div>
 
                                             {/* AI Video Monitoring Preview */}
-                                            {course?.finalExam?.settings?.isAiDetectionEnabled && (
+                                            {examQuiz?.settings?.isAiDetectionEnabled && (
                                                 <>
                                                     <div className="fixed top-20 left-2 lg:top-28 lg:left-auto lg:right-6 z-[100] group pointer-events-auto transition-all duration-500 translate-x-0 opacity-100">
                                                         <div className={`relative w-24 h-20 lg:w-80 lg:h-60 rounded-2xl lg:rounded-3xl overflow-hidden border-2 lg:border-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 ${isModelLoading ? 'border-amber-500/50' : 'border-primary/50'} bg-black`}>
@@ -2345,7 +2405,7 @@ const CoursePreviewPage: React.FC = () => {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="flex justify-center"><button onClick={() => course?.finalExam && handleSubmitQuiz(course.finalExam)} disabled={aiGrading} className="px-16 py-5 bg-primary text-white rounded-2xl font-black text-xl shadow-2xl disabled:opacity-60">{aiGrading ? (aiGradingMessage || 'Correction IA en cours...') : "Soumettre l'Examen"}</button></div>
+                                            <div className="flex justify-center"><button onClick={() => examQuiz && handleSubmitQuiz(examQuiz)} disabled={aiGrading} className="px-16 py-5 bg-primary text-white rounded-2xl font-black text-xl shadow-2xl disabled:opacity-60">{aiGrading ? (aiGradingMessage || 'Correction IA en cours...') : "Soumettre l'Examen"}</button></div>
                                         </>
                                     ) : examFailed ? (
                                         <div className="max-w-md mx-auto mt-20 p-10 bg-surface rounded-[2.5rem] border border-error/30 text-center shadow-2xl">

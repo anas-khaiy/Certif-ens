@@ -75,6 +75,7 @@ export interface Course {
     coverImage?: string;
     sections: Section[];
     finalExam?: Quiz;
+    courseQuizzes?: Quiz[];
     examEnabled?: boolean;
     isPublished?: boolean;
     contentCompleted?: boolean;

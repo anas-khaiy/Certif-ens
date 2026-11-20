@@ -69,6 +69,16 @@ public class CourseService {
                 });
             }
         }
+        if (course.getCourseQuizzes() != null) {
+            course.getCourseQuizzes().forEach(quiz -> {
+                if (quiz.getQuestions() != null) {
+                    quiz.getQuestions().forEach(q -> {
+                        q.setQuiz(quiz);
+                        normalizeQuestionCorrection(q);
+                    });
+                }
+            });
+        }
         return repository.save(course);
     }
 

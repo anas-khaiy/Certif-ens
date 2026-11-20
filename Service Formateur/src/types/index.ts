@@ -86,6 +86,7 @@ export interface Course {
     coverImage?: string;
     sections: Section[];
     finalExam?: Quiz | null;
+    courseQuizzes?: Quiz[];
     examEnabled?: boolean;
     published?: boolean;
     contentCompleted?: boolean;

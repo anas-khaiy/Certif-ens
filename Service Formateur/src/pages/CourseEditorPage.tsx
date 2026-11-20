@@ -2375,6 +2375,9 @@ const CourseEditorPage: React.FC = () => {
     const [selectedSubSectionId, setSelectedSubSectionId] = useState<string | null>(null);
     const [showQuizEditor, setShowQuizEditor] = useState(false);
     const [showFinalExamEditor, setShowFinalExamEditor] = useState(false);
+    // --- Supervised course quizzes (multiple, titled) ---
+    const [quizEditorTarget, setQuizEditorTarget] = useState<{ index: number | null; title: string } | null>(null);
+    const [quizTitleDraft, setQuizTitleDraft] = useState<{ index: number | null; title: string } | null>(null);
     const [showAiContentModal, setShowAiContentModal] = useState(false);
     const [aiContentPrompt, setAiContentPrompt] = useState('');
     const [aiContentLoading, setAiContentLoading] = useState(false);
@@ -3258,6 +3261,71 @@ const CourseEditorPage: React.FC = () => {
                                     >
                                         <Trash2 size={16} />
                                     </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Quiz supervisés du cours (plusieurs quiz, chacun avec un titre) */}
+                        <div className="mt-8 pt-6 border-t border-glass-border">
+                            <div className="flex items-center justify-between mb-4 gap-3">
+                                <h4 className="text-lg font-black flex items-center gap-3 text-primary"><Shield size={22} /> Quiz supervisés</h4>
+                                <button
+                                    onClick={() => setQuizTitleDraft({ index: null, title: '' })}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                >
+                                    <Plus size={14} /> Ajouter un quiz
+                                </button>
+                            </div>
+                            <p className="text-xs text-text-muted mb-4">Ajoutez autant de quiz que nécessaire. Chaque quiz a son titre et peut être supervisé par l'IA (caméra) ou non. Les apprenants les retrouvent dans la section « Quiz du cours ».</p>
+                            {(course.courseQuizzes || []).length === 0 ? (
+                                <div className="p-6 rounded-2xl border-2 border-dashed border-glass-border text-center text-xs font-bold text-text-muted">Aucun quiz pour le moment.</div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {(course.courseQuizzes || []).map((cq, cqIdx) => (
+                                        <div key={String(cq.id ?? cqIdx)} className="p-4 rounded-2xl border border-glass-border bg-surface-hover/40 flex flex-col sm:flex-row sm:items-center gap-3">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-black text-sm truncate">{cq.title || `Quiz ${cqIdx + 1}`}</div>
+                                                <div className="flex flex-wrap items-center gap-2 mt-1.5 text-[10px] font-black uppercase tracking-wider">
+                                                    <span className="px-2 py-1 rounded-full bg-primary/10 text-primary">{(cq.settings?.mode === 'dynamic' ? cq.settings?.totalQuestions : cq.questions?.length) || 0} questions</span>
+                                                    <span className="px-2 py-1 rounded-full bg-primary/10 text-primary flex items-center gap-1"><Clock size={10} /> {cq.settings?.timeLimit ?? 60} min</span>
+                                                    <span className="px-2 py-1 rounded-full bg-primary/10 text-primary flex items-center gap-1"><CheckCircle2 size={10} /> {cq.settings?.passingScore ?? 70}%</span>
+                                                    <span className={`px-2 py-1 rounded-full flex items-center gap-1 ${cq.settings?.isAiDetectionEnabled ? 'bg-blue-500/10 text-blue-500' : 'bg-surface text-text-muted border border-glass-border'}`}>
+                                                        <Shield size={10} /> {cq.settings?.isAiDetectionEnabled ? 'Supervisé par IA' : 'Sans IA'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <button onClick={() => setQuizTitleDraft({ index: cqIdx, title: cq.title || '' })} className="px-3 py-2 rounded-xl text-xs font-bold border border-glass-border hover:border-primary/40 hover:text-primary transition-all">Renommer</button>
+                                                <button onClick={() => setQuizEditorTarget({ index: cqIdx, title: cq.title || `Quiz ${cqIdx + 1}` })} className="px-3 py-2 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 transition-all">Configurer</button>
+                                                <button
+                                                    onClick={() => {
+                                                        openConfirmModal(
+                                                            'Supprimer ce quiz ?',
+                                                            'Les questions et les résultats des apprenants pour ce quiz seront supprimés.',
+                                                            async () => {
+                                                                if (id && id !== 'new' && cq.id && !isTempId(cq.id)) {
+                                                                    try {
+                                                                        const token = localStorage.getItem('token');
+                                                                        await fetch(`${API_APPRENANT}/progress/${id}/quiz/${cq.id}`, {
+                                                                            method: 'DELETE',
+                                                                            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                                                                        });
+                                                                    } catch (err) {
+                                                                        console.error('Failed to delete quiz results:', err);
+                                                                    }
+                                                                }
+                                                                setCourse(prev => ({ ...prev, courseQuizzes: (prev.courseQuizzes || []).filter((_, i) => i !== cqIdx) }));
+                                                            },
+                                                            'danger'
+                                                        );
+                                                    }}
+                                                    className="p-2 text-text-muted hover:text-error transition-all"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -4602,6 +4670,83 @@ const CourseEditorPage: React.FC = () => {
                         setShowFinalExamEditor(false);
                     }}
                     onClose={() => setShowFinalExamEditor(false)}
+                />
+            )}
+            {quizTitleDraft && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" style={{ zIndex: 10000 }}>
+                    <div className="bg-surface border border-glass-border rounded-3xl shadow-2xl w-full max-w-md p-6 space-y-5">
+                        <h3 className="text-lg font-black">{quizTitleDraft.index === null ? 'Nouveau quiz' : 'Renommer le quiz'}</h3>
+                        <div>
+                            <label className="text-xs font-bold text-text-muted uppercase tracking-widest mb-1.5 block">Titre du quiz</label>
+                            <input
+                                autoFocus
+                                value={quizTitleDraft.title}
+                                onChange={(e) => setQuizTitleDraft({ ...quizTitleDraft, title: e.target.value })}
+                                onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget.parentElement?.parentElement?.querySelector('[data-quiz-title-ok]') as HTMLButtonElement | null)?.click(); }}
+                                placeholder="Ex : Quiz Chapitre 1"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-hover border border-glass-border focus:outline-none focus:border-primary text-text font-bold"
+                            />
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setQuizTitleDraft(null)} className="px-4 py-2 rounded-xl text-sm font-bold border border-glass-border hover:bg-surface-hover transition-all">Annuler</button>
+                            <button
+                                data-quiz-title-ok
+                                disabled={!quizTitleDraft.title.trim()}
+                                onClick={() => {
+                                    const t = quizTitleDraft.title.trim();
+                                    if (!t) return;
+                                    if (quizTitleDraft.index === null) {
+                                        setQuizEditorTarget({ index: null, title: t });
+                                    } else {
+                                        const idx = quizTitleDraft.index;
+                                        setCourse(prev => ({ ...prev, courseQuizzes: (prev.courseQuizzes || []).map((q, i) => i === idx ? { ...q, title: t } : q) }));
+                                    }
+                                    setQuizTitleDraft(null);
+                                }}
+                                className="px-4 py-2 rounded-xl text-sm font-black bg-primary text-white disabled:opacity-40 transition-all"
+                            >
+                                {quizTitleDraft.index === null ? 'Continuer' : 'Enregistrer'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {quizEditorTarget && (
+                <QuizEditorModal
+                    title={`Quiz : ${quizEditorTarget.title}`}
+                    description="Configurez les questions et la supervision (IA caméra ou sans IA) de ce quiz."
+                    maxPoolSize={300}
+                    initialQuiz={quizEditorTarget.index !== null ? (course.courseQuizzes || [])[quizEditorTarget.index] : null}
+                    isExam={true}
+                    openConfirmModal={openConfirmModal}
+                    closeConfirmModal={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    courseSections={course.sections}
+                    onSave={(saved) => {
+                        const idx = quizEditorTarget.index;
+                        const quizTitle = quizEditorTarget.title;
+                        // Editing an existing quiz resets the learners' results for it (same rule as the final exam)
+                        if (idx !== null && id && id !== 'new') {
+                            const existing = (course.courseQuizzes || [])[idx];
+                            if (existing?.id && !isTempId(existing.id)) {
+                                const token = localStorage.getItem('token');
+                                fetch(`${API_APPRENANT}/progress/${id}/quiz/${existing.id}`, {
+                                    method: 'DELETE',
+                                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                                }).catch(() => {});
+                            }
+                        }
+                        setCourse(prev => {
+                            const list = [...(prev.courseQuizzes || [])];
+                            if (idx === null) {
+                                list.push({ ...saved, id: `temp-quiz-${Date.now()}`, title: quizTitle });
+                            } else {
+                                list[idx] = { ...saved, id: list[idx]?.id ?? saved.id, title: quizTitle };
+                            }
+                            return { ...prev, courseQuizzes: list };
+                        });
+                        setQuizEditorTarget(null);
+                    }}
+                    onClose={() => setQuizEditorTarget(null)}
                 />
             )}
             {selectedLearnerForCorrection && (

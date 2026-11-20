@@ -77,6 +77,16 @@ public class Course {
     @JoinColumn(name = "final_exam_id")
     private Quiz finalExam;
 
+    // Supervised quizzes attached to the course (managed by the formateur service).
+    @OneToMany
+    @JoinTable(
+        name = "course_quizzes",
+        joinColumns = @JoinColumn(name = "course_id"),
+        inverseJoinColumns = @JoinColumn(name = "quiz_id")
+    )
+    @Builder.Default
+    private List<Quiz> courseQuizzes = new ArrayList<>();
+
     @JsonProperty("createdAt")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @org.hibernate.annotations.CreationTimestamp
