@@ -1066,6 +1066,50 @@ const QuizEditorModal: React.FC<{
         setQuestions(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q));
     };
 
+    // --- Import de questions existantes depuis un chapitre (quiz du cours) ---
+    const [showImport, setShowImport] = useState(false);
+    const [importSectionId, setImportSectionId] = useState<string>('');
+    const [importSelected, setImportSelected] = useState<Set<string>>(new Set());
+
+    const getSectionQuestions = (sectionId: string): { key: string; q: Question; lesson: string }[] => {
+        const section = courseSections.find(s => String(s.id) === String(sectionId));
+        if (!section) return [];
+        const seen = new Set<string>();
+        const out: { key: string; q: Question; lesson: string }[] = [];
+        (section.subSections || []).forEach(ss => {
+            const push = (q: Question) => {
+                const k = String(q.id || q.text);
+                if (!q.text || seen.has(k)) return;
+                seen.add(k);
+                out.push({ key: k, q, lesson: ss.title });
+            };
+            (ss.quiz?.questions || []).forEach(push);
+            (ss.quiz?.settings?.generatedPool || []).forEach(push);
+        });
+        return out;
+    };
+
+    const importAlreadyIn = (q: Question) => questions.some(e => (e.text || '').trim() === (q.text || '').trim());
+
+    const confirmImport = () => {
+        const available = getSectionQuestions(importSectionId).filter(x => importSelected.has(x.key) && !importAlreadyIn(x.q));
+        if (available.length === 0) { setShowImport(false); return; }
+        const copies: Question[] = available.map(x => ({
+            ...x.q,
+            id: generateId(),
+            options: [...(x.q.options || [])],
+            correctAnswers: [...(x.q.correctAnswers || [])],
+            criteria: x.q.criteria ? [...x.q.criteria] : x.q.criteria
+        }));
+        setQuestions(prev => {
+            const onlyEmpty = prev.length === 1 && !prev[0].text.trim();
+            return onlyEmpty ? copies : [...prev, ...copies];
+        });
+        setSelectedQuestionId(copies[0].id);
+        setImportSelected(new Set());
+        setShowImport(false);
+    };
+
     const addQuestion = () => {
         const newQ: Question = {
             id: generateId(),
@@ -1237,6 +1281,102 @@ const QuizEditorModal: React.FC<{
                         <button onClick={onClose} className="hidden sm:block p-2 hover:bg-white/10 rounded-xl transition-colors flex-shrink-0"><X size={24} /></button>
                     </div>
                 </div>
+                {hidePool && showImport && (
+                    <div className="absolute inset-0 z-30 bg-surface flex flex-col animate-fade-in">
+                        <div className="flex items-center justify-between gap-3 p-4 sm:p-6 border-b border-glass-border">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="p-3 bg-primary/10 rounded-xl text-primary"><Library size={22} /></div>
+                                <div className="min-w-0">
+                                    <h3 className="text-lg font-black truncate">Importer des questions d'un chapitre</h3>
+                                    <p className="text-xs text-text-muted">Choisissez un chapitre puis cochez les questions à ajouter à ce quiz.</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowImport(false)} className="p-2 hover:bg-white/10 rounded-xl"><X size={22} /></button>
+                        </div>
+                        <div className="p-4 sm:px-6 border-b border-glass-border flex flex-col sm:flex-row sm:items-center gap-3">
+                            <select
+                                value={importSectionId}
+                                onChange={(e) => { setImportSectionId(e.target.value); setImportSelected(new Set()); }}
+                                className="input flex-1 bg-surface"
+                            >
+                                {courseSections.length === 0 && <option value="">Aucun chapitre</option>}
+                                {courseSections.map((s, i) => (
+                                    <option key={s.id} value={String(s.id)}>{`Chapitre ${i + 1} : ${s.title || 'Sans titre'}`}</option>
+                                ))}
+                            </select>
+                            {(() => {
+                                const list = getSectionQuestions(importSectionId).filter(x => !importAlreadyIn(x.q));
+                                const allSelected = list.length > 0 && list.every(x => importSelected.has(x.key));
+                                return (
+                                    <button
+                                        disabled={list.length === 0}
+                                        onClick={() => setImportSelected(allSelected ? new Set() : new Set(list.map(x => x.key)))}
+                                        className="px-4 py-2 rounded-xl border border-glass-border text-sm font-bold hover:bg-surface-hover disabled:opacity-40"
+                                    >
+                                        {allSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
+                                    </button>
+                                );
+                            })()}
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 custom-scrollbar">
+                            {getSectionQuestions(importSectionId).length === 0 ? (
+                                <div className="text-center py-16 text-text-muted">
+                                    <p className="font-bold">Aucune question dans ce chapitre.</p>
+                                    <p className="text-sm opacity-70">Ajoutez d'abord des quiz dans les leçons de ce chapitre.</p>
+                                </div>
+                            ) : getSectionQuestions(importSectionId).map(({ key, q, lesson }) => {
+                                const already = importAlreadyIn(q);
+                                const checked = importSelected.has(key);
+                                return (
+                                    <label
+                                        key={key}
+                                        className={`flex gap-4 p-4 rounded-2xl border transition-all ${already ? 'opacity-50 cursor-not-allowed border-glass-border' : checked ? 'border-primary bg-primary/5 cursor-pointer' : 'border-glass-border hover:bg-surface-hover/50 cursor-pointer'}`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            className="mt-1 w-5 h-5 accent-primary flex-shrink-0"
+                                            disabled={already}
+                                            checked={checked && !already}
+                                            onChange={() => setImportSelected(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; })}
+                                        />
+                                        <div className="min-w-0 flex-1 space-y-2">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="text-[10px] px-2 py-0.5 rounded bg-surface-hover text-text-muted border border-glass-border">
+                                                    {q.type === 'QCU' ? 'Choix Unique' : q.type === 'QCM' ? 'Choix Multiples' : 'Ouverte'}
+                                                </span>
+                                                <span className="text-[10px] text-text-muted truncate">Leçon : {lesson}</span>
+                                                {already && <span className="text-[10px] text-success font-bold">Déjà ajoutée</span>}
+                                            </div>
+                                            <p className="font-semibold text-sm">{q.text}</p>
+                                            {q.type !== 'OPEN' && (
+                                                <ul className="space-y-1">
+                                                    {(q.options || []).map((o, oi) => (
+                                                        <li key={oi} className={`text-xs flex items-center gap-2 ${(q.correctAnswers || []).includes(oi) ? 'text-success font-bold' : 'text-text-muted'}`}>
+                                                            {(q.correctAnswers || []).includes(oi) ? <CheckCircle2 size={13} /> : <span className="w-[13px]" />} {o}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                        <div className="p-4 sm:p-6 border-t border-glass-border flex items-center justify-between gap-3">
+                            <span className="text-sm text-text-muted"><span className="font-bold text-primary">{importSelected.size}</span> question(s) sélectionnée(s)</span>
+                            <div className="flex gap-3">
+                                <button onClick={() => setShowImport(false)} className="px-5 py-2.5 rounded-xl border border-glass-border font-semibold hover:bg-surface-hover">Annuler</button>
+                                <button
+                                    onClick={confirmImport}
+                                    disabled={importSelected.size === 0}
+                                    className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold disabled:opacity-40 flex items-center gap-2"
+                                >
+                                    <Plus size={18} /> Ajouter au quiz
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Content - Split View */}
                 <div className="flex flex-1 overflow-hidden">
                     {quizMode === 'manual' ? (
@@ -1282,6 +1422,14 @@ const QuizEditorModal: React.FC<{
                                     >
                                         <Plus size={16} /> Ajouter une question
                                     </button>
+                                    {hidePool && (
+                                        <button
+                                            onClick={() => { setImportSectionId(courseSections[0]?.id ? String(courseSections[0].id) : ''); setImportSelected(new Set()); setShowImport(true); }}
+                                            className="w-full mt-3 py-3 flex items-center justify-center gap-2 border border-primary/40 bg-primary/5 rounded-xl text-primary hover:bg-primary/10 transition-all font-bold text-sm"
+                                        >
+                                            <Library size={16} /> Importer depuis un chapitre
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
