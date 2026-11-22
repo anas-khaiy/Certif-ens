@@ -3047,7 +3047,7 @@ const CoursePreviewPage: React.FC = () => {
                                                 const answeredCount = activeExamQuestions.filter(isAnswered).length;
                                                 const total = activeExamQuestions.length || 1;
                                                 return (
-                                                    <div className="sticky top-2 z-20 mb-8 p-4 sm:p-5 rounded-2xl bg-surface/95 backdrop-blur-md border border-glass-border shadow-lg">
+                                                    <div className="sticky top-2 z-20 mb-8 p-4 sm:p-5 rounded-2xl bg-surface border-2 border-glass-border shadow-xl">
                                                         <div className="flex items-center justify-between gap-4 mb-3">
                                                             <span className="text-sm font-black text-text">Progression</span>
                                                             <span className="text-sm font-black text-primary">{answeredCount} / {activeExamQuestions.length} répondue{answeredCount > 1 ? 's' : ''}</span>
@@ -3081,7 +3081,7 @@ const CoursePreviewPage: React.FC = () => {
                                                             className={`scroll-mt-40 bg-surface rounded-3xl border-2 shadow-md overflow-hidden transition-colors ${answered ? 'border-success/40' : 'border-glass-border'}`}
                                                         >
                                                             {/* En-tête de la question */}
-                                                            <div className={`flex flex-wrap items-center gap-3 px-5 sm:px-8 py-3 border-b ${answered ? 'bg-success/5 border-success/20' : 'bg-surface-hover/60 border-glass-border'}`}>
+                                                            <div className={`flex flex-wrap items-center gap-3 px-5 sm:px-8 py-3 border-b ${answered ? 'bg-surface-hover border-success/40' : 'bg-surface-hover border-glass-border'}`}>
                                                                 <span className="px-3 py-1 rounded-full bg-primary text-white text-xs font-black uppercase tracking-wider">Question {qIdx + 1} / {activeExamQuestions.length}</span>
                                                                 {q.type === 'QCM' && <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-700 text-[11px] font-black uppercase">Choix multiples</span>}
                                                                 {q.type === 'QCU' && <span className="px-3 py-1 rounded-full bg-blue-500/15 text-blue-700 text-[11px] font-black uppercase">Choix unique</span>}
