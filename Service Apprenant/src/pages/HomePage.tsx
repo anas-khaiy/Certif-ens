@@ -147,6 +147,8 @@ export default function HomePage() {
 
   // Section « Tutoriels vidéo » masquée (passer à true pour la réafficher)
   const SHOW_TUTORIALS = false;
+  // Section « Vidéo Démo Générale de la Plateforme » masquée (passer à true pour la réafficher)
+  const SHOW_DEMO_VIDEO = false;
 
   const tutorials = [
     { title: "#2 Formateur - Création et gestion des cours", id: "O88heNIMjp4", category: "formateur", desc: "Découvrez comment concevoir vos cours, éditer les sections et structurer le contenu pédagogique." },
@@ -302,7 +304,7 @@ export default function HomePage() {
               { label: 'Démo Vidéo', id: 'hero-video' },
               { label: 'Portails', id: 'portals' },
               { label: 'Tutoriels', id: 'tutorials' },
-            ].filter(l => SHOW_TUTORIALS || l.id !== 'tutorials').map(link => (
+            ].filter(l => (SHOW_TUTORIALS || l.id !== 'tutorials') && (SHOW_DEMO_VIDEO || l.id !== 'hero-video')).map(link => (
               <button key={link.id} onClick={() => scrollToSection(link.id)}
                 style={{ padding: '6px 14px', fontSize: 14, fontWeight: 500, color: 'var(--text-muted)', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'; }}
@@ -428,7 +430,7 @@ export default function HomePage() {
               ))}
             </div>
             <div style={{ paddingTop: 8, marginTop: 8, borderTop: `1px solid ${isDark ? 'rgba(30,41,59,1)' : '#e2e8f0'}` }}>
-              {['features', 'hero-video', 'portals', 'tutorials'].filter(id => SHOW_TUTORIALS || id !== 'tutorials').map(id => (
+              {['features', 'hero-video', 'portals', 'tutorials'].filter(id => (SHOW_TUTORIALS || id !== 'tutorials') && (SHOW_DEMO_VIDEO || id !== 'hero-video')).map(id => (
                 <button key={id} onClick={() => { scrollToSection(id); setMobileMenuOpen(false); }}
                   style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
                   {id === 'features' ? 'Fonctionnalités' : id === 'hero-video' ? 'Démo Vidéo' : id === 'portals' ? 'Portails & Rôles' : 'Tutoriels'}
@@ -553,6 +555,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── Video Demo Section ─── */}
+      {SHOW_DEMO_VIDEO && (
       <section id="hero-video" style={{ padding: '80px 0', backgroundColor: isDark ? 'rgba(2,6,23,0.4)' : 'rgba(241,245,249,1)', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}` }}>
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
@@ -570,6 +573,7 @@ export default function HomePage() {
           </div>
         </motion.div>
       </section>
+      )}
 
       {/* ─── Features Section (ALL 12 Features) ─── */}
       <section id="features" style={{ padding: '96px 24px', maxWidth: 1280, margin: '0 auto' }}>
