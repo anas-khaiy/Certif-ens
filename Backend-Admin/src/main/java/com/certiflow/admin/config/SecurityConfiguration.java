@@ -51,6 +51,7 @@ public class SecurityConfiguration {
                                                 .requestMatchers("/api/v1/stats/**", "/api/v1/prototypes/**")
                                                 .permitAll()
                                                 .requestMatchers("/api/v1/excel/**", "/api/v1/debug/**").permitAll()
+                                                .requestMatchers("/api/v1/public/**").permitAll()
                                                 .requestMatchers("/error").permitAll()
                                                 .requestMatchers("/api/v1/auth/photo", "/api/v1/auth/profile",
                                                                 "/api/v1/auth/password",

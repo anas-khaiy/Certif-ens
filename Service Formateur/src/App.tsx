@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router';
 import Layout from './components/Layout/Layout';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import TrainersPage from './pages/TrainersPage';
 import SpecialitiesPage from './pages/SpecialitiesPage';
@@ -39,6 +40,7 @@ function App() {
     <Router basename="/formateur">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         <Route
           path="/"

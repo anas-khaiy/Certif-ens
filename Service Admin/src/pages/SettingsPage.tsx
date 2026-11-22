@@ -6,7 +6,10 @@ import {
     Save,
     Shield,
     Loader2,
-    Cpu
+    Cpu,
+    UserPlus,
+    Link as LinkIcon,
+    Copy
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../api/api-client';
@@ -33,6 +36,12 @@ const SettingsPage = () => {
     const [updatingPassword, setUpdatingPassword] = useState(false);
     const [aiModel, setAiModel] = useState('mistral');
     const [updatingAiModel, setUpdatingAiModel] = useState(false);
+    const [regApprenant, setRegApprenant] = useState(false);
+    const [regFormateur, setRegFormateur] = useState(false);
+    const [savingReg, setSavingReg] = useState<'apprenant' | 'formateur' | null>(null);
+
+    const APPRENANT_REG_URL = `${window.location.origin}/register`;
+    const FORMATEUR_REG_URL = `${window.location.origin}/formateur/register`;
 
     const API_BASE_URL = API_ADMIN;
 
@@ -65,6 +74,44 @@ const SettingsPage = () => {
         } catch (error) {
             // Ignore if not found
         }
+        try {
+            const a = await api.get('/admin/settings/REGISTRATION_APPRENANT_ENABLED');
+            setRegApprenant(a.data?.value === 'true');
+        } catch (error) { /* non défini = désactivé */ }
+        try {
+            const f = await api.get('/admin/settings/REGISTRATION_FORMATEUR_ENABLED');
+            setRegFormateur(f.data?.value === 'true');
+        } catch (error) { /* non défini = désactivé */ }
+    };
+
+    const toggleRegistration = async (kind: 'apprenant' | 'formateur', checked: boolean) => {
+        const key = kind === 'apprenant' ? 'REGISTRATION_APPRENANT_ENABLED' : 'REGISTRATION_FORMATEUR_ENABLED';
+        const previous = kind === 'apprenant' ? regApprenant : regFormateur;
+        (kind === 'apprenant' ? setRegApprenant : setRegFormateur)(checked);
+        setSavingReg(kind);
+        try {
+            await api.post(`/admin/settings/${key}`, { value: checked ? 'true' : 'false' });
+            setMessage({
+                type: 'success',
+                text: `Inscription ${kind === 'apprenant' ? 'des apprenants' : 'des formateurs'} ${checked ? 'activée' : 'désactivée'}.`
+            });
+        } catch (error) {
+            (kind === 'apprenant' ? setRegApprenant : setRegFormateur)(previous);
+            setMessage({ type: 'error', text: "Erreur lors de la mise à jour du paramètre d'inscription" });
+        } finally {
+            setSavingReg(null);
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+        }
+    };
+
+    const copyLink = async (url: string) => {
+        try {
+            await navigator.clipboard.writeText(url);
+            setMessage({ type: 'success', text: "Lien copié dans le presse-papiers." });
+        } catch {
+            setMessage({ type: 'error', text: "Impossible de copier le lien." });
+        }
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     };
 
 
@@ -410,6 +457,53 @@ const SettingsPage = () => {
                             </button>
                         </div>
                     </form>
+                </div>
+
+                {/* Registration Section */}
+                <div className="glass p-3 mb-[30px]">
+                    <div className="flex items-center gap-3 border-b border-glass-border pb-3 mb-[30px]" style={{ marginBottom: 30 }}>
+                        <div className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-500">
+                            <UserPlus size={14} />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-text">Inscription publique</h3>
+                            <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Activer ou désactiver les pages d'inscription</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        {([
+                            { kind: 'apprenant' as const, label: 'Inscription des apprenants', checked: regApprenant, url: APPRENANT_REG_URL },
+                            { kind: 'formateur' as const, label: 'Inscription des formateurs', checked: regFormateur, url: FORMATEUR_REG_URL },
+                        ]).map(item => (
+                            <div key={item.kind} className="p-3 rounded-xl border border-glass-border bg-surface-hover/30">
+                                <label className="flex items-center justify-between gap-3 cursor-pointer">
+                                    <span className="text-xs font-bold text-text">{item.label}</span>
+                                    <span className="flex items-center gap-2">
+                                        {savingReg === item.kind && <Loader2 size={12} className="animate-spin text-primary" />}
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 accent-primary cursor-pointer"
+                                            checked={item.checked}
+                                            disabled={savingReg === item.kind}
+                                            onChange={(e) => toggleRegistration(item.kind, e.target.checked)}
+                                        />
+                                    </span>
+                                </label>
+                                {item.checked ? (
+                                    <div className="mt-3 flex items-center gap-2 text-[11px]">
+                                        <LinkIcon size={12} className="text-primary shrink-0" />
+                                        <a href={item.url} target="_blank" rel="noreferrer" className="text-primary font-semibold break-all hover:underline">{item.url}</a>
+                                        <button type="button" onClick={() => copyLink(item.url)} className="ml-auto p-1.5 rounded-md hover:bg-surface-hover text-text-muted" title="Copier le lien">
+                                            <Copy size={13} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <p className="mt-2 text-[11px] text-text-muted">Désactivée : le lien d'inscription ne fonctionne pas.</p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
