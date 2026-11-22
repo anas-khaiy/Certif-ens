@@ -63,6 +63,7 @@ const HOME_ANIM_CSS = `
 .hp-feat-card img { transition: transform 0.7s ease; }
 .hp-feat-card:hover img { transform: scale(1.1); }
 .hp-hero-frame { position: relative; border-radius: 20px; padding: 2px; background: linear-gradient(120deg, #6366f1, #a855f7, #ec4899, #6366f1); background-size: 300% 300%; animation: hp-gradient 8s ease infinite; }
+@media (max-width: 900px) { .hp-orb { display: none !important; } .hp-float, .hp-float-delay, .hp-pulse-ring, .hp-btn-shine::after { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .hp-float, .hp-float-delay, .hp-orb, .hp-gradient-text, .hp-btn-shine::after, .hp-pulse-ring, .hp-hero-frame { animation: none !important; } }
 `;
 
@@ -106,6 +107,12 @@ const PORTALS_DATA: PortalData[] = [
     path: '/admin/login'
   }
 ];
+
+// Sur mobile / mouvement réduit : pas d'animation d'apparition (le contenu est visible immédiatement)
+const NO_REVEAL = typeof window !== 'undefined' && (
+  window.matchMedia('(max-width: 900px)').matches ||
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+);
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -478,7 +485,7 @@ export default function HomePage() {
       {/* ─── Hero Section ─── */}
       <section style={{ paddingTop: 128, paddingBottom: 80, maxWidth: 1280, margin: '0 auto', padding: '128px 24px 80px' }}>
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
+          initial={NO_REVEAL ? false : { opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
@@ -488,7 +495,7 @@ export default function HomePage() {
           {/* Left: Description */}
           <div className="hp-hero-left">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
+              initial={NO_REVEAL ? false : { opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               className="hp-pulse-ring"
@@ -505,7 +512,7 @@ export default function HomePage() {
             </div>
 
             <motion.h1
-              initial={{ opacity: 0, y: 24 }}
+              initial={NO_REVEAL ? false : { opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
               className="hp-gradient-text"
@@ -573,7 +580,7 @@ export default function HomePage() {
           ].map((st, i) => (
             <motion.div
               key={st.label}
-              initial={{ opacity: 0, y: 24 }}
+              initial={NO_REVEAL ? false : { opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
@@ -592,7 +599,7 @@ export default function HomePage() {
       {SHOW_DEMO_VIDEO && (
       <section id="hero-video" style={{ padding: '80px 0', backgroundColor: isDark ? 'rgba(2,6,23,0.4)' : 'rgba(241,245,249,1)', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}` }}>
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={NO_REVEAL ? false : { opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -612,7 +619,7 @@ export default function HomePage() {
       {/* ─── Features Section (ALL 12 Features) ─── */}
       <section id="features" style={{ padding: '96px 24px', maxWidth: 1280, margin: '0 auto' }}>
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={NO_REVEAL ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           style={{ textAlign: 'center', marginBottom: 64 }}
@@ -626,7 +633,7 @@ export default function HomePage() {
         <div className="hp-grid-3">
           {features.map((feat, i) => (
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={NO_REVEAL ? false : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.05 }}
@@ -663,13 +670,13 @@ export default function HomePage() {
 
       {/* ─── How it works ─── */}
       <section id="how-it-works" style={{ padding: '96px 24px 40px', maxWidth: 1280, margin: '0 auto' }}>
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: 56 }}>
+        <motion.div initial={NO_REVEAL ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: 56 }}>
           <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: 'var(--text)' }}>Du premier cours au certificat, en 4 étapes</h2>
           <p style={{ marginTop: 12, color: 'var(--text-muted)', maxWidth: 560, margin: '12px auto 0', fontSize: 14 }}>Un parcours simple, guidé et entièrement numérique.</p>
         </motion.div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 24 }}>
           {howSteps.map((st, i) => (
-            <motion.div key={st.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.12 }}
+            <motion.div key={st.title} initial={NO_REVEAL ? false : { opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.12 }}
               style={{ position: 'relative', padding: 28, borderRadius: 20, backgroundColor: isDark ? 'rgba(15,23,42,0.5)' : '#fff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}`, boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ position: 'absolute', top: 16, right: 20, fontSize: 44, fontWeight: 900, color: st.color, opacity: 0.12, lineHeight: 1 }}>{i + 1}</div>
               <div className="hp-pulse-ring" style={{ width: 52, height: 52, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: `linear-gradient(135deg, ${st.color}, ${st.color}aa)`, marginBottom: 18 }}>{st.icon}</div>
@@ -682,7 +689,7 @@ export default function HomePage() {
 
       {/* ─── Proctoring / integrity ─── */}
       <section id="integrity" style={{ padding: '56px 24px', maxWidth: 1280, margin: '0 auto' }}>
-        <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+        <motion.div initial={NO_REVEAL ? false : { opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
           style={{ borderRadius: 28, padding: 'clamp(28px, 5vw, 56px)', background: isDark ? 'linear-gradient(135deg, rgba(79,70,229,0.18), rgba(168,85,247,0.12) 55%, rgba(236,72,153,0.10))' : 'linear-gradient(135deg, #eef2ff, #f5f3ff 55%, #fdf2f8)', border: `1px solid ${isDark ? 'rgba(99,102,241,0.3)' : '#e0e7ff'}` }}>
           <div style={{ textAlign: 'center', marginBottom: 36 }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#6366f1', backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : '#fff', border: '1px solid rgba(99,102,241,0.25)' }}>
@@ -695,7 +702,7 @@ export default function HomePage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
             {proctorItems.map((it, i) => (
-              <motion.div key={it.label} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.07 }}
+              <motion.div key={it.label} initial={NO_REVEAL ? false : { opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.07 }}
                 style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 14, backgroundColor: isDark ? 'rgba(2,6,23,0.55)' : '#fff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}` }}>
                 <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : '#eef2ff' }}>{it.icon}</div>
                 <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{it.label}</span>
@@ -707,13 +714,13 @@ export default function HomePage() {
 
       {/* ─── Strengths ─── */}
       <section id="strengths" style={{ padding: '56px 24px 96px', maxWidth: 1280, margin: '0 auto' }}>
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: 56 }}>
+        <motion.div initial={NO_REVEAL ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: 56 }}>
           <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: 'var(--text)' }}>Pourquoi choisir <span className="hp-gradient-text">ENS-Learning</span> ?</h2>
           <p style={{ marginTop: 12, color: 'var(--text-muted)', maxWidth: 580, margin: '12px auto 0', fontSize: 14 }}>Tout ce qu’il faut pour enseigner, évaluer et certifier, réuni sur une seule plateforme.</p>
         </motion.div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
           {strengths.map((st, i) => (
-            <motion.div key={st.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.45, delay: (i % 3) * 0.1 }}
+            <motion.div key={st.title} initial={NO_REVEAL ? false : { opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.45, delay: (i % 3) * 0.1 }}
               whileHover={{ y: -6 }}
               style={{ display: 'flex', gap: 18, padding: 26, borderRadius: 20, backgroundColor: isDark ? 'rgba(15,23,42,0.5)' : '#fff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}`, boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ width: 54, height: 54, borderRadius: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: st.color, backgroundColor: st.color + '1f' }}>{st.icon}</div>
@@ -730,7 +737,7 @@ export default function HomePage() {
       <section id="portals" style={{ padding: '80px 0', backgroundColor: isDark ? 'rgba(2,6,23,0.4)' : 'rgba(241,245,249,1)', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}` }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={NO_REVEAL ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             style={{ textAlign: 'center', marginBottom: 64 }}
@@ -744,7 +751,7 @@ export default function HomePage() {
           <div className="hp-grid-4">
             {PORTALS_DATA.map((portal, i) => (
               <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={NO_REVEAL ? false : { opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
@@ -787,7 +794,7 @@ export default function HomePage() {
       {SHOW_TUTORIALS && (
       <section id="tutorials" style={{ padding: '96px 24px', maxWidth: 1280, margin: '0 auto' }}>
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={NO_REVEAL ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, marginBottom: 48 }}
@@ -809,7 +816,7 @@ export default function HomePage() {
         <div className="hp-grid-3">
           {filteredTutorials.map((tuto, idx) => (
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={NO_REVEAL ? false : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.05 }}
