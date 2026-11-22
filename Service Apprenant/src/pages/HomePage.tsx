@@ -145,6 +145,30 @@ export default function HomePage() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // ── Sections « puissance de la plateforme » ──
+  const howSteps = [
+    { icon: <UserCheck style={{ width: 24, height: 24 }} />, title: 'Inscrivez-vous', desc: 'Créez votre compte en quelques secondes et recevez vos accès par e-mail.', color: '#6366f1' },
+    { icon: <BookOpen style={{ width: 24, height: 24 }} />, title: 'Suivez vos cours', desc: 'Leçons, vidéos, TP de code et quiz intégrés, avec votre progression suivie en temps réel.', color: '#a855f7' },
+    { icon: <ShieldCheck style={{ width: 24, height: 24 }} />, title: 'Passez des examens surveillés', desc: 'Quiz et examens supervisés par IA, corrigés automatiquement, y compris les questions ouvertes.', color: '#ec4899' },
+    { icon: <Award style={{ width: 24, height: 24 }} />, title: 'Obtenez votre certificat', desc: 'Un certificat officiel avec QR code, vérifiable publiquement par n’importe qui.', color: '#10b981' },
+  ];
+  const proctorItems = [
+    { icon: <Eye style={{ width: 20, height: 20 }} />, label: 'Surveillance par caméra en direct' },
+    { icon: <Users style={{ width: 20, height: 20 }} />, label: 'Détection de plusieurs personnes' },
+    { icon: <Shield style={{ width: 20, height: 20 }} />, label: 'Détection de téléphone et d’objets interdits' },
+    { icon: <MonitorPlay style={{ width: 20, height: 20 }} />, label: 'Mode plein écran et anti-triche' },
+    { icon: <UserCheck style={{ width: 20, height: 20 }} />, label: 'Vérification d’identité de l’apprenant' },
+    { icon: <Brain style={{ width: 20, height: 20 }} />, label: 'Correction automatique par IA locale' },
+  ];
+  const strengths = [
+    { icon: <Brain style={{ width: 26, height: 26 }} />, title: 'IA locale et sécurisée', desc: 'Génération de questions et correction sur vos propres serveurs : vos données restent à l’école.', color: '#6366f1' },
+    { icon: <Video style={{ width: 26, height: 26 }} />, title: 'Classes en direct', desc: 'Visioconférence intégrée pour animer vos séances en temps réel avec vos apprenants.', color: '#a855f7' },
+    { icon: <Code style={{ width: 26, height: 26 }} />, title: 'Éditeur de code intégré', desc: 'Exécution de code et suivi des TP directement dans la plateforme.', color: '#ec4899' },
+    { icon: <BarChart3 style={{ width: 26, height: 26 }} />, title: 'Statistiques détaillées', desc: 'Tableaux de bord pour suivre les performances par cours, quiz et apprenant.', color: '#f59e0b' },
+    { icon: <Award style={{ width: 26, height: 26 }} />, title: 'Certificats vérifiables', desc: 'Chaque certificat porte un QR code qui permet de vérifier son authenticité.', color: '#10b981' },
+    { icon: <ClipboardList style={{ width: 26, height: 26 }} />, title: 'Suivi des PFE', desc: 'Dépôt, encadrement et remarques centralisés pour les projets de fin d’études.', color: '#06b6d4' },
+  ];
+
   // Section « Tutoriels vidéo » masquée (passer à true pour la réafficher)
   const SHOW_TUTORIALS = false;
   // Section « Vidéo Démo Générale de la Plateforme » masquée (passer à true pour la réafficher)
@@ -621,6 +645,71 @@ export default function HomePage() {
               <div style={{ padding: 24, flex: 1 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>{feat.title}</h3>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>{feat.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── How it works ─── */}
+      <section id="how-it-works" style={{ padding: '96px 24px 40px', maxWidth: 1280, margin: '0 auto' }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: 56 }}>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: 'var(--text)' }}>Du premier cours au certificat, en 4 étapes</h2>
+          <p style={{ marginTop: 12, color: 'var(--text-muted)', maxWidth: 560, margin: '12px auto 0', fontSize: 14 }}>Un parcours simple, guidé et entièrement numérique.</p>
+        </motion.div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 24 }}>
+          {howSteps.map((st, i) => (
+            <motion.div key={st.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.12 }}
+              style={{ position: 'relative', padding: 28, borderRadius: 20, backgroundColor: isDark ? 'rgba(15,23,42,0.5)' : '#fff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}`, boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ position: 'absolute', top: 16, right: 20, fontSize: 44, fontWeight: 900, color: st.color, opacity: 0.12, lineHeight: 1 }}>{i + 1}</div>
+              <div className="hp-pulse-ring" style={{ width: 52, height: 52, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: `linear-gradient(135deg, ${st.color}, ${st.color}aa)`, marginBottom: 18 }}>{st.icon}</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{st.title}</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>{st.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Proctoring / integrity ─── */}
+      <section id="integrity" style={{ padding: '56px 24px', maxWidth: 1280, margin: '0 auto' }}>
+        <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+          style={{ borderRadius: 28, padding: 'clamp(28px, 5vw, 56px)', background: isDark ? 'linear-gradient(135deg, rgba(79,70,229,0.18), rgba(168,85,247,0.12) 55%, rgba(236,72,153,0.10))' : 'linear-gradient(135deg, #eef2ff, #f5f3ff 55%, #fdf2f8)', border: `1px solid ${isDark ? 'rgba(99,102,241,0.3)' : '#e0e7ff'}` }}>
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#6366f1', backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : '#fff', border: '1px solid rgba(99,102,241,0.25)' }}>
+              <ShieldCheck style={{ width: 14, height: 14 }} /> Intégrité académique
+            </span>
+            <h2 style={{ marginTop: 16, fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: 'var(--text)' }}>Des examens à distance en toute confiance</h2>
+            <p style={{ marginTop: 12, color: 'var(--text-muted)', maxWidth: 620, margin: '12px auto 0', fontSize: 14, lineHeight: 1.7 }}>
+              La surveillance par IA s’active pendant les quiz et examens supervisés. Les formateurs choisissent, pour chaque évaluation, le niveau de supervision.
+            </p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+            {proctorItems.map((it, i) => (
+              <motion.div key={it.label} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.07 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 14, backgroundColor: isDark ? 'rgba(2,6,23,0.55)' : '#fff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}` }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : '#eef2ff' }}>{it.icon}</div>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{it.label}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ─── Strengths ─── */}
+      <section id="strengths" style={{ padding: '56px 24px 96px', maxWidth: 1280, margin: '0 auto' }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: 56 }}>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: 'var(--text)' }}>Pourquoi choisir <span className="hp-gradient-text">ENS-Learning</span> ?</h2>
+          <p style={{ marginTop: 12, color: 'var(--text-muted)', maxWidth: 580, margin: '12px auto 0', fontSize: 14 }}>Tout ce qu’il faut pour enseigner, évaluer et certifier, réuni sur une seule plateforme.</p>
+        </motion.div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+          {strengths.map((st, i) => (
+            <motion.div key={st.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.45, delay: (i % 3) * 0.1 }}
+              whileHover={{ y: -6 }}
+              style={{ display: 'flex', gap: 18, padding: 26, borderRadius: 20, backgroundColor: isDark ? 'rgba(15,23,42,0.5)' : '#fff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}`, boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ width: 54, height: 54, borderRadius: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: st.color, backgroundColor: st.color + '1f' }}>{st.icon}</div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>{st.title}</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>{st.desc}</p>
               </div>
             </motion.div>
           ))}
