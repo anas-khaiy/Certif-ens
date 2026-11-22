@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { sanitizeRichHtml } from '../utils/sanitizeHtml';
+import { Reorder, useDragControls } from 'framer-motion';
 
 const Q = (ReactQuill as any).Quill;
 if (Q) {
@@ -63,7 +64,8 @@ import {
     ArrowUpRight,
     Timer,
     Briefcase,
-    User
+    User,
+    GripVertical
 } from 'lucide-react';
 
 // --- SSE AI streaming helper ---
@@ -647,6 +649,34 @@ const MockQuill: React.FC<{
         </div>
     );
 });
+
+// Ligne réordonnable (glisser-déposer) : seule la poignée déclenche le déplacement
+const ReorderRow: React.FC<{
+    value: any;
+    className?: string;
+    onClick?: () => void;
+    children: (startDrag: (e: React.PointerEvent) => void) => React.ReactNode;
+}> = ({ value, className, onClick, children }) => {
+    const controls = useDragControls();
+    return (
+        <Reorder.Item as="div" value={value} dragListener={false} dragControls={controls} className={className} onClick={onClick}>
+            {children((e) => controls.start(e))}
+        </Reorder.Item>
+    );
+};
+
+const DragHandle: React.FC<{ startDrag: (e: React.PointerEvent) => void; light?: boolean; title: string }> = ({ startDrag, light, title }) => (
+    <button
+        type="button"
+        title={title}
+        onPointerDown={(e) => { e.stopPropagation(); startDrag(e); }}
+        onClick={(e) => e.stopPropagation()}
+        style={{ touchAction: 'none', cursor: 'grab' }}
+        className={`flex-shrink-0 p-1.5 mr-2 rounded-lg transition-all ${light ? 'text-white/80 hover:bg-white/20' : 'text-text-muted hover:text-primary hover:bg-primary/10'}`}
+    >
+        <GripVertical size={18} />
+    </button>
+);
 
 const ConfirmationModal: React.FC<{
     isOpen: boolean;
@@ -3336,9 +3366,12 @@ const CourseEditorPage: React.FC = () => {
                     </div>
                     <div className="p-6 md:p-8 space-y-4 bg-surface-hover/30">
                         {course.sections.length === 0 && <div className="flex flex-col items-center justify-center py-20 text-text-muted opacity-40"><Plus size={48} className="mb-4 text-primary/50" /><p className="font-bold">Aucune section</p><p className="text-xs">Commencez par en ajouter une</p></div>}
+                        <Reorder.Group axis="y" as="div" values={course.sections} onReorder={(newOrder: any[]) => setCourse(prev => ({ ...prev, sections: newOrder as any }))} className="space-y-4">
                         {course.sections.map((section, idx) => (
-                            <div key={section.id || `section-${idx}`} className="card !rounded-2xl border border-glass-border overflow-hidden bg-surface group/section">
+                            <ReorderRow key={section.id || `section-${idx}`} value={section} className="card !rounded-2xl border border-glass-border overflow-hidden bg-surface group/section">
+                              {(startSectionDrag) => (<>
                                 <div className={`flex items-center p-4 cursor-pointer transition-all ${expandedSectionId === section.id ? 'bg-primary/5' : 'hover:bg-surface-hover/50'}`} onClick={() => setExpandedSectionId(expandedSectionId === section.id ? null : section.id)}>
+                                    <DragHandle startDrag={startSectionDrag} title="Glisser pour déplacer la section" />
                                     <div className={`mr-3 transition-all ${expandedSectionId === section.id ? 'text-primary scale-110' : 'text-text-muted'}`}>{expandedSectionId === section.id ? <ChevronDown size={20} /> : <ChevronRight size={20} />}</div>
                                     <div className="flex-1 min-w-0 flex flex-col gap-1">
                                         <div className="flex items-center gap-2">
@@ -3358,21 +3391,28 @@ const CourseEditorPage: React.FC = () => {
                                 {expandedSectionId === section.id && (
                                     <div className="px-3 pb-3 space-y-2 bg-surface-hover/30">
                                         <div className="border-t border-glass-border/50 mb-2" />
+                                        <Reorder.Group axis="y" as="div" values={section.subSections} onReorder={(newOrder: any[]) => setCourse(prev => ({ ...prev, sections: prev.sections.map(sec => sec.id === section.id ? { ...sec, subSections: newOrder as any } : sec) }))} className="space-y-2">
                                         {section.subSections.map((sub, sIdx) => {
                                             const isSelected = selectedSubSectionId === sub.id;
                                             return (
-                                                <div key={sub.id || `sub-${sIdx}`} onClick={() => setSelectedSubSectionId(sub.id)} className={`group/sub flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all border ${isSelected ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-[1.02] z-10' : 'bg-surface border-glass-border text-text-muted hover:border-primary/50 hover:text-text hover:shadow-md'}`}>
+                                                <ReorderRow key={sub.id || `sub-${sIdx}`} value={sub} onClick={() => setSelectedSubSectionId(sub.id)} className={`group/sub flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all border ${isSelected ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-[1.02] z-10' : 'bg-surface border-glass-border text-text-muted hover:border-primary/50 hover:text-text hover:shadow-md'}`}>
+                                                  {(startSubDrag) => (<>
+                                                    <DragHandle startDrag={startSubDrag} light={isSelected} title="Glisser pour déplacer la leçon" />
                                                     <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${isSelected ? 'bg-white/20' : 'bg-surface-hover text-text-muted'}`}>{sub.videoUrl || (sub.videoUrls && sub.videoUrls.length > 0) ? <Youtube size={16} /> : <FileText size={16} />}</div>
                                                     <div className="flex-1 min-w-0"><p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-text'}`}>{sub.title || `Leçon ${sIdx + 1}`}</p>{sub.quiz && <div className="flex items-center gap-1 mt-0.5"><div className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]" /><span className="text-[9px] font-black uppercase opacity-60">Quiz actif</span></div>}</div>
                                                     <button onClick={(e) => { e.stopPropagation(); deleteSubSection(section.id, sub.id); }} className={`opacity-0 group-hover/sub:opacity-100 p-1.5 rounded-lg transition-all ${isSelected ? 'text-white/80 hover:bg-white/20 hover:text-white' : 'text-text-muted hover:bg-error/10 hover:text-error'}`}><Trash2 size={14} /></button>
-                                                </div>
+                                                  </>)}
+                                                </ReorderRow>
                                             );
                                         })}
+                                        </Reorder.Group>
                                         <button onClick={() => addSubSection(section.id)} className="w-full mt-2 py-3 text-xs font-bold text-text-muted hover:text-primary border-2 border-dashed border-glass-border hover:border-primary/30 rounded-xl transition-all flex items-center justify-center gap-2 bg-surface/50 hover:bg-primary/5"><Plus size={14} /> Ajouter une leçon</button>
                                     </div>
                                 )}
-                            </div>
+                              </>)}
+                            </ReorderRow>
                         ))}
+                        </Reorder.Group>
                     </div>
 
                     {/* Examen Final Section */}
