@@ -410,7 +410,42 @@ const MockQuill: React.FC<{
             // Add image to the same group as link
             toolbar[4].push('image');
         }
-        return { toolbar };
+        // Sélection de plusieurs images à la fois (remplace le sélecteur d'une seule image de Quill)
+        const imageHandler = function (this: any) {
+            const quill = this.quill;
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.multiple = true;
+            input.onchange = async () => {
+                const files = Array.from(input.files || []).filter(f => f.type.startsWith('image/'));
+                if (files.length === 0) return;
+                const readAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(String(reader.result));
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsDataURL(file);
+                });
+                // Position d'insertion = curseur actuel (ou fin du contenu)
+                const range = quill.getSelection(true);
+                let index = range ? range.index : quill.getLength();
+                for (const file of files) {
+                    try {
+                        const dataUrl = await readAsDataUrl(file);
+                        quill.insertEmbed(index, 'image', dataUrl, 'user');
+                        index += 1;
+                        // Retour à la ligne entre deux images pour qu'elles ne se collent pas
+                        quill.insertText(index, '\n', 'user');
+                        index += 1;
+                    } catch (err) {
+                        console.error('Image non lue :', file.name, err);
+                    }
+                }
+                quill.setSelection(index, 0, 'user');
+            };
+            input.click();
+        };
+        return { toolbar: { container: toolbar, handlers: hideImages ? {} : { image: imageHandler } } };
     }, [hideImages]);
 
     // Keep latest onChange in ref — avoids stale closures and never triggers re-renders
