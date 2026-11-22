@@ -7,7 +7,8 @@ export interface ParsedImport {
 
 const LETTERS = 'ABCDEFGHIJKL';
 const MAX_OPTIONS = 8;
-const newId = () => Math.random().toString(36).substr(2, 9);
+// Préfixe "temp-" obligatoire : l'éditeur retire ces identifiants avant l'envoi au serveur (les vrais identifiants sont numériques)
+const newId = () => `temp-${Math.random().toString(36).substr(2, 9)}`;
 
 const stripAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
 const normKey = (k: string) => stripAccents(String(k)).toLowerCase().replace(/[\s_\-]/g, '');

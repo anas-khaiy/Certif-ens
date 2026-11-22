@@ -792,6 +792,37 @@ const htmlToTextPreserve = (html: string): string => {
     return text;
 };
 
+// Champ de saisie du nombre de questions : on peut taper la valeur, plafonnée au nombre de questions disponibles
+const QuestionCountInput: React.FC<{ value: number; max: number; onChange: (n: number) => void; className?: string }> = ({ value, max, onChange, className }) => {
+    const [text, setText] = useState(String(value));
+    useEffect(() => { setText(String(value)); }, [value]);
+    const cap = Math.max(1, max);
+    const clamp = (n: number) => Math.min(Math.max(1, n), cap);
+    return (
+        <input
+            type="text"
+            inputMode="numeric"
+            value={text}
+            title={`Entre 1 et ${cap}`}
+            onChange={(e) => {
+                const v = e.target.value.replace(/\D/g, '');
+                if (v === '') { setText(''); return; }
+                const n = clamp(parseInt(v, 10));
+                setText(String(n));
+                onChange(n);
+            }}
+            onFocus={(e) => e.target.select()}
+            onBlur={() => {
+                const n = text === '' ? clamp(value) : clamp(parseInt(text, 10));
+                setText(String(n));
+                onChange(n);
+            }}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            className={className}
+        />
+    );
+};
+
 // --- NEW QUIZ EDITOR ---
 const QuizEditorModal: React.FC<{
     initialQuiz?: Quiz | null;
@@ -2069,7 +2100,7 @@ const QuizEditorModal: React.FC<{
                                                 </button>
 
                                                 <div className="text-center">
-                                                    <span className="text-6xl font-black text-primary tabular-nums tracking-tighter">{settings.totalQuestions}</span>
+                                                    <QuestionCountInput value={settings.totalQuestions} max={settings.generatedPool?.length || 0} onChange={(n) => setSettings(prev => ({ ...prev, totalQuestions: n }))} className="w-40 text-6xl font-black text-primary tabular-nums tracking-tighter text-center bg-transparent border-b-4 border-primary/30 focus:border-primary outline-none" />
                                                     <p className="text-[10px] text-text-muted font-bold mt-1 uppercase opacity-60">Questions sélectionnées</p>
                                                 </div>
 
@@ -2190,9 +2221,12 @@ const QuizEditorModal: React.FC<{
                                                             <ChevronLeft size={24} strokeWidth={3} />
                                                         </button>
                                                         <div className="flex flex-col items-center min-w-[100px]">
-                                                            <div className="text-5xl font-black text-primary tabular-nums tracking-tighter line-height-1 mb-1">
-                                                                {settings.totalQuestions}
-                                                            </div>
+                                                            <QuestionCountInput
+                                                                value={settings.totalQuestions}
+                                                                max={(settings.mode === 'manual' ? questions.length : settings.generatedPool?.length) || 0}
+                                                                onChange={(n) => setSettings(prev => ({ ...prev, totalQuestions: n }))}
+                                                                className="w-36 text-5xl font-black text-primary tabular-nums tracking-tighter text-center bg-transparent border-b-4 border-primary/30 focus:border-primary outline-none mb-1"
+                                                            />
                                                             <div className="text-[10px] font-black uppercase text-text-muted opacity-40">Questions</div>
                                                         </div>
                                                         <button
