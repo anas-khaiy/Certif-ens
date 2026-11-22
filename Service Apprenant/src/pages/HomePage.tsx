@@ -141,9 +141,28 @@ export default function HomePage() {
     }
   };
 
+  // Section « Tutoriels vidéo » masquée (passer à true pour la réafficher)
+  const SHOW_TUTORIALS = false;
+  // Section « Vidéo Démo Générale de la Plateforme » masquée (passer à true pour la réafficher)
+  const SHOW_DEMO_VIDEO = false;
+
   const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Décalage pour ne pas cacher le titre sous la barre de navigation fixe
+    const top = el.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top, behavior: 'smooth' });
   };
+
+  const navLinks = [
+    { label: 'Fonctionnalités', id: 'features' },
+    { label: 'Étapes', id: 'how-it-works' },
+    { label: 'Sécurité', id: 'integrity' },
+    { label: 'Atouts', id: 'strengths' },
+    { label: 'Portails', id: 'portals' },
+    { label: 'Démo Vidéo', id: 'hero-video' },
+    { label: 'Tutoriels', id: 'tutorials' },
+  ].filter(l => (SHOW_TUTORIALS || l.id !== 'tutorials') && (SHOW_DEMO_VIDEO || l.id !== 'hero-video'));
 
   // ── Sections « puissance de la plateforme » ──
   const howSteps = [
@@ -169,10 +188,6 @@ export default function HomePage() {
     { icon: <ClipboardList style={{ width: 26, height: 26 }} />, title: 'Suivi des PFE', desc: 'Dépôt, encadrement et remarques centralisés pour les projets de fin d’études.', color: '#06b6d4' },
   ];
 
-  // Section « Tutoriels vidéo » masquée (passer à true pour la réafficher)
-  const SHOW_TUTORIALS = false;
-  // Section « Vidéo Démo Générale de la Plateforme » masquée (passer à true pour la réafficher)
-  const SHOW_DEMO_VIDEO = false;
 
   const tutorials = [
     { title: "#2 Formateur - Création et gestion des cours", id: "O88heNIMjp4", category: "formateur", desc: "Découvrez comment concevoir vos cours, éditer les sections et structurer le contenu pédagogique." },
@@ -323,12 +338,7 @@ export default function HomePage() {
 
           {/* Desktop Nav Links */}
           <nav style={{ alignItems: 'center', gap: 4 }} className="hp-desktop-nav">
-            {[
-              { label: 'Fonctionnalités', id: 'features' },
-              { label: 'Démo Vidéo', id: 'hero-video' },
-              { label: 'Portails', id: 'portals' },
-              { label: 'Tutoriels', id: 'tutorials' },
-            ].filter(l => (SHOW_TUTORIALS || l.id !== 'tutorials') && (SHOW_DEMO_VIDEO || l.id !== 'hero-video')).map(link => (
+            {navLinks.map(link => (
               <button key={link.id} onClick={() => scrollToSection(link.id)}
                 style={{ padding: '6px 14px', fontSize: 14, fontWeight: 500, color: 'var(--text-muted)', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'; }}
@@ -454,10 +464,10 @@ export default function HomePage() {
               ))}
             </div>
             <div style={{ paddingTop: 8, marginTop: 8, borderTop: `1px solid ${isDark ? 'rgba(30,41,59,1)' : '#e2e8f0'}` }}>
-              {['features', 'hero-video', 'portals', 'tutorials'].filter(id => (SHOW_TUTORIALS || id !== 'tutorials') && (SHOW_DEMO_VIDEO || id !== 'hero-video')).map(id => (
+              {navLinks.map(({ id, label }) => (
                 <button key={id} onClick={() => { scrollToSection(id); setMobileMenuOpen(false); }}
                   style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                  {id === 'features' ? 'Fonctionnalités' : id === 'hero-video' ? 'Démo Vidéo' : id === 'portals' ? 'Portails & Rôles' : 'Tutoriels'}
+                  {label}
                 </button>
               ))}
             </div>
