@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, User, IdCard, ChevronRight, Moon, Sun, AlertCircle, CheckCircle2, Home, Loader2 } from 'lucide-react';
+import { Mail, User, IdCard, Users, GraduationCap, BookOpen, Layers, ChevronRight, Moon, Sun, AlertCircle, CheckCircle2, Home, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import '../login.css';
 import RecaptchaWidget from '../components/RecaptchaWidget';
@@ -12,7 +12,12 @@ const RegisterPage = () => {
     const [nom, setNom] = useState('');
     const [prenom, setPrenom] = useState('');
     const [email, setEmail] = useState('');
-    const [cin, setCin] = useState('');
+    const [cne, setCne] = useState('');
+    const [sexe, setSexe] = useState('');
+    const [formationId, setFormationId] = useState('');
+    const [cycleId, setCycleId] = useState('');
+    const [specialiteId, setSpecialiteId] = useState('');
+    const [options, setOptions] = useState<{ formations: any[]; cycles: any[]; specialites: any[] }>({ formations: [], cycles: [], specialites: [] });
     const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -32,6 +37,13 @@ const RegisterPage = () => {
             .catch(() => setEnabled(false));
     }, []);
 
+    useEffect(() => {
+        fetch(`${API_ADMIN}/public/registration-options`)
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d) setOptions({ formations: d.formations || [], cycles: d.cycles || [], specialites: d.specialites || [] }); })
+            .catch(() => {});
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
@@ -44,7 +56,7 @@ const RegisterPage = () => {
             const res = await fetch(`${API_ADMIN}/public/register/apprenant`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nom, prenom, email, cin, recaptchaToken })
+                body: JSON.stringify({ nom, prenom, email, cne, sexe, formationId, cycleId, specialiteId, recaptchaToken })
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
@@ -70,6 +82,21 @@ const RegisterPage = () => {
                 required
                 className="form-input w-full h-14 bg-background/30 backdrop-blur-md border border-white/10 rounded-xl pl-14 pr-6 text-base focus:bg-background/50 transition-all outline-none text-text"
             />
+        </div>
+    );
+
+    const selectField = (icon: React.ReactNode, value: string, onChange: (v: string) => void, placeholder: string, options: { id: any; nom: string }[]) => (
+        <div className="relative input-focus-effect rounded-xl overflow-hidden transition-all duration-300">
+            <div className="absolute left-[10px] top-0 bottom-0 w-12 flex items-center justify-center text-primary pointer-events-none z-20">{icon}</div>
+            <select
+                required
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                className="form-input w-full h-14 bg-background/30 backdrop-blur-md border border-white/10 rounded-xl pl-14 pr-6 text-base focus:bg-background/50 transition-all outline-none text-text appearance-none"
+            >
+                <option value="">{placeholder}</option>
+                {options.map(o => <option key={String(o.id)} value={String(o.id)}>{o.nom}</option>)}
+            </select>
         </div>
     );
 
@@ -135,10 +162,14 @@ const RegisterPage = () => {
                                 <AlertCircle size={18} className="shrink-0" /> {error}
                             </div>
                         )}
+                        {field(<IdCard size={22} strokeWidth={2.5} />, { type: 'text', placeholder: 'CNE', value: cne, onChange: e => setCne(e.target.value) })}
+                        {selectField(<Users size={22} strokeWidth={2.5} />, sexe, setSexe, 'Sexe', [{ id: 'Homme', nom: 'Homme' }, { id: 'Femme', nom: 'Femme' }])}
                         {field(<User size={22} strokeWidth={2.5} />, { type: 'text', placeholder: 'Nom', value: nom, onChange: e => setNom(e.target.value) })}
                         {field(<User size={22} strokeWidth={2.5} />, { type: 'text', placeholder: 'Prénom', value: prenom, onChange: e => setPrenom(e.target.value) })}
                         {field(<Mail size={22} strokeWidth={2.5} />, { type: 'email', placeholder: 'Adresse e-mail', value: email, onChange: e => setEmail(e.target.value) })}
-                        {field(<IdCard size={22} strokeWidth={2.5} />, { type: 'text', placeholder: 'CIN', value: cin, onChange: e => setCin(e.target.value) })}
+                        {selectField(<BookOpen size={22} strokeWidth={2.5} />, formationId, setFormationId, 'Formation', options.formations)}
+                        {selectField(<Layers size={22} strokeWidth={2.5} />, cycleId, setCycleId, 'Cycle', options.cycles)}
+                        {selectField(<GraduationCap size={22} strokeWidth={2.5} />, specialiteId, setSpecialiteId, 'Spécialité', options.specialites)}
                         <RecaptchaWidget onChange={setRecaptchaToken} />
                         <button
                             type="submit"
