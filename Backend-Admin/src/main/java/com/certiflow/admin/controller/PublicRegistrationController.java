@@ -112,6 +112,9 @@ public class PublicRegistrationController {
         if (!isEnabled(KEY_APPRENANT)) {
             return error(HttpStatus.FORBIDDEN, "L'inscription des apprenants n'est pas disponible.");
         }
+        if (!"true".equalsIgnoreCase(String.valueOf(body.get("certified")))) {
+            return error(HttpStatus.BAD_REQUEST, "Vous devez certifier l'exactitude de vos informations.");
+        }
         if (!recaptchaService.verify(body.get("recaptchaToken"))) {
             return error(HttpStatus.BAD_REQUEST, "Vérification reCAPTCHA invalide. Veuillez réessayer.");
         }
@@ -168,6 +171,9 @@ public class PublicRegistrationController {
     public ResponseEntity<Map<String, String>> registerFormateur(@RequestBody Map<String, String> body) {
         if (!isEnabled(KEY_FORMATEUR)) {
             return error(HttpStatus.FORBIDDEN, "L'inscription des formateurs n'est pas disponible.");
+        }
+        if (!"true".equalsIgnoreCase(String.valueOf(body.get("certified")))) {
+            return error(HttpStatus.BAD_REQUEST, "Vous devez certifier l'exactitude de vos informations.");
         }
         if (!recaptchaService.verify(body.get("recaptchaToken"))) {
             return error(HttpStatus.BAD_REQUEST, "Vérification reCAPTCHA invalide. Veuillez réessayer.");

@@ -18,6 +18,7 @@ const RegisterPage = () => {
     const [cycleId, setCycleId] = useState('');
     const [specialiteId, setSpecialiteId] = useState('');
     const [options, setOptions] = useState<{ formations: any[]; cycles: any[]; specialites: any[] }>({ formations: [], cycles: [], specialites: [] });
+    const [certified, setCertified] = useState(false);
     const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -47,6 +48,10 @@ const RegisterPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        if (!certified) {
+            setError("Veuillez certifier l'exactitude de vos informations.");
+            return;
+        }
         if (!recaptchaToken) {
             setError('Veuillez cocher « Je ne suis pas un robot ».');
             return;
@@ -56,7 +61,7 @@ const RegisterPage = () => {
             const res = await fetch(`${API_ADMIN}/public/register/apprenant`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nom, prenom, email, cne, sexe, formationId, cycleId, specialiteId, recaptchaToken })
+                body: JSON.stringify({ nom, prenom, email, cne, sexe, formationId, cycleId, specialiteId, certified, recaptchaToken })
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
@@ -170,6 +175,16 @@ const RegisterPage = () => {
                         {selectField(<BookOpen size={22} strokeWidth={2.5} />, formationId, setFormationId, 'Formation', options.formations)}
                         {selectField(<Layers size={22} strokeWidth={2.5} />, cycleId, setCycleId, 'Cycle', options.cycles)}
                         {selectField(<GraduationCap size={22} strokeWidth={2.5} />, specialiteId, setSpecialiteId, 'Spécialité', options.specialites)}
+                        <label className="flex items-start gap-3 cursor-pointer text-sm text-text-muted leading-relaxed">
+                            <input
+                                type="checkbox"
+                                required
+                                checked={certified}
+                                onChange={e => setCertified(e.target.checked)}
+                                className="mt-1 w-5 h-5 accent-primary shrink-0 cursor-pointer"
+                            />
+                            <span>Je certifie que les informations saisies sont exactes et qu'elles seront utilisées dans la plateforme de l'ENS.</span>
+                        </label>
                         <RecaptchaWidget onChange={setRecaptchaToken} />
                         <button
                             type="submit"
