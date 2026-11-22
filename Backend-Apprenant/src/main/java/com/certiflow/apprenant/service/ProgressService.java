@@ -16,6 +16,7 @@ public class ProgressService {
         private final QuizResultRepository quizResultRepository;
         private final ApprenantRepository apprenantRepository;
         private final TpSubmissionRepository tpSubmissionRepository;
+        private final CourseRepository courseRepository;
 
         public CourseProgress getProgress(Long courseId, String email) {
                 try {
@@ -106,6 +107,19 @@ public class ProgressService {
         @Transactional
         public QuizResult saveQuizResult(Long courseId, String email, String quizId, Integer score, Boolean passed,
                         String answers, String cheatingReason, String status) {
+                // Un quiz supervisé désactivé par le formateur ne peut pas être passé
+                courseRepository.findById(courseId).ifPresent(course -> {
+                        if (course.getCourseQuizzes() != null && quizId != null) {
+                                for (Quiz q : course.getCourseQuizzes()) {
+                                        if (q != null && q.getId() != null && quizId.equals(String.valueOf(q.getId()))
+                                                        && Boolean.FALSE.equals(q.getActive())) {
+                                                throw new org.springframework.web.server.ResponseStatusException(
+                                                                org.springframework.http.HttpStatus.FORBIDDEN,
+                                                                "Ce quiz n'est pas disponible pour le moment.");
+                                        }
+                                }
+                        }
+                });
                 try {
                         Apprenant apprenant = apprenantRepository.findByEmail(email)
                                         .orElseThrow(() -> new RuntimeException(

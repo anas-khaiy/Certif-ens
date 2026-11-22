@@ -119,6 +119,7 @@ export interface SubSection {
 export interface Quiz {
     id: string;
     title?: string;
+    active?: boolean;
     questions?: Question[];
     settings?: QuizSettings;
 }

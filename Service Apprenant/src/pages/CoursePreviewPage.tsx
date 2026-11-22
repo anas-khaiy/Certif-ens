@@ -47,6 +47,7 @@ import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_D
 
 
 import ImageLightbox from '../components/ImageLightbox';
+import QuestionText from '../components/QuestionText';
 // Convertit un pourcentage en note sur 20
 const toOutOf20 = (percent: number) => (Math.round(((percent || 0) / 5) * 10) / 10).toString().replace('.', ',');
 
@@ -1926,12 +1927,14 @@ const CoursePreviewPage: React.FC = () => {
                                     const cqDone = !!cqResult;
                                     const cqPending = cqResult?.status === 'PENDING_MANUAL';
                                     const cqPassed = !!cqResult?.passed;
+                                    // Quiz désactivé par le formateur : visible mais impossible à passer
+                                    const cqInactive = cq.active === false && !cqDone;
                                     return (
                                         <button
                                             key={String(cq.id ?? cqIdx)}
-                                            disabled={cqDone}
-                                            onClick={() => { if (!cqDone) openQuizSetup(cq); }}
-                                            className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all ${cqDone
+                                            disabled={cqDone || cqInactive}
+                                            onClick={() => { if (!cqDone && !cqInactive) openQuizSetup(cq); }}
+                                            className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all ${cqInactive ? 'bg-surface-hover border-glass-border opacity-60 cursor-not-allowed' : cqDone
                                                 ? (cqPending ? 'bg-orange-500/5 border-orange-500/20' : (cqPassed ? 'bg-success/5 border-success/20' : 'bg-error/5 border-error/20')) + ' cursor-default opacity-80'
                                                 : 'bg-primary/5 border-primary/20 hover:border-primary/40 hover:bg-primary/10'}`}
                                         >
@@ -1943,7 +1946,9 @@ const CoursePreviewPage: React.FC = () => {
                                             <div className="flex-1 min-w-0">
                                                 <div className="font-black text-xs truncate">{cq.title || `Quiz ${cqIdx + 1}`}</div>
                                                 <div className="flex items-center gap-2 mt-0.5 text-[10px] font-bold opacity-70">
-                                                    {cqDone ? (
+                                                    {cqInactive ? (
+                                                        <><Lock size={10} /> Non disponible pour le moment</>
+                                                    ) : cqDone ? (
                                                         cqPending ? <>En attente de correction</> : <>Note: {toOutOf20(cqResult.score)}/20 <span className="opacity-70">({cqResult.score}%)</span></>
                                                     ) : (
                                                         <>
@@ -1953,7 +1958,7 @@ const CoursePreviewPage: React.FC = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            {!cqDone && <ChevronRight size={16} className="text-primary shrink-0" />}
+                                            {!cqDone && !cqInactive && <ChevronRight size={16} className="text-primary shrink-0" />}
                                         </button>
                                     );
                                 })}
@@ -2316,7 +2321,7 @@ const CoursePreviewPage: React.FC = () => {
                                                                 <div className="flex gap-3">
                                                                     <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">{qIdx + 1}</span>
                                                                     <div className="flex items-center gap-2 flex-wrap">
-                                                                        <h3 className="font-bold text-lg">{q.text}</h3>
+                                                                        <QuestionText text={q.text} className="font-bold text-lg" />
                                                                         {q.type === 'QCM' && (
                                                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 text-[9px] font-black uppercase whitespace-nowrap">
                                                                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12l2 2 4-4"/></svg>
@@ -3040,7 +3045,7 @@ const CoursePreviewPage: React.FC = () => {
                                                         <div className="flex gap-4">
                                                             <span className="flex-shrink-0 w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-lg">{qIdx + 1}</span>
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                                <h3 className="font-extrabold text-xl leading-snug">{q.text}</h3>
+                                                                <QuestionText text={q.text} className="font-extrabold text-xl leading-snug" />
                                                                 {q.type === 'QCM' && (
                                                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 text-[9px] font-black uppercase whitespace-nowrap">
                                                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12l2 2 4-4"/></svg>

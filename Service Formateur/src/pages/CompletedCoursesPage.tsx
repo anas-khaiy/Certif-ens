@@ -151,7 +151,7 @@ const CompletedCoursesPage = () => {
                         );
 
                         // Supervised course quizzes (if any) are required like the final exam
-                        const courseQuizList: any[] = (course as any).courseQuizzes || [];
+                        const courseQuizList: any[] = ((course as any).courseQuizzes || []).filter((cq: any) => cq.active !== false);
                         const courseQuizzesPassed = courseQuizList.filter((cq: any) => quizResults.some((r: any) => String(r.quizId) === String(cq.id) && r.passed === true)).length;
                         const totalItems = uniqueSubSectionIds.size + (hasFinalExam ? 1 : 0) + courseQuizList.length;
                         const completedItems = uniqueCompletedIds.size + (hasFinalExam && finalExamResult ? 1 : 0) + courseQuizzesPassed;

@@ -22,6 +22,9 @@ public class Quiz {
 
     private String title;
 
+    /** Quiz supervisé du cours : actif (null ou true) = accessible aux apprenants ; false = non disponible. */
+    private Boolean active;
+
     @Embedded
     @Builder.Default
     private QuizSettings settings = new QuizSettings();

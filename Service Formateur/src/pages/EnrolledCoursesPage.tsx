@@ -142,7 +142,7 @@ const EnrolledCoursesPage = () => {
                             }
 
                             // Supervised course quizzes (if any): each one must be passed
-                            ((course as any).courseQuizzes || []).forEach((cq: any) => {
+                            ((course as any).courseQuizzes || []).filter((cq: any) => cq.active !== false).forEach((cq: any) => {
                                 totalItems += 1;
                                 if (quizResults.some((r: any) => String(r.quizId) === String(cq.id) && r.passed)) completedItems += 1;
                             });

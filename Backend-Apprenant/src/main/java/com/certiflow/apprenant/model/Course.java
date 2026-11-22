@@ -108,7 +108,8 @@ public class Course {
         java.util.Set<String> ids = new java.util.LinkedHashSet<>();
         if (courseQuizzes != null) {
             for (Quiz q : courseQuizzes) {
-                if (q != null && q.getId() != null) ids.add(String.valueOf(q.getId()));
+                // Un quiz désactivé n'est pas exigé pour la complétion / le certificat
+                if (q != null && q.getId() != null && !Boolean.FALSE.equals(q.getActive())) ids.add(String.valueOf(q.getId()));
             }
         }
         return ids;

@@ -45,6 +45,7 @@ import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_D
 
 
 import ImageLightbox from '../components/ImageLightbox';
+import QuestionText from '../components/QuestionText';
 // Convertit un pourcentage en note sur 20
 const toOutOf20 = (percent: number) => (Math.round(((percent || 0) / 5) * 10) / 10).toString().replace('.', ',');
 
@@ -1512,6 +1513,7 @@ const CoursePreviewPage: React.FC = () => {
                                                         cqPending ? <>En attente de correction</> : <>Note: {toOutOf20(cqResult.score)}/20 <span className="opacity-70">({cqResult.score}%)</span></>
                                                     ) : (
                                                         <>
+                                                            {cq.active === false && <span className="px-1.5 py-0.5 rounded bg-error/10 text-error uppercase tracking-wider">Inactif (masqué pour les apprenants)</span>}
                                                             <Clock size={10} /> {cq.settings?.timeLimit ?? 60} min
                                                             <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase tracking-wider">{cq.settings?.isAiDetectionEnabled ? 'Surveillance IA' : 'Sans IA'}</span>
                                                         </>
@@ -1856,7 +1858,7 @@ const CoursePreviewPage: React.FC = () => {
                                                                 <div className="flex gap-3">
                                                                     <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">{qIdx + 1}</span>
                                                                     <div className="flex items-center gap-2 flex-wrap">
-                                                                        <h3 className="font-bold text-lg">{q.text}</h3>
+                                                                        <QuestionText text={q.text} className="font-bold text-lg" />
                                                                         {q.type === 'QCM' && (
                                                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 text-[9px] font-black uppercase whitespace-nowrap">
                                                                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12l2 2 4-4"/></svg>
@@ -2361,7 +2363,7 @@ const CoursePreviewPage: React.FC = () => {
                                                         <div className="flex gap-4">
                                                             <span className="flex-shrink-0 w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-lg">{qIdx + 1}</span>
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                                <h3 className="font-extrabold text-xl leading-snug">{q.text}</h3>
+                                                                <QuestionText text={q.text} className="font-extrabold text-xl leading-snug" />
                                                                 {q.type === 'QCM' && (
                                                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 text-[9px] font-black uppercase whitespace-nowrap">
                                                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12l2 2 4-4"/></svg>

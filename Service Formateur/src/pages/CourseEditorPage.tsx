@@ -3546,7 +3546,7 @@ const CourseEditorPage: React.FC = () => {
                                     {(course.courseQuizzes || []).map((cq, cqIdx) => (
                                         <div key={String(cq.id ?? cqIdx)} className="p-4 rounded-2xl border border-glass-border bg-surface-hover/40 flex flex-col sm:flex-row sm:items-center gap-3">
                                             <div className="flex-1 min-w-0">
-                                                <div className="font-black text-sm truncate">{cq.title || `Quiz ${cqIdx + 1}`}</div>
+                                                <div className="font-black text-sm truncate flex items-center gap-2">{cq.title || `Quiz ${cqIdx + 1}`}{cq.active === false && <span className="text-[10px] px-2 py-0.5 rounded-full bg-error/10 text-error uppercase tracking-wider">Inactif</span>}</div>
                                                 <div className="flex flex-wrap items-center gap-2 mt-1.5 text-[10px] font-black uppercase tracking-wider">
                                                     <span className="px-2 py-1 rounded-full bg-primary/10 text-primary">{(cq.settings?.mode === 'dynamic' ? cq.settings?.totalQuestions : cq.questions?.length) || 0} questions</span>
                                                     <span className="px-2 py-1 rounded-full bg-primary/10 text-primary flex items-center gap-1"><Clock size={10} /> {cq.settings?.timeLimit ?? 60} min</span>
@@ -3557,6 +3557,19 @@ const CourseEditorPage: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
+                                                <label className="flex items-center gap-2 cursor-pointer mr-1" title="Quand le quiz est inactif, les apprenants ne peuvent pas le passer">
+                                                    <div className="relative">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="sr-only"
+                                                            checked={cq.active !== false}
+                                                            onChange={(e) => setCourse(prev => ({ ...prev, courseQuizzes: (prev.courseQuizzes || []).map((q, i) => i === cqIdx ? { ...q, active: e.target.checked } : q) }))}
+                                                        />
+                                                        <div className={`block w-10 h-6 rounded-full transition-colors ${cq.active !== false ? 'bg-success' : 'bg-surface-hover border border-glass-border'}`}></div>
+                                                        <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${cq.active !== false ? 'transform translate-x-4' : ''}`}></div>
+                                                    </div>
+                                                    <span className={`text-xs font-bold w-12 ${cq.active !== false ? 'text-success' : 'text-text-muted'}`}>{cq.active !== false ? 'Actif' : 'Inactif'}</span>
+                                                </label>
                                                 <button onClick={() => setQuizTitleDraft({ index: cqIdx, title: cq.title || '' })} className="px-3 py-2 rounded-xl text-xs font-bold border border-glass-border hover:border-primary/40 hover:text-primary transition-all">Renommer</button>
                                                 <button onClick={() => setQuizEditorTarget({ index: cqIdx, title: cq.title || `Quiz ${cqIdx + 1}` })} className="px-3 py-2 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 transition-all">Configurer</button>
                                                 <button
@@ -5004,9 +5017,9 @@ const CourseEditorPage: React.FC = () => {
                         setCourse(prev => {
                             const list = [...(prev.courseQuizzes || [])];
                             if (idx === null) {
-                                list.push({ ...saved, id: `temp-quiz-${Date.now()}`, title: quizTitle });
+                                list.push({ ...saved, id: `temp-quiz-${Date.now()}`, title: quizTitle, active: true });
                             } else {
-                                list[idx] = { ...saved, id: list[idx]?.id ?? saved.id, title: quizTitle };
+                                list[idx] = { ...saved, id: list[idx]?.id ?? saved.id, title: quizTitle, active: list[idx]?.active };
                             }
                             return { ...prev, courseQuizzes: list };
                         });

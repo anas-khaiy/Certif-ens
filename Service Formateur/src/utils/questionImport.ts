@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import type { Question } from '../types';
 
 export interface ParsedImport {
@@ -32,15 +31,22 @@ export const JSON_EXAMPLE = `{
   ]
 }`;
 
-export const CSV_EXAMPLE = `type;question;option1;option2;option3;option4;correct
-QCU;Quelle est la capitale du Maroc ?;Casablanca;Rabat;Marrakech;Fès;B
-QCM;Quels langages sont typés dynamiquement ?;Python;Java;JavaScript;C;A|C`;
+export const CSV_EXAMPLE = [
+    'type;question;option1;option2;option3;option4;correct',
+    'QCU;Quelle est la capitale du Maroc ?;Casablanca;Rabat;Marrakech;Fès;B',
+    'QCM;Quels langages sont typés dynamiquement ?;Python;Java;JavaScript;C;A|C',
+    'QCU;"Que renvoie ce code ?\\n```python\\nimport numpy as np\\na = np.array([1, 2, 3])\\nprint(type(a))\\n```";<class \'numpy.ndarray\'>;<class \'list\'>;<class \'int\'>;<class \'tuple\'>;A',
+].join('\n');
 
-const TEMPLATE_ROWS: (string | number)[][] = [
-    ['type', 'question', 'option1', 'option2', 'option3', 'option4', 'correct'],
-    ['QCU', 'Quelle est la capitale du Maroc ?', 'Casablanca', 'Rabat', 'Marrakech', 'Fès', 'B'],
-    ['QCM', 'Quels langages sont typés dynamiquement ?', 'Python', 'Java', 'JavaScript', 'C', 'A|C'],
-];
+/** Exemple JSON d'une question contenant du code sur plusieurs lignes. */
+export const JSON_CODE_EXAMPLE = [
+    '{',
+    '  "type": "QCU",',
+    '  "text": "Que renvoie ce code ?\\n\\n```python\\nimport numpy as np\\n\\na = np.array([1, 2, 3])\\nfor x in a:\\n    print(x * 2)\\n```",',
+    '  "options": ["<class \'numpy.ndarray\'>", "[2, 4, 6]", "2 4 6 (une valeur par ligne)", "Une erreur"],',
+    '  "correct": "C"',
+    '}',
+].join('\n');
 
 const downloadBlob = (content: BlobPart, filename: string, mime: string) => {
     const url = URL.createObjectURL(new Blob([content], { type: mime }));
@@ -53,17 +59,12 @@ const downloadBlob = (content: BlobPart, filename: string, mime: string) => {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
-export const downloadTemplate = (kind: 'json' | 'csv' | 'xlsx') => {
+export const downloadTemplate = (kind: 'json' | 'csv') => {
     if (kind === 'json') {
         downloadBlob(JSON_EXAMPLE, 'modele_questions.json', 'application/json');
     } else if (kind === 'csv') {
         // BOM UTF-8 : Excel affiche correctement les accents
         downloadBlob('﻿' + CSV_EXAMPLE, 'modele_questions.csv', 'text/csv;charset=utf-8');
-    } else {
-        const ws = XLSX.utils.aoa_to_sheet(TEMPLATE_ROWS);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Questions');
-        XLSX.writeFile(wb, 'modele_questions.xlsx');
     }
 };
 
@@ -196,7 +197,7 @@ const parseCsvRows = (text: string): string[][] => {
     return rows;
 };
 
-const rowsToQuestions = (rows: any[][]): ParsedImport => {
+const rowsToQuestions = (rows: any[][], unescapeNewlines = false): ParsedImport => {
     if (rows.length < 2) return { questions: [], errors: ['Le fichier doit contenir une ligne d\'en-tête puis au moins une question.'] };
     const header = rows[0].map(h => String(h ?? ''));
     const errors: string[] = [];
@@ -204,7 +205,12 @@ const rowsToQuestions = (rows: any[][]): ParsedImport => {
     rows.slice(1).forEach((r, i) => {
         if (!r.some(v => String(v ?? '').trim() !== '')) return;
         const obj: Record<string, any> = {};
-        header.forEach((h, c) => { if (h) obj[h] = r[c] ?? ''; });
+        header.forEach((h, c) => {
+            if (!h) return;
+            const v = r[c] ?? '';
+            // Dans un CSV, \n tapé à la main = retour à la ligne
+            obj[h] = unescapeNewlines && typeof v === 'string' ? v.replace(/\\n/g, '\n') : v;
+        });
         const q = buildQuestion(obj, `Ligne ${i + 2}`, errors);
         if (q) questions.push(q);
     });
@@ -215,14 +221,8 @@ export const parseQuestionFile = async (file: File): Promise<ParsedImport> => {
     const name = file.name.toLowerCase();
     try {
         if (name.endsWith('.json')) return parseJson(await file.text());
-        if (name.endsWith('.csv') || name.endsWith('.txt') || name.endsWith('.tsv')) return rowsToQuestions(parseCsvRows(await file.text()));
-        if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
-            const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
-            const sheet = wb.Sheets[wb.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: '', blankrows: false });
-            return rowsToQuestions(rows);
-        }
-        return { questions: [], errors: ['Format non supporté. Utilisez un fichier .json, .csv ou .xlsx.'] };
+        if (name.endsWith('.csv') || name.endsWith('.txt') || name.endsWith('.tsv')) return rowsToQuestions(parseCsvRows(await file.text()), true);
+        return { questions: [], errors: ['Format non supporté. Utilisez un fichier .json ou .csv.'] };
     } catch (e: any) {
         return { questions: [], errors: [`Impossible de lire le fichier : ${e?.message || e}`] };
     }
