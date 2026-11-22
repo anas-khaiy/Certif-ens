@@ -37,6 +37,10 @@ public class EnseignantService {
     }
 
     public Enseignant saveEnseignant(Enseignant enseignant) {
+        return saveEnseignant(enseignant, true);
+    }
+
+    public Enseignant saveEnseignant(Enseignant enseignant, boolean sendWelcomeEmail) {
         // Normalize email first
         if (enseignant.getEmail() != null) {
             enseignant.setEmail(enseignant.getEmail().toLowerCase().trim());
@@ -66,6 +70,10 @@ public class EnseignantService {
         }
         
         Enseignant savedEnseignant = enseignantRepository.save(enseignant);
+
+        if (!sendWelcomeEmail) {
+            return savedEnseignant;
+        }
 
         // Send Welcome Email asynchronously
         try {

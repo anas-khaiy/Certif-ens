@@ -37,6 +37,10 @@ public class ApprenantService {
     }
 
     public Apprenant saveApprenant(Apprenant apprenant) {
+        return saveApprenant(apprenant, true);
+    }
+
+    public Apprenant saveApprenant(Apprenant apprenant, boolean sendWelcomeEmail) {
         // Default password is the CIN if not provided
         String password = (apprenant.getMotDePasse() != null && !apprenant.getMotDePasse().isEmpty())
                 ? apprenant.getMotDePasse()
@@ -53,6 +57,10 @@ public class ApprenantService {
             apprenant.setPhotoProfile("default.png");
         }
         Apprenant savedApprenant = apprenantRepository.save(apprenant);
+
+        if (!sendWelcomeEmail) {
+            return savedApprenant;
+        }
 
         // Send Welcome Email asynchronously to not block the response
         try {

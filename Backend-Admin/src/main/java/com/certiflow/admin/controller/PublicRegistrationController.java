@@ -12,6 +12,7 @@ import com.certiflow.admin.repository.SpecialiteRepository;
 import com.certiflow.admin.repository.EnseignantRepository;
 import com.certiflow.admin.repository.SystemSettingRepository;
 import com.certiflow.admin.service.ApprenantService;
+import com.certiflow.admin.service.EmailService;
 import com.certiflow.admin.service.EnseignantService;
 import com.certiflow.admin.service.RecaptchaService;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,7 @@ public class PublicRegistrationController {
     private final ApprenantService apprenantService;
     private final EnseignantService enseignantService;
     private final RecaptchaService recaptchaService;
+    private final EmailService emailService;
     private final FormationRepository formationRepository;
     private final CycleRepository cycleRepository;
     private final SpecialiteRepository specialiteRepository;
@@ -52,6 +54,7 @@ public class PublicRegistrationController {
                                         ApprenantService apprenantService,
                                         EnseignantService enseignantService,
                                         RecaptchaService recaptchaService,
+                                        EmailService emailService,
                                         FormationRepository formationRepository,
                                         CycleRepository cycleRepository,
                                         SpecialiteRepository specialiteRepository) {
@@ -64,6 +67,7 @@ public class PublicRegistrationController {
         this.apprenantService = apprenantService;
         this.enseignantService = enseignantService;
         this.recaptchaService = recaptchaService;
+        this.emailService = emailService;
     }
 
     private boolean isEnabled(String key) {
@@ -161,7 +165,16 @@ public class PublicRegistrationController {
         a.setCycle(cycle);
         a.setSpecialite(specialite);
         // Mot de passe par défaut = CNE, envoyé par e-mail (comme l'ajout par l'admin)
-        apprenantService.saveApprenant(a);
+        Apprenant saved = apprenantService.saveApprenant(a, false);
+
+        try {
+            emailService.sendApprenantWelcomeEmail(saved.getEmail(), saved.getPrenom(), cin);
+        } catch (Exception ex) {
+            System.err.println("[Inscription] Échec envoi e-mail à " + saved.getEmail() + " : " + ex);
+            return ResponseEntity.ok(Map.of("message",
+                    "Inscription réussie, mais l'e-mail de bienvenue n'a pas pu être envoyé. "
+                    + "Contactez l'administrateur (votre mot de passe initial est votre CNE)."));
+        }
 
         return ResponseEntity.ok(Map.of("message",
                 "Inscription réussie. Vérifiez votre boîte e-mail pour vous connecter."));
@@ -204,7 +217,16 @@ public class PublicRegistrationController {
         e.setEmail(email);
         e.setSpecialite(specialite);
         // Mot de passe par défaut = e-mail, envoyé par e-mail (comme l'ajout par l'admin)
-        enseignantService.saveEnseignant(e);
+        Enseignant saved = enseignantService.saveEnseignant(e, false);
+
+        try {
+            emailService.sendEnseignantWelcomeEmail(saved.getEmail(), saved.getPrenom(), email);
+        } catch (Exception ex) {
+            System.err.println("[Inscription] Échec envoi e-mail à " + saved.getEmail() + " : " + ex);
+            return ResponseEntity.ok(Map.of("message",
+                    "Inscription réussie, mais l'e-mail de bienvenue n'a pas pu être envoyé. "
+                    + "Contactez l'administrateur (votre mot de passe initial est votre adresse e-mail)."));
+        }
 
         return ResponseEntity.ok(Map.of("message",
                 "Inscription réussie. Vérifiez votre boîte e-mail pour vous connecter."));
