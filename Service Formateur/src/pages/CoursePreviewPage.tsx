@@ -2357,63 +2357,112 @@ const CoursePreviewPage: React.FC = () => {
                                                     </div>
                                                 </>
                                             )}
-                                            <div className="space-y-12">
-                                                {activeExamQuestions.map((q, qIdx) => (
-                                                    <div key={q.id} className="space-y-6 bg-surface p-8 rounded-3xl border border-glass-border shadow-sm">
-                                                        <div className="flex gap-4">
-                                                            <span className="flex-shrink-0 w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-lg">{qIdx + 1}</span>
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <QuestionText text={q.text} className="font-extrabold text-xl leading-snug" />
-                                                                {q.type === 'QCM' && (
-                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 text-[9px] font-black uppercase whitespace-nowrap">
-                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12l2 2 4-4"/></svg>
-                                                                        Choix Multiples
-                                                                    </span>
-                                                                )}
-                                                                {q.type === 'QCU' && (
-                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 text-[9px] font-black uppercase whitespace-nowrap">
-                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
-                                                                        Choix Unique
-                                                                    </span>
-                                                                )}
-                                                                {q.type === 'OPEN' && (
-                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-black uppercase whitespace-nowrap">
-                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                                                                        Ouverte
-                                                                    </span>
-                                                                )}
-                                                            </div>
+                                            {(() => {
+                                                const isAnswered = (q: any) => {
+                                                    const a = examAnswers[q.id];
+                                                    return Array.isArray(a) ? a.length > 0 : (typeof a === 'string' ? a.trim().length > 0 : !!a);
+                                                };
+                                                const answeredCount = activeExamQuestions.filter(isAnswered).length;
+                                                const total = activeExamQuestions.length || 1;
+                                                return (
+                                                    <div className="sticky top-2 z-20 mb-8 p-4 sm:p-5 rounded-2xl bg-surface/95 backdrop-blur-md border border-glass-border shadow-lg">
+                                                        <div className="flex items-center justify-between gap-4 mb-3">
+                                                            <span className="text-sm font-black text-text">Progression</span>
+                                                            <span className="text-sm font-black text-primary">{answeredCount} / {activeExamQuestions.length} répondue{answeredCount > 1 ? 's' : ''}</span>
                                                         </div>
-                                                        <div className="grid grid-cols-1 gap-3 pl-14">
-                                                            {q.type === 'OPEN' ? (
-                                                                <textarea className="w-full input min-h-[150px] text-base" placeholder="Rédigez votre réponse ici..." value={examAnswers[q.id] || ''} onChange={(e) => handleAnswerExam(q.id, e.target.value)} />
-                                                            ) : (
-                                                                q.options?.map((opt, oIdx) => {
-                                                                    const isSelected = q.type === 'QCM' ? (examAnswers[q.id] || []).includes(opt) : examAnswers[q.id] === opt;
-                                                                    return (
-                                                                        <button
-                                                                            key={oIdx}
-                                                                            onClick={() => {
-                                                                                if (q.type === 'QCM') {
-                                                                                    const current = examAnswers[q.id] || [];
-                                                                                    handleAnswerExam(q.id, current.includes(opt) ? current.filter((i: string) => i !== opt) : [...current, opt]);
-                                                                                } else {
-                                                                                    handleAnswerExam(q.id, opt);
-                                                                                }
-                                                                            }}
-                                                                            className={`p-4 rounded-xl border-2 transition-all text-left text-base font-bold ${isSelected ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-glass-border bg-background hover:border-primary/30'}`}
-                                                                        >
-                                                                            <div className="flex items-center gap-3">
-                                                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-primary bg-primary' : 'border-glass-border'}`}>{isSelected && <div className="w-2 h-2 bg-white rounded-full" />}</div>
-                                                                                {opt}
-                                                                            </div>
-                                                                        </button>
-                                                                    );
-                                                                })
-                                                            )}
+                                                        <div className="h-2.5 rounded-full bg-surface-hover overflow-hidden mb-4">
+                                                            <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500" style={{ width: `${(answeredCount / total) * 100}%` }} />
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                                                            {activeExamQuestions.map((q, i) => (
+                                                                <button
+                                                                    key={q.id}
+                                                                    type="button"
+                                                                    title={`Aller à la question ${i + 1}`}
+                                                                    onClick={() => document.getElementById(`exam-q-${q.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                                                                    className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all hover:scale-110 ${isAnswered(q) ? 'bg-success text-white border-success' : 'bg-background text-text-muted border-glass-border hover:border-primary'}`}
+                                                                >
+                                                                    {i + 1}
+                                                                </button>
+                                                            ))}
                                                         </div>
                                                     </div>
-                                                ))}
+                                                );
+                                            })()}
+                                            <div className="space-y-8">
+                                                {activeExamQuestions.map((q, qIdx) => {
+                                                    const answered = Array.isArray(examAnswers[q.id]) ? examAnswers[q.id].length > 0 : (typeof examAnswers[q.id] === 'string' ? examAnswers[q.id].trim().length > 0 : !!examAnswers[q.id]);
+                                                    return (
+                                                        <div
+                                                            key={q.id}
+                                                            id={`exam-q-${q.id}`}
+                                                            className={`scroll-mt-40 bg-surface rounded-3xl border-2 shadow-md overflow-hidden transition-colors ${answered ? 'border-success/40' : 'border-glass-border'}`}
+                                                        >
+                                                            {/* En-tête de la question */}
+                                                            <div className={`flex flex-wrap items-center gap-3 px-5 sm:px-8 py-3 border-b ${answered ? 'bg-success/5 border-success/20' : 'bg-surface-hover/60 border-glass-border'}`}>
+                                                                <span className="px-3 py-1 rounded-full bg-primary text-white text-xs font-black uppercase tracking-wider">Question {qIdx + 1} / {activeExamQuestions.length}</span>
+                                                                {q.type === 'QCM' && <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-700 text-[11px] font-black uppercase">Choix multiples</span>}
+                                                                {q.type === 'QCU' && <span className="px-3 py-1 rounded-full bg-blue-500/15 text-blue-700 text-[11px] font-black uppercase">Choix unique</span>}
+                                                                {q.type === 'OPEN' && <span className="px-3 py-1 rounded-full bg-primary/15 text-primary text-[11px] font-black uppercase">Question ouverte</span>}
+                                                                <span className={`ml-auto text-xs font-black ${answered ? 'text-success' : 'text-text-muted'}`}>{answered ? '✓ Répondue' : 'Non répondue'}</span>
+                                                            </div>
+
+                                                            <div className="p-5 sm:p-8 space-y-6">
+                                                                <QuestionText text={q.text} className="font-bold text-lg sm:text-xl leading-relaxed text-text" />
+
+                                                                {q.type !== 'OPEN' && (
+                                                                    <p className="text-sm font-semibold text-text-muted">
+                                                                        {q.type === 'QCM' ? 'Plusieurs réponses possibles : cochez toutes les bonnes réponses.' : 'Une seule réponse possible : choisissez la bonne réponse.'}
+                                                                    </p>
+                                                                )}
+
+                                                                <div className="grid grid-cols-1 gap-3">
+                                                                    {q.type === 'OPEN' ? (
+                                                                        <textarea className="w-full input min-h-[180px] text-base leading-relaxed" placeholder="Rédigez votre réponse ici..." value={examAnswers[q.id] || ''} onChange={(e) => handleAnswerExam(q.id, e.target.value)} />
+                                                                    ) : (
+                                                                        q.options?.map((opt, oIdx) => {
+                                                                            const isSelected = q.type === 'QCM' ? (examAnswers[q.id] || []).includes(opt) : examAnswers[q.id] === opt;
+                                                                            return (
+                                                                                <button
+                                                                                    key={oIdx}
+                                                                                    type="button"
+                                                                                    role={q.type === 'QCM' ? 'checkbox' : 'radio'}
+                                                                                    aria-checked={isSelected}
+                                                                                    onClick={() => {
+                                                                                        if (q.type === 'QCM') {
+                                                                                            const current = examAnswers[q.id] || [];
+                                                                                            handleAnswerExam(q.id, current.includes(opt) ? current.filter((i: string) => i !== opt) : [...current, opt]);
+                                                                                        } else {
+                                                                                            handleAnswerExam(q.id, opt);
+                                                                                        }
+                                                                                    }}
+                                                                                    className={`group w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.99] ${isSelected
+                                                                                        ? 'border-primary bg-primary/10 ring-4 ring-primary/15 shadow-md'
+                                                                                        : 'border-slate-300 dark:border-slate-600 bg-background hover:border-primary hover:bg-primary/5'}`}
+                                                                                >
+                                                                                    {/* Lettre de l'option */}
+                                                                                    <span className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black transition-all ${isSelected ? 'bg-primary text-white' : 'bg-surface-hover text-text-muted group-hover:text-primary'}`}>
+                                                                                        {String.fromCharCode(65 + oIdx)}
+                                                                                    </span>
+                                                                                    {/* Texte de l'option */}
+                                                                                    <span className="flex-1 min-w-0 text-base font-semibold text-text break-words" style={{ whiteSpace: 'pre-wrap' }}>{opt}</span>
+                                                                                    {/* Case / bouton radio bien visible */}
+                                                                                    <span
+                                                                                        className={`flex-shrink-0 w-7 h-7 border-2 flex items-center justify-center transition-all ${q.type === 'QCM' ? 'rounded-md' : 'rounded-full'} ${isSelected ? 'border-primary bg-primary' : 'border-slate-400 bg-white dark:bg-slate-800 group-hover:border-primary'}`}
+                                                                                    >
+                                                                                        {isSelected && (q.type === 'QCM'
+                                                                                            ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                                                                            : <span className="w-3 h-3 bg-white rounded-full" />)}
+                                                                                    </span>
+                                                                                </button>
+                                                                            );
+                                                                        })
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                             <div className="flex justify-center"><button onClick={() => examQuiz && handleSubmitQuiz(examQuiz)} disabled={aiGrading} className="px-16 py-5 bg-primary text-white rounded-2xl font-black text-xl shadow-2xl disabled:opacity-60">{aiGrading ? (aiGradingMessage || 'Correction IA en cours...') : "Soumettre l'Examen"}</button></div>
                                         </>
