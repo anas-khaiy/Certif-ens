@@ -2141,16 +2141,31 @@ const CoursePreviewPage: React.FC = () => {
 
                                         <div className="p-0">
                                             {(() => {
-                                                const examQuestions = examQuiz?.questions || [];
-                                                const totalQuestions = examQuestions.length;
+                                                const examQuestions = examQuiz?.questions || examQuiz?.settings?.generatedPool || [];
+                                                const poolTotal = examQuestions.length;
 
-                                                if (totalQuestions === 0) {
+                                                if (poolTotal === 0) {
                                                     return <div className="py-8 text-center text-text-muted text-[10px] sm:text-xs font-bold uppercase italic opacity-60">Aucune question définie</div>;
                                                 }
 
-                                                const qcuCount = examQuestions.filter((q: any) => q.type === 'QCU').length;
-                                                const qcmCount = examQuestions.filter((q: any) => q.type === 'QCM').length;
-                                                const openCount = examQuestions.filter((q: any) => q.type === 'OPEN').length;
+                                                // Nombre exact de questions tirées (réglage "nombre de questions"), plafonné au pool
+                                                const configuredTotal = examQuiz?.settings?.totalQuestions;
+                                                const totalQuestions = configuredTotal && configuredTotal > 0 ? Math.min(configuredTotal, poolTotal) : poolTotal;
+
+                                                const poolCounts: Record<string, number> = {
+                                                    qcu: examQuestions.filter((q: any) => q.type === 'QCU').length,
+                                                    qcm: examQuestions.filter((q: any) => q.type === 'QCM').length,
+                                                    open: examQuestions.filter((q: any) => q.type === 'OPEN').length,
+                                                };
+                                                // Répartition proportionnelle au pool, ajustée pour que la somme = nombre tiré (plus grand reste)
+                                                const shares = Object.keys(poolCounts).map(k => {
+                                                    const exact = (poolCounts[k] / poolTotal) * totalQuestions;
+                                                    return { k, base: Math.floor(exact), rem: exact - Math.floor(exact) };
+                                                });
+                                                let missing = totalQuestions - shares.reduce((a, x) => a + x.base, 0);
+                                                [...shares].sort((a, b) => b.rem - a.rem).forEach(x => { if (missing > 0 && poolCounts[x.k] > 0) { x.base += 1; missing--; } });
+                                                const drawn: Record<string, number> = Object.fromEntries(shares.map(x => [x.k, x.base]));
+                                                const qcuCount = drawn.qcu, qcmCount = drawn.qcm, openCount = drawn.open;
 
                                                 const items = [
                                                     qcuCount > 0 && { key: 'qcu', icon: '◉', label: 'Choix Unique', count: qcuCount },
