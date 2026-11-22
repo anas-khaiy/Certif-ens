@@ -44,6 +44,7 @@ import { streamAI } from '../utils/streamAI';
 import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, AI_GRADE_STREAM_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
 
+import ImageLightbox from '../components/ImageLightbox';
 // Convertit un pourcentage en note sur 20
 const toOutOf20 = (percent: number) => (Math.round(((percent || 0) / 5) * 10) / 10).toString().replace('.', ',');
 
@@ -123,7 +124,7 @@ const CoursePreviewPage: React.FC = () => {
     const [pythonDetections, setPythonDetections] = useState<any[]>([]);
     const [isTabActive, setIsTabActive] = useState(true);
     const [timeSpentSummary, setTimeSpentSummary] = useState<Record<string, number>>({});
-    const [zoomedImageSrc, setZoomedImageSrc] = useState<string | null>(null);
+    const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
     // States for randomized/sliced quiz questions
     const [activeQuizQuestions, setActiveQuizQuestions] = useState<Question[]>([]);
@@ -1708,7 +1709,10 @@ const CoursePreviewPage: React.FC = () => {
                                                 onClick={(e) => {
                                                     const target = e.target as HTMLElement;
                                                     if (target.tagName === 'IMG') {
-                                                        setZoomedImageSrc((target as HTMLImageElement).src);
+                                                        // Toutes les images de la leçon, pour naviguer précédent / suivant
+                                                        const all = Array.from((e.currentTarget as HTMLElement).querySelectorAll('img')) as HTMLImageElement[];
+                                                        const srcs = all.map(i => i.src);
+                                                        setLightbox({ images: srcs, index: Math.max(0, all.indexOf(target as HTMLImageElement)) });
                                                     }
                                                 }}
                                             />
@@ -2451,26 +2455,14 @@ const CoursePreviewPage: React.FC = () => {
                     )
                 }
 
-                {/* Zoomed Image Modal */}
-                {zoomedImageSrc && createPortal(
-                    <div 
-                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md transition-opacity animate-fade-in"
-                        onClick={() => setZoomedImageSrc(null)}
-                    >
-                        <button 
-                            className="absolute top-6 right-6 text-white hover:text-gray-300 p-3 bg-white/10 rounded-full transition-all hover:scale-110"
-                            onClick={() => setZoomedImageSrc(null)}
-                        >
-                            <X size={28} />
-                        </button>
-                        <img 
-                            src={zoomedImageSrc} 
-                            alt="Zoomed Content" 
-                            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
-                            onClick={(e) => e.stopPropagation()}
-                        />
-                    </div>,
-                    document.body
+                {/* Visionneuse d'images (zoom, précédent / suivant) */}
+                {lightbox && (
+                    <ImageLightbox
+                        images={lightbox.images}
+                        index={lightbox.index}
+                        onIndexChange={(index) => setLightbox(prev => prev ? { ...prev, index } : prev)}
+                        onClose={() => setLightbox(null)}
+                    />
                 )}
 
                 <style>{`

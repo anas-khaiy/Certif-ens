@@ -5,6 +5,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { sanitizeRichHtml } from '../utils/sanitizeHtml';
 import { Reorder, useDragControls } from 'framer-motion';
+import QuestionFileImportPanel from '../components/QuestionFileImportPanel';
 
 const Q = (ReactQuill as any).Quill;
 if (Q) {
@@ -65,7 +66,8 @@ import {
     Timer,
     Briefcase,
     User,
-    GripVertical
+    GripVertical,
+    FileUp
 } from 'lucide-react';
 
 // --- SSE AI streaming helper ---
@@ -1133,6 +1135,7 @@ const QuizEditorModal: React.FC<{
 
     // --- Import de questions existantes depuis un chapitre (quiz du cours) ---
     const [showImport, setShowImport] = useState(false);
+    const [showFileImport, setShowFileImport] = useState(false);
     const [importSectionId, setImportSectionId] = useState<string>('');
     const [importSelected, setImportSelected] = useState<Set<string>>(new Set());
 
@@ -1346,7 +1349,23 @@ const QuizEditorModal: React.FC<{
                         <button onClick={onClose} className="hidden sm:block p-2 hover:bg-white/10 rounded-xl transition-colors flex-shrink-0"><X size={24} /></button>
                     </div>
                 </div>
-                {hidePool && showImport && (
+                {showFileImport && (
+                    <QuestionFileImportPanel
+                        existingQuestions={questions}
+                        onClose={() => setShowFileImport(false)}
+                        onImport={(imported) => {
+                            if (imported.length > 0) {
+                                setQuestions(prev => {
+                                    const onlyEmpty = prev.length === 1 && !prev[0].text.trim();
+                                    return onlyEmpty ? imported : [...prev, ...imported];
+                                });
+                                setSelectedQuestionId(imported[0].id);
+                            }
+                            setShowFileImport(false);
+                        }}
+                    />
+                )}
+                {showImport && (
                     <div className="absolute inset-0 z-30 bg-surface flex flex-col animate-fade-in">
                         <div className="flex items-center justify-between gap-3 p-4 sm:p-6 border-b border-glass-border">
                             <div className="flex items-center gap-3 min-w-0">
@@ -1487,7 +1506,7 @@ const QuizEditorModal: React.FC<{
                                     >
                                         <Plus size={16} /> Ajouter une question
                                     </button>
-                                    {hidePool && (
+                                    {courseSections.length > 0 && (
                                         <button
                                             onClick={() => { setImportSectionId(courseSections[0]?.id ? String(courseSections[0].id) : ''); setImportSelected(new Set()); setShowImport(true); }}
                                             className="w-full mt-3 py-3 flex items-center justify-center gap-2 border border-primary/40 bg-primary/5 rounded-xl text-primary hover:bg-primary/10 transition-all font-bold text-sm"
@@ -1495,6 +1514,12 @@ const QuizEditorModal: React.FC<{
                                             <Library size={16} /> Importer depuis un chapitre
                                         </button>
                                     )}
+                                    <button
+                                        onClick={() => setShowFileImport(true)}
+                                        className="w-full mt-3 py-3 flex items-center justify-center gap-2 border border-secondary/40 bg-secondary/5 rounded-xl text-secondary hover:bg-secondary/10 transition-all font-bold text-sm"
+                                    >
+                                        <FileUp size={16} /> Importer depuis un fichier
+                                    </button>
                                 </div>
                             </div>
 
@@ -4883,6 +4908,7 @@ const CourseEditorPage: React.FC = () => {
                     openConfirmModal={openConfirmModal}
                     closeConfirmModal={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
                     isExam={false}
+                    courseSections={course.sections}
                 />
             )}
             {showFinalExamEditor && (
