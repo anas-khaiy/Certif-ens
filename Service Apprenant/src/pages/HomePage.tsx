@@ -145,6 +145,9 @@ export default function HomePage() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Section « Tutoriels vidéo » masquée (passer à true pour la réafficher)
+  const SHOW_TUTORIALS = false;
+
   const tutorials = [
     { title: "#2 Formateur - Création et gestion des cours", id: "O88heNIMjp4", category: "formateur", desc: "Découvrez comment concevoir vos cours, éditer les sections et structurer le contenu pédagogique." },
     { title: "#3 Formateur - Examen final et configuration", id: "Am1Dhv1BZPA", category: "formateur", desc: "Configurez l'examen final avec les options de surveillance IA anti-triche et la génération de quiz." },
@@ -299,7 +302,7 @@ export default function HomePage() {
               { label: 'Démo Vidéo', id: 'hero-video' },
               { label: 'Portails', id: 'portals' },
               { label: 'Tutoriels', id: 'tutorials' },
-            ].map(link => (
+            ].filter(l => SHOW_TUTORIALS || l.id !== 'tutorials').map(link => (
               <button key={link.id} onClick={() => scrollToSection(link.id)}
                 style={{ padding: '6px 14px', fontSize: 14, fontWeight: 500, color: 'var(--text-muted)', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'; }}
@@ -425,7 +428,7 @@ export default function HomePage() {
               ))}
             </div>
             <div style={{ paddingTop: 8, marginTop: 8, borderTop: `1px solid ${isDark ? 'rgba(30,41,59,1)' : '#e2e8f0'}` }}>
-              {['features', 'hero-video', 'portals', 'tutorials'].map(id => (
+              {['features', 'hero-video', 'portals', 'tutorials'].filter(id => SHOW_TUTORIALS || id !== 'tutorials').map(id => (
                 <button key={id} onClick={() => { scrollToSection(id); setMobileMenuOpen(false); }}
                   style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
                   {id === 'features' ? 'Fonctionnalités' : id === 'hero-video' ? 'Démo Vidéo' : id === 'portals' ? 'Portails & Rôles' : 'Tutoriels'}
@@ -492,10 +495,10 @@ export default function HomePage() {
                 style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 24px', borderRadius: 12, background: 'linear-gradient(90deg, #4f46e5, #7c3aed)', color: '#fff', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 4px 15px rgba(79,70,229,0.35)', transition: 'all 0.2s' }}>
                 <span>Accéder aux Portails</span><ArrowRight style={{ width: 16, height: 16 }} />
               </button>
-              <button onClick={() => scrollToSection('tutorials')} className="hp-btn-lift"
+              {SHOW_TUTORIALS && <button onClick={() => scrollToSection('tutorials')} className="hp-btn-lift"
                 style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 24px', borderRadius: 12, backgroundColor: isDark ? 'rgba(15,23,42,1)' : '#e2e8f0', color: 'var(--text)', fontSize: 14, fontWeight: 600, border: `1px solid ${isDark ? 'rgba(51,65,85,0.8)' : '#cbd5e1'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
                 <Tv style={{ width: 16, height: 16, color: '#a855f7' }} /><span>Tutoriels Vidéo</span>
-              </button>
+              </button>}
             </div>
           </div>
 
@@ -529,7 +532,7 @@ export default function HomePage() {
           {[
             { n: 12, s: '', label: 'Fonctionnalités', icon: <Sparkles style={{ width: 20, height: 20 }} />, c: '#6366f1' },
             { n: 4, s: '', label: 'Portails dédiés', icon: <Layers style={{ width: 20, height: 20 }} />, c: '#a855f7' },
-            { n: 10, s: '+', label: 'Tutoriels vidéo', icon: <Tv style={{ width: 20, height: 20 }} />, c: '#ec4899' },
+            ...(SHOW_TUTORIALS ? [{ n: 10, s: '+', label: 'Tutoriels vidéo', icon: <Tv style={{ width: 20, height: 20 }} />, c: '#ec4899' }] : []),
             { n: 100, s: '%', label: 'IA locale & sécurisée', icon: <Brain style={{ width: 20, height: 20 }} />, c: '#10b981' },
           ].map((st, i) => (
             <motion.div
@@ -678,6 +681,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── Tutorials Section ─── */}
+      {SHOW_TUTORIALS && (
       <section id="tutorials" style={{ padding: '96px 24px', maxWidth: 1280, margin: '0 auto' }}>
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -740,6 +744,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      )}
 
       {/* ─── Footer ─── */}
       <footer style={{ backgroundColor: isDark ? 'rgba(2,6,23,1)' : '#f1f5f9', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'}`, padding: '48px 0' }}>

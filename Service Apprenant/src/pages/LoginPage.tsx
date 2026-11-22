@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import '../login.css';
 import api from '../api/api-client';
 import RecaptchaWidget from '../components/RecaptchaWidget';
+import { API_ADMIN } from '../config';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [registrationOpen, setRegistrationOpen] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(() => {
         const savedTheme = localStorage.getItem('theme');
         return savedTheme !== 'light';
@@ -18,6 +20,13 @@ const LoginPage = () => {
     const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     const [resetRecaptchaToken, setResetRecaptchaToken] = useState<string | null>(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        fetch(`${API_ADMIN}/public/registration-settings`)
+            .then(r => r.ok ? r.json() : null)
+            .then(d => setRegistrationOpen(d?.apprenant === true))
+            .catch(() => setRegistrationOpen(false));
+    }, []);
 
     useEffect(() => {
         const root = document.documentElement;
@@ -356,6 +365,14 @@ const LoginPage = () => {
                                 )}
                             </motion.button>
                         </motion.div>
+                    {registrationOpen && (
+                        <div className="text-center mt-6">
+                            <span className="text-sm text-text-muted">Pas encore de compte ? </span>
+                            <button type="button" onClick={() => navigate('/register')} className="text-sm font-bold text-primary hover:text-primary-hover transition-colors">
+                                S'inscrire
+                            </button>
+                        </div>
+                    )}
                     </form>
                 )}
 
