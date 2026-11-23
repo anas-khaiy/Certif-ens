@@ -46,6 +46,7 @@ import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_D
 
 import ImageLightbox from '../components/ImageLightbox';
 import QuestionText from '../components/QuestionText';
+import ExamCorrection, { type ReviewItem } from '../components/ExamCorrection';
 // Convertit un pourcentage en note sur 20
 const toOutOf20 = (percent: number) => (Math.round(((percent || 0) / 5) * 10) / 10).toString().replace('.', ',');
 
@@ -90,6 +91,7 @@ const CoursePreviewPage: React.FC = () => {
     const [examFailed, setExamFailed] = useState<{ reason: string } | null>(null);
     const [examSubmitted, setExamSubmitted] = useState(false);
     const [examResult, setExamResult] = useState<{ score: number; total: number } | null>(null);
+    const [examReview, setExamReview] = useState<ReviewItem[]>([]);
     const [examAnswers, setExamAnswers] = useState<Record<string, any>>({});
     const [showExamSetup, setShowExamSetup] = useState(false);
     const [isCameraRequested, setIsCameraRequested] = useState(false);
@@ -1167,6 +1169,10 @@ const CoursePreviewPage: React.FC = () => {
 
         if (isExamActive) {
             setExamResult({ score, total: totalQuestions });
+            setExamReview(questions.map(q => {
+                const a: any = answersData.find((x: any) => x.questionId === q.id);
+                return { question: q, answer: examAnswers[q.id], isCorrect: !!a?.isCorrect, feedback: a?.feedback, gradedBy: a?.gradedBy };
+            }));
             setExamSubmitted(true);
 
             if (id) {
@@ -2501,7 +2507,7 @@ const CoursePreviewPage: React.FC = () => {
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="max-w-2xl mx-auto mt-20 p-12 bg-surface rounded-[3rem] border border-glass-border text-center shadow-2xl relative overflow-hidden text-text">
+                                        <div className="w-full mx-auto mt-10 p-5 sm:p-12 bg-surface rounded-[2rem] sm:rounded-[3rem] border border-glass-border text-center shadow-2xl relative overflow-hidden text-text">
                                             <div className="absolute top-0 inset-x-0 h-2 bg-primary"></div>
                                             <div className="w-28 h-28 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-8 animate-bounce"><CheckCircle size={56} /></div>
                                             <h2 className="text-4xl font-black mb-4">Examen Terminé</h2>
@@ -2511,6 +2517,7 @@ const CoursePreviewPage: React.FC = () => {
                                                 <p className="text-sm font-bold text-text-muted mt-2">{examResult?.score} / {examResult?.total} réponses correctes</p>
                                             </div>
                                             <p className="text-text-muted mb-10 text-lg">Vos résultats ont été transmis à l'administration.</p>
+                                                    <div className="mb-10"><ExamCorrection items={examReview} /></div>
                                             <button onClick={() => { setIsExamActive(false); setExamSubmitted(false); try { document.exitFullscreen(); } catch (e) { } }} className="btn-primary w-full py-5 rounded-2xl text-xl font-black shadow-xl">Terminer et quitter</button>
                                         </div>
                                     )}
