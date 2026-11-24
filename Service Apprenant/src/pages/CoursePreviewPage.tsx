@@ -50,6 +50,7 @@ import ImageLightbox from '../components/ImageLightbox';
 import QuestionText from '../components/QuestionText';
 import ExamCorrection, { type ReviewItem } from '../components/ExamCorrection';
 import QuizResultBar from '../components/QuizResultBar';
+import { bestQuizResult } from '../utils/quizResults';
 // Convertit un pourcentage en note sur 20
 const toOutOf20 = (percent: number) => (Math.round(((percent || 0) / 5) * 10) / 10).toString().replace('.', ',');
 
@@ -1961,7 +1962,7 @@ const CoursePreviewPage: React.FC = () => {
                                     <Shield size={12} /> Quiz du cours ({(course?.courseQuizzes || []).length})
                                 </div>
                                 {(course?.courseQuizzes || []).map((cq, cqIdx) => {
-                                    const cqResult = quizResults.find(r => String(r.quizId) === String(cq.id));
+                                    const cqResult = bestQuizResult(quizResults, String(cq.id));
                                     const cqDone = !!cqResult;
                                     const cqPending = cqResult?.status === 'PENDING_MANUAL';
                                     const cqPassed = !!cqResult?.passed;
@@ -2007,7 +2008,7 @@ const CoursePreviewPage: React.FC = () => {
                         {course?.finalExam && course?.examEnabled !== false && (
                             <div className="p-4 border-t border-glass-border bg-surface shadow-[0_-10px_30px_rgba(0,0,0,0.05)] relative z-10">
                                 {(() => {
-                                    const examResult = quizResults.find(r => String(r.quizId) === 'final_exam');
+                                    const examResult = bestQuizResult(quizResults, 'final_exam');
                                     const isCompleted = !!examResult;
                                     const isPendingManual = examResult?.status === 'PENDING_MANUAL';
 
@@ -2082,7 +2083,7 @@ const CoursePreviewPage: React.FC = () => {
                         {!activeSubSection ? (
                             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-full max-w-2xl mx-auto">
                                 {(() => {
-                                    const examResult = quizResults.find(r => String(r.quizId) === 'final_exam');
+                                    const examResult = bestQuizResult(quizResults, 'final_exam');
                                     const isCompleted = !!examResult;
 
                                     if (course?.finalExam && course?.examEnabled !== false) {

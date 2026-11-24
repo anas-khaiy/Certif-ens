@@ -93,8 +93,8 @@ public class DashboardService {
             monthlyData.add(new DashboardStats.MonthlyData(mName, certs, (int) learners));
         }
 
-        double avg = allResults.stream().mapToInt(r -> r.getScore() != null ? r.getScore() : 0).average().orElse(0.0);
-        return DashboardStats.builder().totalCourses(totalCourses).totalLearners(totalLearners).totalQuizzesCompleted(allResults.size()).totalCertifications(totalCertifications).averageScore(allResults.isEmpty() ? 0.0 : Math.round(avg * 10.0) / 10.0).monthlyCertifications(monthlyData).courseStudentsDistribution(courseData).build();
+        double avg = bestAttempts(allResults).stream().mapToInt(r -> r.getScore() != null ? r.getScore() : 0).average().orElse(0.0);
+        return DashboardStats.builder().totalCourses(totalCourses).totalLearners(totalLearners).totalQuizzesCompleted(bestAttempts(allResults).size()).totalCertifications(totalCertifications).averageScore(allResults.isEmpty() ? 0.0 : Math.round(avg * 10.0) / 10.0).monthlyCertifications(monthlyData).courseStudentsDistribution(courseData).build();
     }
 
     public CourseStatisticsDTO getDetailedCourseStats(String trainerEmail) {
@@ -258,7 +258,7 @@ public class DashboardService {
                 courseCountMap.merge(apprenantId, 1, (v1, v2) -> v1 + v2);
 
                 // Average Score for this course
-                double avgScore = learnerResults.stream().mapToInt(r -> r.getScore() != null ? r.getScore() : 0).average().orElse(-1.0);
+                double avgScore = bestAttempts(learnerResults).stream().mapToInt(r -> r.getScore() != null ? r.getScore() : 0).average().orElse(-1.0);
                 if (avgScore >= 0) {
                     sumScoreMap.merge(apprenantId, avgScore, (v1, v2) -> v1 + v2);
                     scoreCountMap.merge(apprenantId, 1, (v1, v2) -> v1 + v2);
@@ -332,16 +332,17 @@ public class DashboardService {
             allResults.addAll(quizResultRepository.findByCourseId(c.getId()));
         }
 
-        int totalCompleted = allResults.size();
-        long successCount = allResults.stream().filter(r -> Boolean.TRUE.equals(r.getPassed())).count();
+        List<QuizResult> bestResults = new ArrayList<>(bestAttempts(allResults));
+        int totalCompleted = bestResults.size();
+        long successCount = bestResults.stream().filter(r -> Boolean.TRUE.equals(r.getPassed())).count();
         double successRate = totalCompleted > 0 ? (successCount * 100.0 / totalCompleted) : 0.0;
-        double avgScore = allResults.stream().mapToInt(r -> r.getScore() != null ? r.getScore() : 0).average().orElse(0.0);
+        double avgScore = bestResults.stream().mapToInt(r -> r.getScore() != null ? r.getScore() : 0).average().orElse(0.0);
 
         List<com.certiflow.formateur.dto.QuizStatisticsDTO.QuizStatItemDTO> items = new ArrayList<>();
-        allResults.sort(Comparator.comparing(QuizResult::getAttemptedAt).reversed());
+        bestResults.sort(Comparator.comparing(QuizResult::getAttemptedAt).reversed());
         
         long idCounter = 1;
-        for (QuizResult r : allResults) {
+        for (QuizResult r : bestResults) {
             com.certiflow.formateur.model.Apprenant app = apprenants.get(r.getApprenantId());
             if (app == null) continue;
             
@@ -393,5 +394,25 @@ public class DashboardService {
             .averageScore(Math.round(avgScore * 10.0) / 10.0)
             .recentResults(items)
             .build();
+    }
+
+    /** Plusieurs tentatives : ne garde que la meilleure par apprenant et par quiz (note la plus haute, puis réussite, puis la plus récente). */
+    private static List<QuizResult> bestAttempts(Collection<QuizResult> results) {
+        Map<String, QuizResult> best = new LinkedHashMap<>();
+        if (results == null) return new ArrayList<>();
+        for (QuizResult r : results) {
+            if (r == null) continue;
+            String key = r.getApprenantId() + "|" + r.getCourseId() + "|" + r.getQuizId();
+            QuizResult cur = best.get(key);
+            if (cur == null) { best.put(key, r); continue; }
+            int sr = r.getScore() != null ? r.getScore() : 0;
+            int sc = cur.getScore() != null ? cur.getScore() : 0;
+            boolean better;
+            if (sr != sc) better = sr > sc;
+            else if (Boolean.TRUE.equals(r.getPassed()) != Boolean.TRUE.equals(cur.getPassed())) better = Boolean.TRUE.equals(r.getPassed());
+            else better = r.getAttemptedAt() != null && (cur.getAttemptedAt() == null || r.getAttemptedAt().isAfter(cur.getAttemptedAt()));
+            if (better) best.put(key, r);
+        }
+        return new ArrayList<>(best.values());
     }
 }

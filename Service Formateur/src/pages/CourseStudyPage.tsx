@@ -45,6 +45,7 @@ import { sanitizeRichHtml } from '../utils/sanitizeHtml';
 import { streamAI } from '../utils/streamAI';
 import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, AI_GRADE_STREAM_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 
+import { bestQuizResult } from '../utils/quizResults';
 interface StudentAnswer {
     questionId: string;
     type: 'QCU' | 'QCM' | 'OPEN';
@@ -1864,7 +1865,7 @@ const CourseStudyPage: React.FC = () => {
                         {course?.finalExam && course?.examEnabled !== false && (
                             <div className="p-4 border-t border-glass-border bg-surface shadow-[0_-10px_30px_rgba(0,0,0,0.05)] relative z-10">
                                 {(() => {
-                                    const examResult = quizResults.find(r => String(r.quizId) === 'final_exam');
+                                    const examResult = bestQuizResult(quizResults, 'final_exam');
                                     const isCompleted = !!examResult;
 
                                     return (
@@ -1935,7 +1936,7 @@ const CourseStudyPage: React.FC = () => {
                         {!activeSubSection ? (
                             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-full max-w-2xl mx-auto">
                                 {(() => {
-                                    const examResult = quizResults.find(r => String(r.quizId) === 'final_exam');
+                                    const examResult = bestQuizResult(quizResults, 'final_exam');
                                     const isCompleted = !!examResult;
 
                                     if (course?.finalExam && course?.examEnabled !== false) {
