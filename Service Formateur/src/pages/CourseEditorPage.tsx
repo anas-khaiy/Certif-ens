@@ -366,7 +366,21 @@ interface QuizSubmission {
     cheatingReason?: string | null;
     attemptNumber?: number;
     totalAttempts?: number;
+    /** meilleure note (%) de toutes les tentatives de ce quiz */
+    bestScore?: number;
+    /** true = c'est la meilleure tentative de ce quiz */
+    isBest?: boolean;
 }
+
+/** Marque, pour chaque quiz, la meilleure tentative (note la plus haute, à égalité la plus récente) et la meilleure note. */
+const markBestAttempts = (subs: QuizSubmission[]): QuizSubmission[] => {
+    const bestIdx = new Map<string, number>();
+    subs.forEach((s, i) => {
+        const cur = bestIdx.get(s.quizId);
+        if (cur === undefined || (s.totalScore ?? 0) >= (subs[cur].totalScore ?? 0)) bestIdx.set(s.quizId, i);
+    });
+    return subs.map((s, i) => ({ ...s, isBest: bestIdx.get(s.quizId) === i, bestScore: subs[bestIdx.get(s.quizId)!]?.totalScore ?? 0 }));
+};
 
 interface EnrolledLearner {
     id: string;
@@ -2801,25 +2815,29 @@ const CourseEditorPage: React.FC = () => {
         setEnrolledLearners(prev => prev.map(l => {
             if (l.id !== learnerId) return l;
 
-            const newSubmissions = [...(l.submissions || [])];
-            newSubmissions[submissionIdx] = {
+            const rawSubmissions = [...(l.submissions || [])];
+            rawSubmissions[submissionIdx] = {
                 ...sub,
                 answers: updatedAnswers,
                 totalScore: newTotalScore,
                 status: newStatus
             };
+            const newSubmissions = markBestAttempts(rawSubmissions);
 
-            // Recalculate stats correctly
-            const regularQuizzes = newSubmissions.filter(s => s.quizId !== 'final_exam');
-            const totalScoreSum = regularQuizzes.reduce((acc, s) => acc + (s.totalScore || 0), 0);
+            // Recalculate stats correctly : meilleure tentative par quiz
+            const bestByQuiz = new Map<string, number>();
+            newSubmissions.filter(s => s.quizId !== 'final_exam').forEach(s => {
+                bestByQuiz.set(s.quizId, Math.max(bestByQuiz.get(s.quizId) ?? 0, s.totalScore || 0));
+            });
+            const totalScoreSum = Array.from(bestByQuiz.values()).reduce((acc, v) => acc + v, 0);
 
             // Note: totalQuizzes is the count of all required quizzes in the course
             const totalQuizzesCount = l.totalQuizzes || 1;
             const updatedAvgScore = Math.round(totalScoreSum / totalQuizzesCount);
 
             // Find best exam result
-            const examSub = newSubmissions.find(s => s.quizId === 'final_exam');
-            const updatedFinalExamNote = examSub ? (examSub.totalScore! * 20) / 100 : l.finalExamNote;
+            const examScores = newSubmissions.filter(s => s.quizId === 'final_exam').map(s => s.totalScore || 0);
+            const updatedFinalExamNote = examScores.length > 0 ? (Math.max(...examScores) * 20) / 100 : l.finalExamNote;
 
             return {
                 ...l,
@@ -3014,11 +3032,13 @@ const CourseEditorPage: React.FC = () => {
                         });
                     });
 
-                    // Keep only the LATEST attempt per quiz for correction view
-                    // (attemptNumber/totalAttempts still tell the teacher it's e.g. attempt 2/3)
-                    const submissions = Array.from(byQuiz.values())
-                        .map(attempts => attempts[attempts.length - 1])
-                        .sort((a, b) => a.quizTitle.localeCompare(b.quizTitle));
+                    // Le formateur voit TOUTES les tentatives (groupées par quiz, de la plus ancienne à la plus récente)
+                    // et la meilleure tentative de chaque quiz est signalée.
+                    const submissions = markBestAttempts(
+                        Array.from(byQuiz.values())
+                            .flat()
+                            .sort((a, b) => a.quizTitle.localeCompare(b.quizTitle) || (a.attemptNumber || 0) - (b.attemptNumber || 0))
+                    );
 
                     // Calculated section progress
                     const learnerProgress = allProgress.find(p => String(p.apprenantId) === learnerId);
@@ -4194,6 +4214,11 @@ const CourseEditorPage: React.FC = () => {
                                                                             T{sub.attemptNumber}/{sub.totalAttempts}
                                                                         </span>
                                                                     )}
+                                                                    {sub.totalAttempts && sub.totalAttempts > 1 && sub.isBest && (
+                                                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${isActive ? 'bg-yellow-300 text-yellow-900' : 'bg-yellow-400/25 text-yellow-700'}`}>
+                                                                            ★ MEILLEUR
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                                 <div className="flex items-center justify-between mt-1">
                                                                     <span className={`text-[9px] font-bold ${isActive ? 'text-white/70' : 'text-text-muted'}`}>
@@ -4247,6 +4272,11 @@ const CourseEditorPage: React.FC = () => {
                                                                     <div className="text-[10px] text-text-muted font-bold">{sub.submittedAt}</div>
                                                                 </div>
                                                                 <h4 className="text-xl font-black text-text tracking-tight uppercase">{sub.quizTitle}</h4>
+                                                                {sub.totalAttempts && sub.totalAttempts > 1 && (
+                                                                    <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-700 text-[11px] font-black">
+                                                                        ★ Meilleur score sur {sub.totalAttempts} tentatives : {toOutOf20(sub.bestScore ?? 0)}/20 <span className="opacity-70">({sub.bestScore ?? 0}%)</span>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                             <div className="flex items-center gap-4">
                                                                 <div className="text-center bg-background/40 backdrop-blur-sm border border-glass-border px-4 py-2 rounded-2xl">
