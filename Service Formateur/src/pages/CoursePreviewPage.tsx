@@ -122,6 +122,7 @@ const CoursePreviewPage: React.FC = () => {
     const [violationWarning, setViolationWarning] = useState<string | null>(null);
     const examActiveRef = useRef(false);
     const examSubmittedRef = useRef(false);
+    const failedSavedRef = useRef(false);
     const examFailedRef = useRef(false);
     const hasEnteredFullscreenRef = useRef(false);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -595,6 +596,8 @@ const CoursePreviewPage: React.FC = () => {
     // Helper: save a 0% failed result to the backend
     const saveFailedExamResult = useCallback((reason?: string) => {
         if (!id) return;
+        if (failedSavedRef.current) return;
+        failedSavedRef.current = true;
         // Use api.post with auth headers (sendBeacon doesn't carry auth tokens → 403)
         learnerApi.post(`/progress/${id}/quiz/${examKey}`, {
             score: 0,
@@ -605,7 +608,7 @@ const CoursePreviewPage: React.FC = () => {
         // Also update local state so the UI reflects the attempt
         setQuizResults(prev => {
             const already = prev.some(r => String(r.quizId) === examKey);
-            return already ? prev : [...prev, { quizId: examKey, score: 0, passed: false }];
+            return already && examKey === 'final_exam' ? prev : [...prev, { quizId: examKey, score: 0, passed: false }];
         });
     }, [id, examKey]);
 
@@ -1064,12 +1067,20 @@ const CoursePreviewPage: React.FC = () => {
     };
 
     // Tentatives : max configuré par le formateur (0 = illimité) et nombre déjà utilisé
-    const quizMaxAttempts = (quiz?: Quiz | null) => Math.max(0, Number(quiz?.settings?.maxAttempts) || 0);
+    // 0 = illimité. Quiz supervisé sans réglage explicite : une seule tentative (comportement historique).
+    const quizMaxAttempts = (quiz?: Quiz | null, supervised = false) => {
+        const m: any = quiz?.settings?.maxAttempts;
+        if (m === null || m === undefined) return supervised ? 1 : 0;
+        return Math.max(0, Number(m) || 0);
+    };
     const quizAttemptsUsed = (quizId?: string | number | null) => {
         if (quizId === undefined || quizId === null) return 0;
         const fromResults = quizResults.filter(r => String(r.quizId) === String(quizId)).length;
         return Math.max(fromResults, quizAttempts[String(quizId)] || 0);
     };
+    // Examen final : 1 tentative ; quiz supervisé : réglage du formateur
+    const examAttemptLimit = () => selectedQuiz ? quizMaxAttempts(examQuiz, true) : 1;
+    const canStartExam = () => { const lim = examAttemptLimit(); return lim === 0 || quizAttemptsUsed(examKey) < lim; };
     const finishQuizResult = () => {
         setQuizSubmitted(false);
         setQuizAnswers({});
@@ -1191,6 +1202,7 @@ const CoursePreviewPage: React.FC = () => {
 
         if (isExamActive) {
             setExamResult({ score, total: totalQuestions });
+            setQuizAttempts(prev => ({ ...prev, [examKey]: (prev[examKey] || 0) + 1 }));
             setExamReview(questions.map(q => {
                 const a: any = answersData.find((x: any) => x.questionId === q.id);
                 return { question: q, answer: examAnswers[q.id], isCorrect: !!a?.isCorrect, feedback: a?.feedback, gradedBy: a?.gradedBy };
@@ -1205,7 +1217,7 @@ const CoursePreviewPage: React.FC = () => {
                 }).then(() => {
                     setQuizResults(prev => {
                         const already = prev.some(r => String(r.quizId) === examKey);
-                        return already ? prev : [...prev, { quizId: examKey, score: roundedUserScore, passed: isPassed }];
+                        return already && examKey === 'final_exam' ? prev : [...prev, { quizId: examKey, score: roundedUserScore, passed: isPassed }];
                     });
                 }).catch(err => console.error("Failed to save exam result:", err));
             }
@@ -1261,13 +1273,13 @@ const CoursePreviewPage: React.FC = () => {
     };
 
     const startExam = async () => {
-        const alreadyAttempted = quizResults.some(r => String(r.quizId) === examKey);
-        if (alreadyAttempted) return;
+        if (!canStartExam()) return;
 
         setShowExamSetup(false);
         setIsCameraRequested(false);
         setExamAnswers({});
         setExamSubmitted(false);
+        failedSavedRef.current = false;
         setExamFailed(null);
         setViolationCount(0);
         setViolationWarning(null);
@@ -1529,15 +1541,18 @@ const CoursePreviewPage: React.FC = () => {
                                 {(course?.courseQuizzes || []).map((cq, cqIdx) => {
                                     const cqResult = bestQuizResult(quizResults, String(cq.id));
                                     const cqDone = !!cqResult;
+                                    const cqLimit = quizMaxAttempts(cq, true);
+                                    const cqUsed = quizAttemptsUsed(cq.id);
+                                    const cqCanRetake = cqDone && cqResult?.status !== 'PENDING_MANUAL' && (cqLimit === 0 || cqUsed < cqLimit);
                                     const cqPending = cqResult?.status === 'PENDING_MANUAL';
                                     const cqPassed = !!cqResult?.passed;
                                     return (
                                         <button
                                             key={String(cq.id ?? cqIdx)}
-                                            disabled={cqDone}
-                                            onClick={() => { if (!cqDone) openQuizSetup(cq); }}
+                                            disabled={cqDone && !cqCanRetake}
+                                            onClick={() => { if (!cqDone || cqCanRetake) openQuizSetup(cq); }}
                                             className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all ${cqDone
-                                                ? (cqPending ? 'bg-orange-500/5 border-orange-500/20' : (cqPassed ? 'bg-success/5 border-success/20' : 'bg-error/5 border-error/20')) + ' cursor-default opacity-80'
+                                                ? (cqPending ? 'bg-orange-500/5 border-orange-500/20' : (cqPassed ? 'bg-success/5 border-success/20' : 'bg-error/5 border-error/20')) + (cqCanRetake ? ' cursor-pointer hover:opacity-100' : ' cursor-default opacity-80')
                                                 : 'bg-primary/5 border-primary/20 hover:border-primary/40 hover:bg-primary/10'}`}
                                         >
                                             <div className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white ${cqDone
@@ -1549,7 +1564,7 @@ const CoursePreviewPage: React.FC = () => {
                                                 <div className="font-black text-xs truncate">{cq.title || `Quiz ${cqIdx + 1}`}</div>
                                                 <div className="flex items-center gap-2 mt-0.5 text-[10px] font-bold opacity-70">
                                                     {cqDone ? (
-                                                        cqPending ? <>En attente de correction</> : <>Note: {toOutOf20(cqResult.score)}/20 <span className="opacity-70">({cqResult.score}%)</span></>
+                                                        cqPending ? <>En attente de correction</> : <>Note: {toOutOf20(cqResult.score)}/20 <span className="opacity-70">({cqResult.score}%)</span> · {cqUsed}{cqLimit > 0 ? ` / ${cqLimit}` : ''} tent.</>
                                                     ) : (
                                                         <>
                                                             {cq.active === false && <span className="px-1.5 py-0.5 rounded bg-error/10 text-error uppercase tracking-wider">Inactif (masqué pour les apprenants)</span>}
@@ -1559,7 +1574,7 @@ const CoursePreviewPage: React.FC = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            {!cqDone && <ChevronRight size={16} className="text-primary shrink-0" />}
+                                            {(!cqDone || cqCanRetake) && <ChevronRight size={16} className="text-primary shrink-0" />}
                                         </button>
                                     );
                                 })}
@@ -2211,6 +2226,18 @@ const CoursePreviewPage: React.FC = () => {
                                                 <Clock size={12} className="text-primary sm:w-3.5 sm:h-3.5" />
                                                 <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">{examQuiz?.settings?.timeLimit || 60} min</span>
                                             </div>
+                                        {selectedQuiz && (() => {
+                                            const lim = quizMaxAttempts(examQuiz, true);
+                                            const used = quizAttemptsUsed(examKey);
+                                            return (
+                                                <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/5 border border-primary/10 rounded-xl flex items-center gap-2">
+                                                    <PlayCircle size={12} className="text-primary sm:w-3.5 sm:h-3.5" />
+                                                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-primary">
+                                                        {lim === 0 ? `Tentatives : ${used} effectuée${used > 1 ? 's' : ''} · illimitées` : `Tentatives : ${used} / ${lim} · reste ${Math.max(0, lim - used)}`}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
                                         </div>
                                         <div className="hidden sm:block w-24 h-1 bg-gradient-to-l from-primary to-transparent rounded-full opacity-30 mt-1" />
                                     </div>

@@ -855,7 +855,7 @@ const QuizEditorModal: React.FC<{
             aiDetectionType: 'backend',
             isRandom: false,
             showCorrection: true,
-            maxAttempts: 0,
+            maxAttempts: hidePool ? 1 : 0,
             detectPhone: true,
             detectMultiplePersons: true,
             detectForbiddenObjects: true,
@@ -871,6 +871,8 @@ const QuizEditorModal: React.FC<{
         }
 
         if (hidePool) baseSettings = { ...baseSettings, mode: 'manual' };
+        // Quiz supervisé : par défaut une seule tentative ; autres quiz : illimité
+        if (baseSettings.maxAttempts === null || baseSettings.maxAttempts === undefined) baseSettings.maxAttempts = hidePool ? 1 : 0;
 
         if ((baseSettings.mode === 'dynamic' || isExam) && initialQuiz?.questions && (!baseSettings.generatedPool || baseSettings.generatedPool.length === 0)) {
             baseSettings.generatedPool = initialQuiz.questions;
@@ -2291,7 +2293,7 @@ const QuizEditorModal: React.FC<{
                                     </div>
 
                                     {/* Résultats & tentatives */}
-                                    <div className={`grid grid-cols-1 ${isExam ? '' : 'md:grid-cols-2'} gap-8`}>
+                                    <div className={`grid grid-cols-1 ${isExam && !hidePool ? '' : 'md:grid-cols-2'} gap-8`}>
                                         <div className="bg-background border border-glass-border rounded-3xl p-8 space-y-4 shadow-sm">
                                             <label className="text-[10px] font-black uppercase opacity-60 flex items-center gap-2">
                                                 <Eye size={12} className="text-primary" />
@@ -2316,7 +2318,7 @@ const QuizEditorModal: React.FC<{
                                             </div>
                                         </div>
 
-                                        {!isExam && (
+                                        {(!isExam || hidePool) && (
                                             <div className="bg-background border border-glass-border rounded-3xl p-8 space-y-4 shadow-sm">
                                                 <label className="text-[10px] font-black uppercase opacity-60 flex items-center gap-2">
                                                     <RefreshCw size={12} className="text-primary" />
