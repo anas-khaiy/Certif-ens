@@ -71,4 +71,11 @@ public class QuizSettings {
     // 'none', 'qr_only', 'face_check'
     @Builder.Default
     private String verificationMode = "none";
+
+    // --- Résultats & tentatives ---
+    /** null / true = la correction détaillée est affichée à l'apprenant ; false = masquée. */
+    private Boolean showCorrection;
+
+    /** Nombre maximum de tentatives par apprenant. null ou 0 = illimité. */
+    private Integer maxAttempts;
 }

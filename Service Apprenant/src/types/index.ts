@@ -62,6 +62,10 @@ export interface QuizSettings {
     detectWindowBlur?: boolean;
     detectSound?: boolean;
     verificationMode?: 'none' | 'qr_only' | 'face_check';
+    /** false = la correction détaillée est masquée à l'apprenant (défaut : affichée) */
+    showCorrection?: boolean;
+    /** Nombre maximum de tentatives (0 / absent = illimité) */
+    maxAttempts?: number;
 }
 
 export interface Course {

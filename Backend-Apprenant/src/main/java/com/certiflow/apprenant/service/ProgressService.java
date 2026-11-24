@@ -120,6 +120,22 @@ public class ProgressService {
                                 }
                         }
                 });
+                // Nombre maximum de tentatives (réglage du quiz : null ou 0 = illimité)
+                courseRepository.findById(courseId).ifPresent(course -> {
+                        Quiz target = findQuizById(course, quizId);
+                        Integer max = (target != null && target.getSettings() != null) ? target.getSettings().getMaxAttempts() : null;
+                        if (max != null && max > 0) {
+                                apprenantRepository.findByEmail(email).ifPresent(a -> {
+                                        int used = quizResultRepository
+                                                        .findByApprenantIdAndCourseIdAndQuizId(a.getId(), courseId, quizId).size();
+                                        if (used >= max) {
+                                                throw new org.springframework.web.server.ResponseStatusException(
+                                                                org.springframework.http.HttpStatus.FORBIDDEN,
+                                                                "Nombre maximum de tentatives atteint pour ce quiz.");
+                                        }
+                                });
+                        }
+                });
                 try {
                         Apprenant apprenant = apprenantRepository.findByEmail(email)
                                         .orElseThrow(() -> new RuntimeException(
@@ -142,6 +158,30 @@ public class ProgressService {
                         e.printStackTrace();
                         throw e;
                 }
+        }
+
+        /** Retrouve un quiz du cours (quiz de leçon ou quiz supervisé) par son identifiant. */
+        private Quiz findQuizById(Course course, String quizId) {
+                if (quizId == null)
+                        return null;
+                if (course.getCourseQuizzes() != null) {
+                        for (Quiz q : course.getCourseQuizzes()) {
+                                if (q != null && q.getId() != null && quizId.equals(String.valueOf(q.getId())))
+                                        return q;
+                        }
+                }
+                if (course.getSections() != null) {
+                        for (Section sec : course.getSections()) {
+                                if (sec == null || sec.getSubSections() == null)
+                                        continue;
+                                for (SubSection ss : sec.getSubSections()) {
+                                        Quiz q = ss != null ? ss.getQuiz() : null;
+                                        if (q != null && q.getId() != null && quizId.equals(String.valueOf(q.getId())))
+                                                return q;
+                                }
+                        }
+                }
+                return null;
         }
 
         public List<QuizResult> getQuizResults(Long courseId, String email) {

@@ -47,6 +47,7 @@ import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_D
 import ImageLightbox from '../components/ImageLightbox';
 import QuestionText from '../components/QuestionText';
 import ExamCorrection, { type ReviewItem } from '../components/ExamCorrection';
+import QuizResultBar from '../components/QuizResultBar';
 // Convertit un pourcentage en note sur 20
 const toOutOf20 = (percent: number) => (Math.round(((percent || 0) / 5) * 10) / 10).toString().replace('.', ',');
 
@@ -92,6 +93,8 @@ const CoursePreviewPage: React.FC = () => {
     const [examSubmitted, setExamSubmitted] = useState(false);
     const [examResult, setExamResult] = useState<{ score: number; total: number } | null>(null);
     const [examReview, setExamReview] = useState<ReviewItem[]>([]);
+    const [quizReview, setQuizReview] = useState<ReviewItem[]>([]);
+    const [quizAttempts, setQuizAttempts] = useState<Record<string, number>>({});
     const [examAnswers, setExamAnswers] = useState<Record<string, any>>({});
     const [showExamSetup, setShowExamSetup] = useState(false);
     const [isCameraRequested, setIsCameraRequested] = useState(false);
@@ -1059,6 +1062,24 @@ const CoursePreviewPage: React.FC = () => {
         setQuizAnswers(prev => ({ ...prev, [questionId]: answer }));
     };
 
+    // Tentatives : max configuré par le formateur (0 = illimité) et nombre déjà utilisé
+    const quizMaxAttempts = (quiz?: Quiz | null) => Math.max(0, Number(quiz?.settings?.maxAttempts) || 0);
+    const quizAttemptsUsed = (quizId?: string | number | null) => {
+        if (quizId === undefined || quizId === null) return 0;
+        const fromResults = quizResults.filter(r => String(r.quizId) === String(quizId)).length;
+        return Math.max(fromResults, quizAttempts[String(quizId)] || 0);
+    };
+    const finishQuizResult = () => {
+        setQuizSubmitted(false);
+        setQuizAnswers({});
+        setQuizPassError(null);
+        const qid = activeSubSection?.quiz?.id;
+        if (qid) setRetakingQuizIds(prev => prev.filter(x => x !== String(qid)));
+    };
+    useEffect(() => {
+        if (quizSubmitted) setTimeout(() => document.getElementById('quiz-result-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    }, [quizSubmitted]);
+
     const handleSubmitQuiz = async (quiz: Quiz) => {
         const questions = isExamActive ? activeExamQuestions : activeQuizQuestions;
         const answersData: StudentAnswer[] = [];
@@ -1189,6 +1210,14 @@ const CoursePreviewPage: React.FC = () => {
             }
         } else {
             setQuizScore(score);
+            setQuizReview(questions.map(q => {
+                const a: any = answersData.find((x: any) => x.questionId === q.id);
+                return { question: q, answer: quizAnswers[q.id], isCorrect: !!a?.isCorrect, feedback: a?.feedback, gradedBy: a?.gradedBy };
+            }));
+            if (activeSubSection?.quiz?.id) {
+                const qk = String(activeSubSection.quiz.id);
+                setQuizAttempts(prev => ({ ...prev, [qk]: (prev[qk] || 0) + 1 }));
+            }
             setQuizSubmitted(true);
 
             if (id && activeSubSection?.quiz) {
@@ -1201,7 +1230,10 @@ const CoursePreviewPage: React.FC = () => {
                     .then(res => {
                         setQuizResults(prev => [...prev, res.data]);
                     })
-                    .catch(err => console.error("Failed to save quiz result:", err));
+                    .catch(err => {
+                        console.error("Failed to save quiz result:", err);
+                        setQuizResults(prev => [...prev, { quizId: String(quizId), score: roundedUserScore, passed: isPassed, status: 'GRADED' }]);
+                    });
             }
 
             if (isPassed) {
@@ -1847,12 +1879,29 @@ const CoursePreviewPage: React.FC = () => {
                                                                 </div>
                                                             </div>
 
-                                                            <button
-                                                                onClick={() => activeSubSection.quiz?.id && setRetakingQuizIds(prev => [...prev, String(activeSubSection.quiz?.id)])}
-                                                                className="px-8 py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-primary-hover transition-all"
-                                                            >
-                                                                <PlayCircle size={18} /> Recommencer le quiz
-                                                            </button>
+                                                            {(() => {
+                                                                const maxA = quizMaxAttempts(activeSubSection.quiz);
+                                                                const used = quizAttemptsUsed(activeSubSection.quiz?.id);
+                                                                if (maxA > 0 && used >= maxA) {
+                                                                    return (
+                                                                        <div className="p-4 rounded-xl bg-surface border-2 border-red-600/60 text-sm font-bold text-text flex items-center gap-3">
+                                                                            <AlertTriangle size={18} className="text-red-600 shrink-0" />
+                                                                            Nombre maximum de tentatives atteint ({used} / {maxA}).
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                                return (
+                                                                    <div className="flex flex-wrap items-center gap-4">
+                                                                        <button
+                                                                            onClick={() => activeSubSection.quiz?.id && setRetakingQuizIds(prev => [...prev, String(activeSubSection.quiz?.id)])}
+                                                                            className="px-8 py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-primary-hover transition-all"
+                                                                        >
+                                                                            <PlayCircle size={18} /> Recommencer le quiz
+                                                                        </button>
+                                                                        {maxA > 0 && <span className="text-sm font-black text-text-muted">Tentatives : {used} / {maxA}</span>}
+                                                                    </div>
+                                                                );
+                                                            })()}
                                                         </div>
                                                     );
                                                 }
@@ -1930,7 +1979,13 @@ const CoursePreviewPage: React.FC = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="text-left py-10 bg-surface/50 rounded-2xl border border-glass-border p-8">
-                                                        <Trophy size={64} className="text-primary ml-0 mb-4" />
+                                                        <div id="quiz-result-top" className="scroll-mt-24" />
+                                                        {(() => {
+                                                            const tot = activeQuizQuestions.length || 1;
+                                                            const pct = Math.round((quizScore / tot) * 100);
+                                                            const pendingManual = activeQuizQuestions.some(q => q.type === 'OPEN' && q.correctionType !== 'ai');
+                                                            return <div className="mb-6"><QuizResultBar scoreOn20={toOutOf20(pct)} percent={pct} correct={quizScore} total={activeQuizQuestions.length} passed={pendingManual ? null : pct >= (activeSubSection.quiz?.settings?.passingScore || 70)} pending={pendingManual} onFinish={finishQuizResult} /></div>;
+                                                        })()}
                                                         <h3 className="text-2xl font-black mb-2">Quiz Terminé !</h3>
                                                         <div className="space-y-1 mb-4">
                                                             <p className="text-lg font-bold">Score obtenu : <span className="text-primary">{toOutOf20((quizScore / (activeQuizQuestions.length || 1)) * 100)}/20</span> <span className="text-sm text-text-muted">({Math.round((quizScore / (activeQuizQuestions.length || 1)) * 100)}%)</span> <span className="text-sm text-text-muted">({quizScore} / {activeQuizQuestions.length})</span></p>
@@ -1962,19 +2017,43 @@ const CoursePreviewPage: React.FC = () => {
                                                             </div>
                                                         )}
 
-                                                        <button
-                                                            onClick={() => {
-                                                                setQuizSubmitted(false);
-                                                                setQuizAnswers({});
-                                                                setQuizPassError(null);
-                                                                if (activeSubSection.quiz?.id) {
-                                                                    setRetakingQuizIds(prev => [...prev, String(activeSubSection.quiz?.id)]);
+                                                        {activeSubSection.quiz?.settings?.showCorrection !== false && (
+                                                            <div className="mt-8"><ExamCorrection items={quizReview} /></div>
+                                                        )}
+
+                                                        <div className="mt-8 space-y-4">
+                                                            {(() => {
+                                                                const tot = activeQuizQuestions.length || 1;
+                                                                const pct = Math.round((quizScore / tot) * 100);
+                                                                const pendingManual = activeQuizQuestions.some(q => q.type === 'OPEN' && q.correctionType !== 'ai');
+                                                                return <QuizResultBar scoreOn20={toOutOf20(pct)} percent={pct} correct={quizScore} total={activeQuizQuestions.length} passed={pendingManual ? null : pct >= (activeSubSection.quiz?.settings?.passingScore || 70)} pending={pendingManual} onFinish={finishQuizResult} />;
+                                                            })()}
+                                                            {(() => {
+                                                                const maxA = quizMaxAttempts(activeSubSection.quiz);
+                                                                const used = quizAttemptsUsed(activeSubSection.quiz?.id);
+                                                                if (maxA > 0 && used >= maxA) {
+                                                                    return <p className="text-sm font-black text-red-600 text-center">Nombre maximum de tentatives atteint ({used} / {maxA}).</p>;
                                                                 }
-                                                            }}
-                                                            className="mt-6 text-sm font-black text-primary hover:underline flex items-center gap-2"
-                                                        >
-                                                            <Trophy size={14} /> Recommencer le test
-                                                        </button>
+                                                                return (
+                                                                    <div className="flex flex-wrap items-center justify-center gap-4">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setQuizSubmitted(false);
+                                                                                setQuizAnswers({});
+                                                                                setQuizPassError(null);
+                                                                                if (activeSubSection.quiz?.id) {
+                                                                                    setRetakingQuizIds(prev => [...prev, String(activeSubSection.quiz?.id)]);
+                                                                                }
+                                                                            }}
+                                                                            className="text-sm font-black text-primary hover:underline flex items-center gap-2"
+                                                                        >
+                                                                            <Trophy size={14} /> Recommencer le test
+                                                                        </button>
+                                                                        {maxA > 0 && <span className="text-xs font-black text-text-muted">Tentatives : {used} / {maxA}</span>}
+                                                                    </div>
+                                                                );
+                                                            })()}
+                                                        </div>
                                                     </div>
                                                 );
                                             })()}
@@ -2509,6 +2588,12 @@ const CoursePreviewPage: React.FC = () => {
                                     ) : (
                                         <div className="w-full mx-auto mt-10 p-5 sm:p-12 bg-surface rounded-[2rem] sm:rounded-[3rem] border border-glass-border text-center shadow-2xl relative overflow-hidden text-text">
                                             <div className="absolute top-0 inset-x-0 h-2 bg-primary"></div>
+                                                    {(() => {
+                                                        const manual = (examQuiz?.questions || []).some((q: any) => q.type === 'OPEN' && q.correctionType !== 'ai');
+                                                        const pct = Math.round((examResult?.score || 0) / (examResult?.total || 1) * 100);
+                                                        const finish = () => { setIsExamActive(false); setExamSubmitted(false); try { document.exitFullscreen(); } catch (e) { } };
+                                                        return <div className="mb-8 mt-2"><QuizResultBar scoreOn20={toOutOf20(pct)} percent={pct} correct={examResult?.score} total={examResult?.total} passed={manual ? null : pct >= (examQuiz?.settings?.passingScore || 70)} pending={manual} finishLabel="Terminer et quitter" onFinish={finish} /></div>;
+                                                    })()}
                                             <div className="w-28 h-28 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-8 animate-bounce"><CheckCircle size={56} /></div>
                                             <h2 className="text-4xl font-black mb-4">Examen Terminé</h2>
                                             <div className="py-6 mb-8 rounded-3xl bg-primary/5 border border-primary/10">
@@ -2517,8 +2602,13 @@ const CoursePreviewPage: React.FC = () => {
                                                 <p className="text-sm font-bold text-text-muted mt-2">{examResult?.score} / {examResult?.total} réponses correctes</p>
                                             </div>
                                             <p className="text-text-muted mb-10 text-lg">Vos résultats ont été transmis à l'administration.</p>
-                                                    <div className="mb-10"><ExamCorrection items={examReview} /></div>
-                                            <button onClick={() => { setIsExamActive(false); setExamSubmitted(false); try { document.exitFullscreen(); } catch (e) { } }} className="btn-primary w-full py-5 rounded-2xl text-xl font-black shadow-xl">Terminer et quitter</button>
+                                                    {examQuiz?.settings?.showCorrection !== false && <div className="mb-10"><ExamCorrection items={examReview} /></div>}
+                                                    {(() => {
+                                                        const manual = (examQuiz?.questions || []).some((q: any) => q.type === 'OPEN' && q.correctionType !== 'ai');
+                                                        const pct = Math.round((examResult?.score || 0) / (examResult?.total || 1) * 100);
+                                                        const finish = () => { setIsExamActive(false); setExamSubmitted(false); try { document.exitFullscreen(); } catch (e) { } };
+                                                        return <QuizResultBar scoreOn20={toOutOf20(pct)} percent={pct} correct={examResult?.score} total={examResult?.total} passed={manual ? null : pct >= (examQuiz?.settings?.passingScore || 70)} pending={manual} finishLabel="Terminer et quitter" onFinish={finish} />;
+                                                    })()}
                                         </div>
                                     )}
                                 </div>

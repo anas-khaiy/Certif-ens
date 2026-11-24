@@ -854,6 +854,8 @@ const QuizEditorModal: React.FC<{
             isAiDetectionEnabled: false,
             aiDetectionType: 'backend',
             isRandom: false,
+            showCorrection: true,
+            maxAttempts: 0,
             detectPhone: true,
             detectMultiplePersons: true,
             detectForbiddenObjects: true,
@@ -2284,6 +2286,73 @@ const QuizEditorModal: React.FC<{
                                                         className="w-12 h-12 rounded-2xl bg-surface-hover flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all font-black border border-glass-border"
                                                     >+</button>
                                                 </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Résultats & tentatives */}
+                                    <div className={`grid grid-cols-1 ${isExam ? '' : 'md:grid-cols-2'} gap-8`}>
+                                        <div className="bg-background border border-glass-border rounded-3xl p-8 space-y-4 shadow-sm">
+                                            <label className="text-[10px] font-black uppercase opacity-60 flex items-center gap-2">
+                                                <Eye size={12} className="text-primary" />
+                                                Correction après la soumission
+                                            </label>
+                                            <div className="flex items-center justify-between gap-4">
+                                                <p className="text-xs text-text-muted font-bold leading-snug">
+                                                    {settings.showCorrection !== false
+                                                        ? "L'apprenant voit ses réponses, les bonnes réponses et ses erreurs."
+                                                        : "L'apprenant voit seulement sa note, sans la correction."}
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSettings({ ...settings, showCorrection: settings.showCorrection === false })}
+                                                    className={`relative w-16 h-9 flex items-center rounded-full cursor-pointer transition-all duration-300 shrink-0 border-2 ${settings.showCorrection !== false ? 'bg-primary border-primary' : 'bg-surface-hover border-glass-border'}`}
+                                                >
+                                                    <span className={`absolute text-[8px] font-black uppercase tracking-wider ${settings.showCorrection !== false ? 'left-3 text-white' : 'right-3 text-text-muted'}`}>
+                                                        {settings.showCorrection !== false ? 'OUI' : 'NON'}
+                                                    </span>
+                                                    <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${settings.showCorrection !== false ? 'translate-x-8' : 'translate-x-1'}`} />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {!isExam && (
+                                            <div className="bg-background border border-glass-border rounded-3xl p-8 space-y-4 shadow-sm">
+                                                <label className="text-[10px] font-black uppercase opacity-60 flex items-center gap-2">
+                                                    <RefreshCw size={12} className="text-primary" />
+                                                    Répétition du quiz
+                                                </label>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSettings({ ...settings, maxAttempts: 0 })}
+                                                        className={`flex-1 py-2.5 rounded-xl text-xs font-black border-2 transition-all ${!(settings.maxAttempts && settings.maxAttempts > 0) ? 'bg-primary text-white border-primary' : 'bg-surface border-glass-border text-text hover:border-primary'}`}
+                                                    >Illimitée</button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSettings({ ...settings, maxAttempts: settings.maxAttempts && settings.maxAttempts > 0 ? settings.maxAttempts : 2 })}
+                                                        className={`flex-1 py-2.5 rounded-xl text-xs font-black border-2 transition-all ${settings.maxAttempts && settings.maxAttempts > 0 ? 'bg-primary text-white border-primary' : 'bg-surface border-glass-border text-text hover:border-primary'}`}
+                                                    >Limitée</button>
+                                                </div>
+                                                {settings.maxAttempts && settings.maxAttempts > 0 ? (
+                                                    <div className="flex items-center gap-4">
+                                                        <button type="button" onClick={() => setSettings({ ...settings, maxAttempts: Math.max(1, (settings.maxAttempts || 1) - 1) })} className="w-12 h-12 rounded-2xl bg-surface-hover flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all font-black text-xl">-</button>
+                                                        <div className="flex-1 text-center">
+                                                            <input
+                                                                type="number"
+                                                                min={1}
+                                                                max={99}
+                                                                value={settings.maxAttempts}
+                                                                onChange={(e) => setSettings({ ...settings, maxAttempts: Math.min(99, Math.max(1, parseInt(e.target.value) || 1)) })}
+                                                                className="w-16 bg-transparent text-2xl font-black text-center focus:outline-none"
+                                                            />
+                                                            <span className="block text-[10px] font-black uppercase text-text-muted">tentative{settings.maxAttempts > 1 ? 's' : ''} maximum</span>
+                                                        </div>
+                                                        <button type="button" onClick={() => setSettings({ ...settings, maxAttempts: Math.min(99, (settings.maxAttempts || 1) + 1) })} className="w-12 h-12 rounded-2xl bg-surface-hover flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all font-black text-xl">+</button>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-xs text-text-muted font-bold">L'apprenant peut recommencer le quiz autant de fois qu'il veut.</p>
+                                                )}
                                             </div>
                                         )}
                                     </div>
