@@ -21,6 +21,7 @@ import type { BackendSpecialite, Course, Formation, Question, Quiz, QuizSettings
 import api from '../api/api-client';
 import { API_FORMATEUR, API_APPRENANT, API_ADMIN, WS_APPRENANT, WS_LIVEKIT, AI_DETECT_URL, VERIFY_URL_APPRENANT, VERIFY_URL_FORMATEUR } from '../config';
 import {
+    Copy,
     BookOpen,
     ArrowLeft,
     Save,
@@ -305,6 +306,18 @@ const PAGE_STYLES = `
 
 // --- Helpers ---
 const generateId = () => `temp-${Math.random().toString(36).substr(2, 9)}`;
+
+/** Copie profonde d'un quiz (nouveaux identifiants temporaires pour le quiz et ses questions). */
+const duplicateQuiz = (quiz: any, newTitle: string): any => {
+    const newQuestion = (q: any) => ({ ...JSON.parse(JSON.stringify(q)), id: generateId() });
+    const copy = JSON.parse(JSON.stringify(quiz));
+    copy.id = generateId();
+    copy.title = newTitle;
+    copy.questions = (quiz.questions || []).map(newQuestion);
+    if (copy.settings?.generatedPool) copy.settings.generatedPool = (quiz.settings?.generatedPool || []).map(newQuestion);
+    return copy;
+};
+
 
 // Map raw cheating reason strings to short user-friendly labels + icons
 const parseCheatingReason = (reason: string): { icon: string; label: string; color: string } => {
@@ -3695,6 +3708,15 @@ const CourseEditorPage: React.FC = () => {
                                                     </div>
                                                     <span className={`text-xs font-bold w-12 ${cq.active !== false ? 'text-success' : 'text-text-muted'}`}>{cq.active !== false ? 'Actif' : 'Inactif'}</span>
                                                 </label>
+                                                <button
+                                                    onClick={() => setCourse(prev => {
+                                                        const list = [...(prev.courseQuizzes || [])];
+                                                        list.splice(cqIdx + 1, 0, duplicateQuiz(cq, `${cq.title || `Quiz ${cqIdx + 1}`} (copie)`));
+                                                        return { ...prev, courseQuizzes: list };
+                                                    })}
+                                                    title="Dupliquer ce quiz (questions et réglages) — pensez à enregistrer"
+                                                    className="px-3 py-2 rounded-xl text-xs font-bold border border-glass-border hover:border-primary/40 hover:text-primary transition-all flex items-center gap-1.5"
+                                                ><Copy size={13} /> Dupliquer</button>
                                                 <button onClick={() => setQuizTitleDraft({ index: cqIdx, title: cq.title || '' })} className="px-3 py-2 rounded-xl text-xs font-bold border border-glass-border hover:border-primary/40 hover:text-primary transition-all">Renommer</button>
                                                 <button onClick={() => setQuizEditorTarget({ index: cqIdx, title: cq.title || `Quiz ${cqIdx + 1}` })} className="px-3 py-2 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 transition-all">Configurer</button>
                                                 <button
