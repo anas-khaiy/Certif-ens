@@ -84,6 +84,7 @@ public class Course {
         joinColumns = @JoinColumn(name = "course_id"),
         inverseJoinColumns = @JoinColumn(name = "quiz_id")
     )
+    @OrderBy("orderIndex ASC, id ASC")
     @Builder.Default
     private List<Quiz> courseQuizzes = new ArrayList<>();
 

@@ -25,6 +25,9 @@ public class Quiz {
     /** Quiz supervisé du cours : actif (null ou true) = accessible aux apprenants ; false = non disponible. */
     private Boolean active;
 
+    /** Position du quiz supervisé dans le cours (ordre choisi par le formateur). */
+    private Integer orderIndex;
+
     @Embedded
     @Builder.Default
     private QuizSettings settings = new QuizSettings();

@@ -70,6 +70,10 @@ public class CourseService {
             }
         }
         if (course.getCourseQuizzes() != null) {
+            // L'ordre de la liste envoyée par l'éditeur est conservé (position du quiz dans le cours)
+            for (int i = 0; i < course.getCourseQuizzes().size(); i++) {
+                if (course.getCourseQuizzes().get(i) != null) course.getCourseQuizzes().get(i).setOrderIndex(i);
+            }
             course.getCourseQuizzes().forEach(quiz -> {
                 if (quiz.getQuestions() != null) {
                     quiz.getQuestions().forEach(q -> {

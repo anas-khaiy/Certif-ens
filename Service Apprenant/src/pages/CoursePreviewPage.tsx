@@ -1998,7 +1998,7 @@ const CoursePreviewPage: React.FC = () => {
                                                 {cqDone ? (cqPending ? <Clock size={16} /> : (cqPassed ? <CheckCircle size={16} /> : <X size={16} />)) : <Shield size={16} />}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="font-black text-xs truncate">{cq.title || `Quiz ${cqIdx + 1}`}</div>
+                                                <div className="font-black text-xs leading-snug break-words">{cq.title || `Quiz ${cqIdx + 1}`}</div>
                                                 <div className="flex items-center gap-2 mt-0.5 text-[10px] font-bold opacity-70">
                                                     {cqInactive ? (
                                                         <><Lock size={10} /> Non disponible pour le moment</>
@@ -2747,6 +2747,7 @@ const CoursePreviewPage: React.FC = () => {
                                         <div className="p-3 sm:p-4 bg-primary/10 text-primary rounded-2xl shadow-inner border border-primary/10"><Shield size={24} className="sm:w-8 sm:h-8" /></div>
                                         <div>
                                             <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-none mb-1 sm:mb-2">Prêt pour l'examen ?</h2>
+                                            {examQuiz?.title && <p className="text-base sm:text-xl font-black text-primary leading-snug break-words mb-1 sm:mb-2">{examQuiz.title}</p>}
                                             <p className="text-xs sm:text-sm text-text-muted font-bold tracking-tight">Vérifiez les conditions avant de continuer.</p>
                                         </div>
                                     </div>
